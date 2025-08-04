@@ -81,6 +81,41 @@ class LivenessConfig {
   /// Custom messages for each challenge type
   final Map<ChallengeType, String>? challengeInstructions;
 
+  // NEW ERROR HANDLING AND PERFORMANCE PROPERTIES
+
+  /// Maximum number of consecutive processing errors before reinitializing detector
+  final int maxConsecutiveErrors;
+  
+  /// Frame skip interval (process every Nth frame to prevent buffer overflow)
+  final int frameSkipInterval;
+  
+  /// Maximum number of camera restart attempts
+  final int maxCameraRestartAttempts;
+  
+  /// Delay between camera restart attempts
+  final Duration cameraRestartDelay;
+  
+  /// Whether to enable aggressive error recovery
+  final bool enableAggressiveErrorRecovery;
+  
+  /// Maximum image processing timeout
+  final Duration imageProcessingTimeout;
+
+  /// Whether to enable performance monitoring and logging
+  final bool enablePerformanceMonitoring;
+
+  /// Interval for performance monitoring reports
+  final Duration performanceMonitoringInterval;
+
+  /// Maximum allowed frame drop rate before reducing processing load
+  final double maxFrameDropRate;
+
+  /// Whether to enable automatic memory cleanup
+  final bool enableAutomaticMemoryCleanup;
+
+  /// Interval for automatic memory cleanup
+  final Duration memoryCleanupInterval;
+
   const LivenessConfig({
     this.maxSessionDuration = LivenessConstants.defaultMaxSessionDuration,
     this.minFaceSize = LivenessConstants.defaultMinFaceSize,
@@ -110,6 +145,18 @@ class LivenessConfig {
     this.numberOfRandomChallenges = 3,
     this.alwaysIncludeBlink = true,
     this.challengeInstructions,
+    // New error handling and performance properties with sensible defaults
+    this.maxConsecutiveErrors = 5,
+    this.frameSkipInterval = 2,
+    this.maxCameraRestartAttempts = 3,
+    this.cameraRestartDelay = const Duration(milliseconds: 500),
+    this.enableAggressiveErrorRecovery = true,
+    this.imageProcessingTimeout = const Duration(milliseconds: 1000),
+    this.enablePerformanceMonitoring = false, // Disabled by default for performance
+    this.performanceMonitoringInterval = const Duration(seconds: 5),
+    this.maxFrameDropRate = 0.7, // Allow up to 70% frame drops before reducing load
+    this.enableAutomaticMemoryCleanup = true,
+    this.memoryCleanupInterval = const Duration(seconds: 30),
   });
 
   /// Create a copy of this configuration with some values replaced
@@ -139,6 +186,18 @@ class LivenessConfig {
     int? numberOfRandomChallenges,
     bool? alwaysIncludeBlink,
     Map<ChallengeType, String>? challengeInstructions,
+    // New parameters
+    int? maxConsecutiveErrors,
+    int? frameSkipInterval,
+    int? maxCameraRestartAttempts,
+    Duration? cameraRestartDelay,
+    bool? enableAggressiveErrorRecovery,
+    Duration? imageProcessingTimeout,
+    bool? enablePerformanceMonitoring,
+    Duration? performanceMonitoringInterval,
+    double? maxFrameDropRate,
+    bool? enableAutomaticMemoryCleanup,
+    Duration? memoryCleanupInterval,
   }) {
     return LivenessConfig(
       maxSessionDuration: maxSessionDuration ?? this.maxSessionDuration,
@@ -175,6 +234,59 @@ class LivenessConfig {
       alwaysIncludeBlink: alwaysIncludeBlink ?? this.alwaysIncludeBlink,
       challengeInstructions:
           challengeInstructions ?? this.challengeInstructions,
+      // New parameters
+      maxConsecutiveErrors: maxConsecutiveErrors ?? this.maxConsecutiveErrors,
+      frameSkipInterval: frameSkipInterval ?? this.frameSkipInterval,
+      maxCameraRestartAttempts: maxCameraRestartAttempts ?? this.maxCameraRestartAttempts,
+      cameraRestartDelay: cameraRestartDelay ?? this.cameraRestartDelay,
+      enableAggressiveErrorRecovery: enableAggressiveErrorRecovery ?? this.enableAggressiveErrorRecovery,
+      imageProcessingTimeout: imageProcessingTimeout ?? this.imageProcessingTimeout,
+      enablePerformanceMonitoring: enablePerformanceMonitoring ?? this.enablePerformanceMonitoring,
+      performanceMonitoringInterval: performanceMonitoringInterval ?? this.performanceMonitoringInterval,
+      maxFrameDropRate: maxFrameDropRate ?? this.maxFrameDropRate,
+      enableAutomaticMemoryCleanup: enableAutomaticMemoryCleanup ?? this.enableAutomaticMemoryCleanup,
+      memoryCleanupInterval: memoryCleanupInterval ?? this.memoryCleanupInterval,
+    );
+  }
+
+  /// Create a configuration optimized for stability (reduced crashes)
+  factory LivenessConfig.stable() {
+    return const LivenessConfig(
+      frameSkipInterval: 3, // Process every 4th frame
+      maxConsecutiveErrors: 3, // Restart detector sooner
+      enableAggressiveErrorRecovery: true,
+      imageProcessingTimeout: Duration(milliseconds: 800),
+      maxFrameDropRate: 0.8, // Allow more frame drops
+      enableAutomaticMemoryCleanup: true,
+      memoryCleanupInterval: Duration(seconds: 20),
+    );
+  }
+
+  /// Create a configuration optimized for performance
+  factory LivenessConfig.performance() {
+    return const LivenessConfig(
+      frameSkipInterval: 1, // Process every 2nd frame
+      maxConsecutiveErrors: 8, // Allow more errors before restart
+      enableAggressiveErrorRecovery: false,
+      imageProcessingTimeout: Duration(milliseconds: 1200),
+      enablePerformanceMonitoring: true,
+      maxFrameDropRate: 0.5, // Lower drop rate tolerance
+      enableAutomaticMemoryCleanup: true,
+      memoryCleanupInterval: Duration(seconds: 45),
+    );
+  }
+
+  /// Create a configuration optimized for debugging
+  factory LivenessConfig.debug() {
+    return const LivenessConfig(
+      frameSkipInterval: 4, // Process every 5th frame for easier debugging
+      maxConsecutiveErrors: 2, // Restart quickly to see issues
+      enableAggressiveErrorRecovery: true,
+      enablePerformanceMonitoring: true,
+      performanceMonitoringInterval: Duration(seconds: 3),
+      maxFrameDropRate: 0.9, // Very tolerant for debugging
+      enableAutomaticMemoryCleanup: true,
+      memoryCleanupInterval: Duration(seconds: 10),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
@@ -15,6 +16,12 @@ class FaceDetectionService {
 
   /// Whether currently processing an image
   bool _isProcessingImage = false;
+
+  /// Frame skip counter for throttling
+  int _frameSkipCounter = 0;
+
+  /// Error recovery counter
+  int _errorCount = 0;
 
   /// Last measured eye open probability
   double? _lastEyeOpenProbability;
@@ -122,37 +129,196 @@ class FaceDetectionService {
     return _isFaceCentered;
   }
 
-  /// Process camera image to detect faces
+  /// Process camera image to detect faces with improved error handling
   Future<List<Face>> processImage(
       CameraImage image, CameraDescription camera) async {
     _currentCamera = camera;
 
+    // Skip processing if already processing or implement frame throttling
     if (_isProcessingImage) return [];
 
+    // Frame throttling - process every Nth frame
+    _frameSkipCounter++;
+    if (_frameSkipCounter % _config.frameSkipInterval != 0) {
+      return [];
+    }
+
     _isProcessingImage = true;
+    
     try {
-      final WriteBuffer allBytes = WriteBuffer();
-      for (final Plane plane in image.planes) {
-        allBytes.putUint8List(plane.bytes);
+      // Validate image data before processing
+      if (image.planes.isEmpty || image.planes[0].bytes.isEmpty) {
+        debugPrint('Invalid image data received');
+        return [];
       }
-      final bytes = allBytes.done().buffer.asUint8List();
 
-      final inputImage = InputImage.fromBytes(
-        bytes: bytes,
-        metadata: InputImageMetadata(
-          size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: InputImageRotation.values[camera.sensorOrientation ~/ 90],
-          format: InputImageFormat.yuv420,
-          bytesPerRow: image.planes[0].bytesPerRow,
-        ),
-      );
+      // Create InputImage with proper error handling
+      final inputImage = _createInputImageRobust(image, camera);
+      if (inputImage == null) {
+        debugPrint('Failed to create InputImage');
+        return [];
+      }
 
-      return await _faceDetector.processImage(inputImage);
+      // Process the image
+      final faces = await _faceDetector.processImage(inputImage);
+      
+      // Reset error count on successful processing
+      _errorCount = 0;
+      
+      return faces;
     } catch (e) {
-      debugPrint('Error processing image: $e');
+      _errorCount++;
+      debugPrint('Error processing image (attempt $_errorCount): $e');
+      
+      // If too many consecutive errors, reset the detector
+      if (_errorCount >= _config.maxConsecutiveErrors) {
+        debugPrint('Too many consecutive errors, reinitializing detector');
+        await _reinitializeDetector();
+        _errorCount = 0;
+      }
+      
       return [];
     } finally {
       _isProcessingImage = false;
+    }
+  }
+
+  /// Create InputImage with maximum robustness
+  InputImage? _createInputImageRobust(CameraImage image, CameraDescription camera) {
+    // Try multiple approaches in order of preference
+    
+    // Approach 1: Standard method with format detection
+    try {
+      return _createInputImageStandard(image, camera);
+    } catch (e) {
+      debugPrint('Standard InputImage creation failed: $e');
+    }
+
+    // Approach 2: Force YUV420 format (most common)
+    try {
+      return _createInputImageForced(image, camera);
+    } catch (e) {
+      debugPrint('Forced YUV420 InputImage creation failed: $e');
+    }
+
+    // Approach 3: Minimal metadata approach
+    try {
+      return _createInputImageMinimal(image, camera);
+    } catch (e) {
+      debugPrint('Minimal InputImage creation failed: $e');
+    }
+
+    return null;
+  }
+
+  /// Standard InputImage creation with format detection
+  InputImage? _createInputImageStandard(CameraImage image, CameraDescription camera) {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+
+    return InputImage.fromBytes(
+      bytes: bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: _getInputImageRotation(camera),
+        format: _getSafeInputImageFormat(image.format),
+        bytesPerRow: image.planes[0].bytesPerRow,
+      ),
+    );
+  }
+
+  /// Forced YUV420 InputImage creation
+  InputImage? _createInputImageForced(CameraImage image, CameraDescription camera) {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+
+    return InputImage.fromBytes(
+      bytes: bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: _getInputImageRotation(camera),
+        format: InputImageFormat.yuv420, // Force YUV420
+        bytesPerRow: image.planes[0].bytesPerRow,
+      ),
+    );
+  }
+
+  /// Minimal InputImage creation with fixed values
+  InputImage? _createInputImageMinimal(CameraImage image, CameraDescription camera) {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+
+    return InputImage.fromBytes(
+      bytes: bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: InputImageRotation.rotation0deg, // Fixed rotation
+        format: InputImageFormat.yuv420, // Fixed format
+        bytesPerRow: image.planes.isNotEmpty ? image.planes[0].bytesPerRow : image.width,
+      ),
+    );
+  }
+
+  /// Get safe InputImageFormat (only use formats that definitely exist)
+  InputImageFormat _getSafeInputImageFormat(ImageFormat format) {
+    // Only use formats we know exist in all versions
+    switch (format.group) {
+      case ImageFormatGroup.yuv420:
+        return InputImageFormat.yuv420;
+      case ImageFormatGroup.bgra8888:
+        return InputImageFormat.bgra8888;
+      case ImageFormatGroup.nv21:
+        return InputImageFormat.nv21;
+      case ImageFormatGroup.jpeg:
+      case ImageFormatGroup.unknown:
+      default:
+        // For any unsupported or unknown format, default to YUV420
+        debugPrint('Using YUV420 fallback for format: ${format.group}');
+        return InputImageFormat.yuv420;
+    }
+  }
+
+  /// Get InputImageRotation based on camera sensor orientation
+  InputImageRotation _getInputImageRotation(CameraDescription camera) {
+    try {
+      final sensorOrientation = camera.sensorOrientation;
+      switch (sensorOrientation) {
+        case 0:
+          return InputImageRotation.rotation0deg;
+        case 90:
+          return InputImageRotation.rotation90deg;
+        case 180:
+          return InputImageRotation.rotation180deg;
+        case 270:
+          return InputImageRotation.rotation270deg;
+        default:
+          debugPrint('Unknown sensor orientation: $sensorOrientation, using 0 degrees');
+          return InputImageRotation.rotation0deg;
+      }
+    } catch (e) {
+      debugPrint('Error getting rotation: $e');
+      return InputImageRotation.rotation0deg;
+    }
+  }
+
+  /// Reinitialize the face detector
+  Future<void> _reinitializeDetector() async {
+    try {
+      await _faceDetector.close();
+      await Future.delayed(const Duration(milliseconds: 100));
+      _initializeDetector();
+      debugPrint('Face detector reinitialized successfully');
+    } catch (e) {
+      debugPrint('Error reinitializing detector: $e');
     }
   }
 
@@ -297,6 +463,8 @@ class FaceDetectionService {
     _lastHeadEulerAngleX = null;
     _headAngleReadings.clear();
     _isFaceCentered = false;
+    _errorCount = 0;
+    _frameSkipCounter = 0;
   }
 
   /// Clean up resources

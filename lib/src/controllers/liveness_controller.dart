@@ -101,10 +101,17 @@ class LivenessController extends ChangeNotifier {
   /// Initialize the controller and services
   Future<void> _initialize() async {
     try {
+      _statusMessage = 'Initializing camera...';
+      notifyListeners();
+
+      // Initialize camera service
       await _cameraService.initialize(_cameras);
+
+      // Start motion tracking
       _motionService.startAccelerometerTracking();
 
-      _cameraService.controller?.startImageStream(_processCameraImage);
+      // Start image stream with error handling
+      await _cameraService.startImageStream(_processCameraImage);
 
       // Initialize single capture service if enabled
       if (_captureFinalImage && _cameraService.controller != null) {
@@ -113,10 +120,11 @@ class LivenessController extends ChangeNotifier {
         );
       }
 
+      _statusMessage = 'Ready - Position your face in the oval';
       notifyListeners();
     } catch (e) {
       debugPrint('Error initializing liveness controller: $e');
-      _statusMessage = 'Error initializing camera: $e';
+      _statusMessage = 'Error initializing camera. Please restart the app.';
       notifyListeners();
     }
   }
@@ -128,29 +136,48 @@ class LivenessController extends ChangeNotifier {
     _isProcessing = true;
 
     try {
+      // Check session expiry
       if (_session.isExpired(_config.maxSessionDuration)) {
         _session = _session.reset(_config);
         _faceDetectionService.resetTracking();
         _motionService.resetTracking();
         notifyListeners();
-        _isProcessing = false;
         return;
       }
 
-      _cameraService.calculateLightingCondition(image);
-
-      final hasScreenGlare = _cameraService.detectScreenGlare(image);
-      if (hasScreenGlare) {
-        debugPrint(
-            'Detected potential screen glare, possible spoofing attempt');
+      // Calculate lighting with error handling
+      try {
+        _cameraService.calculateLightingCondition(image);
+      } catch (e) {
+        debugPrint('Error calculating lighting: $e');
       }
 
+      // Detect screen glare with error handling
+      bool hasScreenGlare = false;
+      try {
+        hasScreenGlare = _cameraService.detectScreenGlare(image);
+        if (hasScreenGlare) {
+          debugPrint(
+              'Detected potential screen glare, possible spoofing attempt');
+        }
+      } catch (e) {
+        debugPrint('Error detecting screen glare: $e');
+      }
+
+      // Get the front camera
       final camera = _cameras.firstWhere(
         (camera) => camera.lensDirection == CameraLensDirection.front,
         orElse: () => _cameras.first,
       );
 
-      final faces = await _faceDetectionService.processImage(image, camera);
+      // Process faces with error handling
+      List<Face> faces = [];
+      try {
+        faces = await _faceDetectionService.processImage(image, camera);
+      } catch (e) {
+        debugPrint('Error in face detection: $e');
+        // Continue with empty face list
+      }
 
       if (faces.isNotEmpty) {
         final face = faces.first;
@@ -161,10 +188,15 @@ class LivenessController extends ChangeNotifier {
           image.height.toDouble(),
         );
 
-        bool isCentered =
-            _faceDetectionService.checkFaceCentering(face, screenSize);
-
-        _updateFaceCenteringGuidance(face, screenSize);
+        bool isCentered = false;
+        try {
+          isCentered =
+              _faceDetectionService.checkFaceCentering(face, screenSize);
+          _updateFaceCenteringGuidance(face, screenSize);
+        } catch (e) {
+          debugPrint('Error checking face centering: $e');
+          _faceCenteringMessage = 'Error checking face position';
+        }
 
         if (_session.state == LivenessState.centeringFace && isCentered) {
           _processLivenessDetection(face);
@@ -178,7 +210,9 @@ class LivenessController extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Error processing camera image: $e');
+      debugPrint('Error in _processCameraImage: $e');
+      _statusMessage = 'Processing error occurred';
+      notifyListeners();
     } finally {
       _isProcessing = false;
     }
@@ -437,11 +471,24 @@ class LivenessController extends ChangeNotifier {
 
   /// Clean up resources
   @override
-  void dispose() {
-    _singleCaptureService?.dispose();
-    _cameraService.dispose();
-    _faceDetectionService.dispose();
-    _motionService.dispose();
+  void dispose() async {
+    _isProcessing = false;
+
+    try {
+      await _cameraService.stopImageStream();
+    } catch (e) {
+      debugPrint('Error stopping image stream: $e');
+    }
+
+    try {
+      _singleCaptureService?.dispose();
+      _cameraService.dispose();
+      _faceDetectionService.dispose();
+      _motionService.dispose();
+    } catch (e) {
+      debugPrint('Error during disposal: $e');
+    }
+
     super.dispose();
   }
 }
