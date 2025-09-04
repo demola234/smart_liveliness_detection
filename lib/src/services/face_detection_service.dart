@@ -230,8 +230,7 @@ class FaceDetectionService {
   }
 
   /// Process camera image to detect faces with improved error handling
-  Future<List<Face>> processImage(
-      CameraImage image, CameraDescription camera) async {
+  Future<List<Face>> processImage(CameraImage image, CameraDescription camera) async {
     _currentCamera = camera;
 
     // Skip processing if already processing or implement frame throttling
@@ -442,8 +441,7 @@ class FaceDetectionService {
   Offset transformFacePosition(Offset facePosition, Size imageSize) {
     if (_currentCamera == null) return facePosition;
 
-    final bool isFrontCamera =
-        _currentCamera!.lensDirection == CameraLensDirection.front;
+    final bool isFrontCamera = _currentCamera!.lensDirection == CameraLensDirection.front;
     final int rotation = _currentCamera!.sensorOrientation;
 
     double x = facePosition.dx;
@@ -488,16 +486,16 @@ class FaceDetectionService {
   bool _detectLeftTurn(Face face) {
     if (face.headEulerAngleY != null) {
       _storeHeadAngle(face.headEulerAngleY!);
-      return face.headEulerAngleY! < -_config.headTurnThreshold;
+      return face.headEulerAngleY! > _config.headTurnThreshold;
     }
     return false;
   }
 
   /// Detect right head turn
-  bool _detectRightTurn(Face face) {
+  bool _detectLeftTurn(Face face) {
     if (face.headEulerAngleY != null) {
       _storeHeadAngle(face.headEulerAngleY!);
-      return face.headEulerAngleY! > _config.headTurnThreshold;
+      return face.headEulerAngleY! < -_config.headTurnThreshold;
     }
     return false;
   }
