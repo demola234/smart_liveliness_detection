@@ -1,4 +1,4 @@
-enum ChallengeType { blink, turnLeft, turnRight, smile, nod, tiltUp, tiltDown }
+enum ChallengeType { blink, turnLeft, turnRight, smile, nod, tiltUp, tiltDown, normal }
 
 enum LivenessState {
   initial,

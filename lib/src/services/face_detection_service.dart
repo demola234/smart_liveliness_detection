@@ -6,9 +6,10 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
+import 'dart:math' as math;
 
-import '../config/app_config.dart';
 
 /// Service for face detection and gesture recognition
 class FaceDetectionService {
@@ -54,10 +55,11 @@ class FaceDetectionService {
     debugPrint("!!! >> _initializeDetector called");
     _faceDetector = FaceDetector(
       options: FaceDetectorOptions(
+        enableContours: true, // Needed for normal ChallengeType
         enableClassification: true,
         enableTracking: true,
         enableLandmarks: true,
-        performanceMode: FaceDetectorMode.fast,
+        performanceMode: FaceDetectorMode.fast, // TODO: Change it to accurate because Accurate tends to detect more faces and may be more precise in determining
         minFaceSize: _config.minFaceSize,
       ),
     );
@@ -484,6 +486,13 @@ class FaceDetectionService {
         return _detectHeadTiltDown(face);
       case ChallengeType.tiltUp:
         return _detectHeadTiltUp(face);
+      case ChallengeType.normal:
+        if (_isLockedFace(face)) {
+          return _onNormalDetected(face);
+        } else {
+          debugPrint("Unknown face detected after head tilt — skipping capture.",);
+          return false;
+        }
     }
   }
 
@@ -495,9 +504,91 @@ class FaceDetectionService {
     return _detectHeadTilt(face, up: false);
   }
 
-  int? lockedTrackingId; // store the verified face id
-  Rect? lockedFaceBounds;
-  bool faceLocked = false;
+  List<double>? _referenceEmbedding; // Store registered person's face embedding
+
+  bool _onNormalDetected(Face face) {
+    final double? smileProb = face.smilingProbability;
+    final double? leftEyeOpenProb = face.leftEyeOpenProbability;
+    final double? rightEyeOpenProb = face.rightEyeOpenProbability;
+    final double? rotX = face.headEulerAngleX;
+    final double? rotY = face.headEulerAngleY;
+
+    final bool notSmiling = (smileProb ?? 1.0) < 0.25;
+    final bool eyesOpen = (leftEyeOpenProb ?? 0.0) > 0.5 && (rightEyeOpenProb ?? 0.0) > 0.5;
+    final bool facingForward = (rotX?.abs() ?? 0) < 10 && (rotY?.abs() ?? 0) < 10;
+
+    final bool hasContours = face.contours[FaceContourType.leftEyebrowTop] != null && face.contours[FaceContourType.rightEyebrowTop] != null;
+
+    if (notSmiling && eyesOpen && facingForward && hasContours) {
+      // Get the current embedding
+      final currentEmbedding = getDeterministicEmbedding(face);
+
+      if (_referenceEmbedding == null) {
+        // First time: save the registered face (e.g., from onboarding)
+        _referenceEmbedding = currentEmbedding;
+        debugPrint("Reference face saved.");
+        return false;
+      }
+
+      final same = isSamePerson(_referenceEmbedding!, currentEmbedding);
+      if (!same) {
+        debugPrint("Different person detected!");
+        return false;
+      }
+
+      // All checks passed including identity
+      return true;
+    }
+
+    return false;
+  }
+
+  List<double> getDeterministicEmbedding(Face face) {
+    final seed = (face.boundingBox.left + face.boundingBox.top).toInt();
+    final rand = math.Random(seed);
+    return List.generate(10, (index) => rand.nextDouble());
+  }
+
+  bool isSamePerson(List<double> embedding1, List<double> embedding2, {double threshold = 1.0,}) {
+    return compareEmbeddings(embedding1, embedding2) < threshold;
+  }
+
+  double compareEmbeddings(List<double> e1, List<double> e2) {
+    double sum = 0;
+    for (int i = 0; i < e1.length; i++) {
+      sum += math.pow(e1[i] - e2[i], 2).toDouble();
+    }
+    return math.sqrt(sum); // Euclidean distance
+  }
+
+  bool _isLockedFace(Face face) {
+    if (!_faceLocked) return true; // not locked yet, allow detection
+
+    // If trackingId matches, it's the same face
+    if (_lockedTrackingId != null && face.trackingId == _lockedTrackingId) {
+      return true;
+    }
+
+    // Backup check: bounding box overlap
+    if (_lockedFaceBounds != null) {
+      final overlap = _calculateOverlap(_lockedFaceBounds!, face.boundingBox);
+      return overlap > 0.7;
+    }
+
+    return false;
+  }
+
+  double _calculateOverlap(Rect r1, Rect r2) {
+    final double xOverlap = math.max(0, math.min(r1.right, r2.right) - math.max(r1.left, r2.left),);
+    final double yOverlap = math.max(0, math.min(r1.bottom, r2.bottom) - math.max(r1.top, r2.top),);
+    final double intersection = xOverlap * yOverlap;
+    final double union = r1.width * r1.height + r2.width * r2.height - intersection;
+    return intersection / union;
+  }
+
+  int? _lockedTrackingId; // store the verified face id
+  Rect? _lockedFaceBounds;
+  bool _faceLocked = false;
   bool _detectHeadTilt(Face face, {bool up = true}) {
     final double? rotX = face.headEulerAngleX;
     if (rotX == null) return false;
@@ -508,10 +599,10 @@ class FaceDetectionService {
         return true;
       }
     } else {
-      if (rotX > 20 && !faceLocked) {
-        lockedTrackingId = face.trackingId;
-        lockedFaceBounds = face.boundingBox;
-        faceLocked = true; // lock the face
+      if (rotX > 20 && !_faceLocked) {
+        _lockedTrackingId = face.trackingId;
+        _lockedFaceBounds = face.boundingBox;
+        _faceLocked = true; // lock the face
         debugPrint("Face locked after head tilt down.");
         return true;
       }
@@ -617,6 +708,11 @@ class FaceDetectionService {
     _isFaceCentered = false;
     _errorCount = 0;
     _frameSkipCounter = 0;
+
+    _faceLocked = false;
+    _lockedTrackingId = null;
+    _lockedFaceBounds = null;
+    _referenceEmbedding = null;
   }
 
   /// Clean up resources

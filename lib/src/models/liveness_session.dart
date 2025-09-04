@@ -87,7 +87,8 @@ class LivenessSession {
       ChallengeType.smile,
       ChallengeType.nod,
       ChallengeType.tiltDown,
-      ChallengeType.tiltUp
+      ChallengeType.tiltUp,
+      ChallengeType.normal
     ];
 
     final List<Challenge> challenges = [];

@@ -116,6 +116,7 @@ class HomeScreen extends StatelessWidget {
                     ChallengeType.tiltUp,
                     ChallengeType.tiltDown,
                     ChallengeType.smile,
+                    ChallengeType.normal,
                     //ChallengeType.nod,
                   ],
                   challengeInstructions: {
@@ -125,6 +126,7 @@ class HomeScreen extends StatelessWidget {
                     ChallengeType.tiltUp: 'Tilt up your head',
                     ChallengeType.tiltDown: 'Tilt down your head',
                     ChallengeType.smile: 'Show me your best smile',
+                    ChallengeType.normal: 'Center Your Face',
                     //ChallengeType.nod: 'Nod your head',
                   },
                 );
