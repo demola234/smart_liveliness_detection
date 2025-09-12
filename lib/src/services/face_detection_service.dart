@@ -292,13 +292,22 @@ class FaceDetectionService {
   /// Create InputImage with maximum robustness
   InputImage? _createInputImageRobust(CameraImage image, CameraDescription camera) {
     // Try multiple approaches in order of preference
-    
-    // Approach 1: Standard method with format detection
-    try {
-      return _createInputImageStandard(image, camera);
-    } catch (e) {
-      debugPrint('Standard InputImage creation failed: $e');
+
+    // Approach 0: Standard method with format detection
+    if(Platform.isAndroid && _getSafeInputImageFormat(image.format) == InputImageFormat.yuv420) {
+      try {
+        return _createInputImageWithYUV420ToNV21Conversion(image, camera);
+      } catch (e) {
+        debugPrint('(Conversion yuv402 to nv21) InputImage creation failed: $e');
+      }
     }
+
+    // Approach 1: Standard method with format detection
+    // try {
+    //   return _createInputImageWithYUV420ToNV21Conversion(image, camera);
+    // } catch (e) {
+    //   debugPrint('Standard InputImage creation failed: $e');
+    // }
 
     // Approach 2: Force nv21 (Android) / bgra8888 (iOS) format (most common)
     try {
@@ -315,6 +324,93 @@ class FaceDetectionService {
     }
 
     return null;
+  }
+
+  /// InputImage creation converting yuv420 to nv21 format
+  InputImage? _createInputImageWithYUV420ToNV21Conversion(CameraImage image, CameraDescription camera) {
+    // WARNING: You set the desired format, but the camera's native implementation may return a different format based on the device's capabilities.
+    // Flutter/Android may be normalizing to the most common format (YUV420) which is a superset that includes NV21.
+    // The YUV420 and NV21 formats are actually YUV formats, but with different color plane organization.
+
+    try {
+      if (image.format.group != ImageFormatGroup.yuv420) {
+        throw ArgumentError('CameraImage must be in YUV420 format');
+      }
+
+      if (image.planes.length < 3) {
+        throw ArgumentError('YUV420 image should have at least 3 planes');
+      }
+
+      final width = image.width;
+      final height = image.height;
+
+      // Calculate plane sizes - YUV420 has 4:2:0 subsampling
+      final ySize = width * height;
+      final uvSize = (width * height) ~/ 4; // 1/4 of Y size
+
+      // Final buffer for NV21: Y + interleaved VU
+      final nv21Buffer = Uint8List(ySize + uvSize * 2);
+
+      // Access YUV planes
+      final yPlane = image.planes[0];
+      final uPlane = image.planes[1];
+      final vPlane = image.planes[2];
+
+      // 1. Copy Y plane (luminance)
+      int dstIndex = 0;
+      int srcIndex = 0;
+
+      // Copy Y considering possible padding
+      for (int y = 0; y < height; y++) {
+        final bytesToCopy = width < yPlane.bytesPerRow ? width : yPlane.bytesPerRow;
+        final endIndex = srcIndex + bytesToCopy;
+
+        if (endIndex <= yPlane.bytes.length && dstIndex + bytesToCopy <= nv21Buffer.length) {
+          nv21Buffer.setRange(dstIndex, dstIndex + bytesToCopy, yPlane.bytes, srcIndex);
+        }
+
+        dstIndex += width;
+        srcIndex += yPlane.bytesPerRow;
+      }
+
+      // 2. Interleave U and V planes into VU format (NV21)
+      final uvWidth = width ~/ 2;
+      final uvHeight = height ~/ 2;
+
+      // Reset indices for UV section
+      dstIndex = ySize;
+
+      for (int y = 0; y < uvHeight; y++) {
+        for (int x = 0; x < uvWidth; x++) {
+          final uvIndex = y * uPlane.bytesPerRow ~/ 2 + x;
+
+          // Copy V first, then U (NV21 format: Y + interleaved VU)
+          if (uvIndex < vPlane.bytes.length && dstIndex < nv21Buffer.length - 1) {
+            nv21Buffer[dstIndex++] = vPlane.bytes[uvIndex]; // V
+          } else {
+            nv21Buffer[dstIndex++] = 128; // Default value if out of range
+          }
+
+          if (uvIndex < uPlane.bytes.length && dstIndex < nv21Buffer.length) {
+            nv21Buffer[dstIndex++] = uPlane.bytes[uvIndex]; // U
+          } else {
+            nv21Buffer[dstIndex++] = 128; // Default value if out of range
+          }
+        }
+      }
+
+      return InputImage.fromBytes(
+        bytes: nv21Buffer,
+        metadata: InputImageMetadata(
+          size: Size(width.toDouble(), height.toDouble()),
+          rotation: _getInputImageRotation(camera),
+          format: InputImageFormat.nv21,
+          bytesPerRow: yPlane.bytesPerRow, // Use bytesPerRow from the original Y plane
+        ),
+      );
+    } catch (e) {
+      throw Exception('Failed to convert YUV420 to NV21: $e');
+    }
   }
 
   /// Standard InputImage creation with format detection
