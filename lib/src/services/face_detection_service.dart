@@ -304,7 +304,7 @@ class FaceDetectionService {
 
     // Approach 1: Standard method with format detection
     // try {
-    //   return _createInputImageWithYUV420ToNV21Conversion(image, camera);
+    //   return _createInputImageStandard(image, camera);
     // } catch (e) {
     //   debugPrint('Standard InputImage creation failed: $e');
     // }
@@ -504,6 +504,8 @@ class FaceDetectionService {
         }
     }
   }
+
+
 
   /// Get InputImageRotation based on camera sensor orientation
   InputImageRotation _getInputImageRotation(CameraDescription camera) {
