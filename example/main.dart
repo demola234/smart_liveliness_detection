@@ -111,17 +111,24 @@ class HomeScreen extends StatelessWidget {
                 const customConfig = LivenessConfig(
                   challengeTypes: [
                     ChallengeType.blink,
-                    ChallengeType.smile,
                     ChallengeType.turnRight,
+                    ChallengeType.turnLeft,
+                    ChallengeType.smile,
+                    //ChallengeType.nod,
                   ],
                   challengeInstructions: {
                     ChallengeType.blink: 'Blink your eyes slowly',
-                    ChallengeType.smile: 'Show me your best smile',
                     ChallengeType.turnRight: 'Turn your head to the right side',
+                    ChallengeType.turnLeft: 'Turn your head to the left side',
+                    ChallengeType.smile: 'Show me your best smile',
+                    //ChallengeType.nod: 'Nod your head',
                   },
                 );
                 _navigateToLivenessScreen(
-                    context, customConfig, const LivenessTheme());
+                    context, customConfig, const LivenessTheme(
+                    successColor: Colors.green,
+                    errorColor: Colors.redAccent,
+                ));
               },
             ),
             _buildExampleButton(

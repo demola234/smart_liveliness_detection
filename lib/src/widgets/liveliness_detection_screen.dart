@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
+import 'package:smart_liveliness_detection/src/widgets/face_landmarks_overlay.dart';
 import 'package:smart_liveliness_detection/src/widgets/instruction_overlay.dart';
 import 'package:smart_liveliness_detection/src/widgets/liveness_progress_bar.dart';
 import 'package:smart_liveliness_detection/src/widgets/oval_progress.dart';

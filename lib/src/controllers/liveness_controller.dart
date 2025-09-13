@@ -220,36 +220,73 @@ class LivenessController extends ChangeNotifier {
 
   /// Update face centering guidance message
   void _updateFaceCenteringGuidance(Face face, Size screenSize) {
-    final screenCenterX = screenSize.width / 2;
-    final screenCenterY = screenSize.height / 2 - screenSize.height * 0.05;
+
+    // Adjust screenSize because the camera may have rotated the image
+    Size screenSizeAux = Size(screenSize.width > screenSize.height ? screenSize.height : screenSize.width, screenSize.width > screenSize.height ? screenSize.width : screenSize.height);
+
+    // Oval center (adjusted 5% upwards from screen center)
+    final ovalCenterX = screenSizeAux.width / 2;
+    final ovalCenterY = screenSizeAux.height / 2 - screenSizeAux.height * 0.05;
+
+    // Oval dimensions
+    final ovalHeight = screenSizeAux.height * 0.55;
+    final ovalWidth = ovalHeight * 0.75;
 
     final faceBox = face.boundingBox;
 
+    // Apply coordinate correction for front camera
+    double faceCenterX = faceBox.left + faceBox.width / 2;
+    // WARNING: This is really needed?
     // This is where the problem is - we need to flip the X coordinate on Android with front camera
-    double faceCenterX;
-    if (Platform.isAndroid &&
-        _cameras.first.lensDirection == CameraLensDirection.front) {
-      // Flip the X coordinate for Android front camera
-      faceCenterX = screenSize.width - (faceBox.left + faceBox.width / 2);
-    } else {
-      faceCenterX = faceBox.left + faceBox.width / 2;
-    }
-
+    // if (_currentCamera?.lensDirection == CameraLensDirection.front) {
+    //   // Flip the X coordinate for Android front camera
+    //   faceCenterX = screenSizeAux.width - (faceBox.left + faceBox.width / 2);
+    // }
     final faceCenterY = faceBox.top + faceBox.height / 2;
 
     // Debug prints to verify coordinates
     debugPrint('Face center: ($faceCenterX, $faceCenterY)');
-    debugPrint('Screen center: ($screenCenterX, $screenCenterY)');
+    debugPrint('Screen center: ($ovalCenterX, $ovalCenterY)');
 
-    // Rest of your existing code...
-    final ovalHeight = screenSize.height * 0.55;
-    final ovalWidth = ovalHeight * 0.75;
+    // Platform-specific tolerances
+    final bool isAndroid = Platform.isAndroid;
+    final double horizontalToleranceMultiplier = isAndroid ? 1.2 : 1.0;
+    final double verticalToleranceMultiplier = isAndroid ? 1.1 : 1.0;
+
+    // Tolerance based on oval size (percentage of oval dimensions)
+    // final maxHorizontalOffset = ovalWidth * 0.20 * horizontalToleranceMultiplier;
+    // final maxVerticalOffset = ovalHeight * 0.15 * verticalToleranceMultiplier;
+
+    // Platform-specific size ratios
+    // final minFaceWidthRatio = isAndroid ? 0.25 : 0.3;
+    // final maxFaceWidthRatio = 0.85;
+    // final minFaceHeightRatio = isAndroid ? 0.25 : 0.3;
+    // final maxFaceHeightRatio = 0.85;
+
+    // Calculate size ratios
     final faceWidthRatio = faceBox.width / ovalWidth;
+    final faceHeightRatio = faceBox.height / ovalHeight;
+
+    // Check if face is within oval boundaries
+    // final ovalLeft = ovalCenterX - ovalWidth / 2;
+    // final ovalRight = ovalCenterX + ovalWidth / 2;
+    // final ovalTop = ovalCenterY - ovalHeight / 2;
+    // final ovalBottom = ovalCenterY + ovalHeight / 2;
+
+    // final isInsideOvalHorizontally = faceCenterX >= ovalLeft && faceCenterX <= ovalRight;
+    // final isInsideOvalVertically = faceCenterY >= ovalTop && faceCenterY <= ovalBottom;
+
+    // final horizontalDistanceFromCenter = (faceCenterX - ovalCenterX).abs();
+    // final verticalDistanceFromCenter = (faceCenterY - ovalCenterY).abs();
+
+    // final isHorizontallyCentered = horizontalDistanceFromCenter <= maxHorizontalOffset;
+    // final isVerticallyCentered = verticalDistanceFromCenter <= maxVerticalOffset;
 
     final isHorizontallyOff =
-        (faceCenterX - screenCenterX).abs() > screenSize.width * 0.1;
+        (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
     final isVerticallyOff =
-        (faceCenterY - screenCenterY).abs() > screenSize.height * 0.1;
+        (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
+
     final isTooBig = faceWidthRatio > 1.5;
     final isTooSmall = faceWidthRatio < 0.5;
 
@@ -259,13 +296,13 @@ class LivenessController extends ChangeNotifier {
     } else if (isTooSmall) {
       _faceCenteringMessage = 'Move closer';
     } else if (isHorizontallyOff) {
-      if (faceCenterX < screenCenterX) {
+      if (faceCenterX < ovalCenterX) {
         _faceCenteringMessage = 'Move right';
       } else {
         _faceCenteringMessage = 'Move left';
       }
     } else if (isVerticallyOff) {
-      if (faceCenterY < screenCenterY) {
+      if (faceCenterY < ovalCenterY) {
         _faceCenteringMessage = 'Move down';
       } else {
         _faceCenteringMessage = 'Move up';
