@@ -4,12 +4,12 @@ import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
+import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
+import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
+import 'package:smart_liveliness_detection/src/services/motion_service.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
-import '../services/camera_service.dart';
-import '../services/face_detection_service.dart';
-import '../services/motion_service.dart';
 
 /// Controller for liveness detection session
 class LivenessController extends ChangeNotifier {
@@ -55,10 +55,14 @@ class LivenessController extends ChangeNotifier {
   /// Callback for when liveness verification is completed
   final LivenessCompletedCallback? _onLivenessCompleted;
 
+  /// Callback for when face is detected
+  final FaceDetectedCallback? _onFaceDetected;
+
+  /// Callback for when face is NOT detected (It will trigger the first face non-detection event after any face detection)
+  final FaceNotDetectedCallback? _onFaceNotDetected;
+
   /// Callback for when final image is captured
-  final Function(
-          String sessionId, XFile imageFile, Map<String, dynamic> metadata)?
-      _onFinalImageCaptured;
+  final Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata)? _onFinalImageCaptured;
 
   /// Whether verification was successful (after completion)
   bool _isVerificationSuccessful = false;
@@ -77,23 +81,24 @@ class LivenessController extends ChangeNotifier {
     List<ChallengeType>? challengeTypes,
     ChallengeCompletedCallback? onChallengeCompleted,
     LivenessCompletedCallback? onLivenessCompleted,
-    Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata)?
-        onFinalImageCaptured,
+    FaceDetectedCallback? onFaceDetected,
+    FaceNotDetectedCallback? onFaceNotDetected,
+    Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata)? onFinalImageCaptured,
     bool captureFinalImage = true,
   })  : _cameras = cameras,
         _config = config ?? const LivenessConfig(),
         _theme = theme ?? const LivenessTheme(),
         _cameraService = cameraService ?? CameraService(config: config),
-        _faceDetectionService =
-            faceDetectionService ?? FaceDetectionService(config: config),
+        _faceDetectionService =faceDetectionService ?? FaceDetectionService(config: config),
         _motionService = motionService ?? MotionService(config: config),
         _onChallengeCompleted = onChallengeCompleted,
         _onLivenessCompleted = onLivenessCompleted,
+        _onFaceDetected = onFaceDetected,
+        _onFaceNotDetected = onFaceNotDetected,
         _onFinalImageCaptured = onFinalImageCaptured,
         _captureFinalImage = captureFinalImage,
         _session = LivenessSession(
-          challenges: LivenessSession.generateRandomChallenges(
-              config ?? const LivenessConfig()),
+          challenges: LivenessSession.generateRandomChallenges(config ?? const LivenessConfig()),
         ) {
     _initialize();
   }
@@ -191,8 +196,7 @@ class LivenessController extends ChangeNotifier {
 
           bool isCentered = false;
           try {
-            isCentered =
-                _faceDetectionService.checkFaceCentering(face, screenSize);
+            isCentered = _faceDetectionService.checkFaceCentering(face, screenSize);
             _updateFaceCenteringGuidance(face, screenSize);
           } catch (e) {
             debugPrint('Error checking face centering: $e');
@@ -204,7 +208,16 @@ class LivenessController extends ChangeNotifier {
           } else if (_session.state != LivenessState.centeringFace) {
             _processLivenessDetection(face);
           }
+
+          // Notify via callback
+          _onFaceDetected?.call(_session.currentChallenge!.type, image, faces, camera);
         } else {
+          // WARNING: It will be called only after onFaceDetected is called! It will trigger the first face non-detection event after any face detection
+          if(_isFaceDetected) {
+            // Notify via callback
+            _onFaceNotDetected?.call(_session.currentChallenge!.type, this);
+          }
+
           _isFaceDetected = false;
           _faceCenteringMessage = 'No face detected';
         }
@@ -284,10 +297,8 @@ class LivenessController extends ChangeNotifier {
     // final isHorizontallyCentered = horizontalDistanceFromCenter <= maxHorizontalOffset;
     // final isVerticallyCentered = verticalDistanceFromCenter <= maxVerticalOffset;
 
-    final isHorizontallyOff =
-        (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
-    final isVerticallyOff =
-        (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
+    final isHorizontallyOff = (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
+    final isVerticallyOff = (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
 
     final isTooBig = faceWidthRatio > 1.5;
     final isTooSmall = faceWidthRatio < 0.5;
@@ -349,15 +360,14 @@ class LivenessController extends ChangeNotifier {
         }
 
         final currentChallenge = _session.currentChallenge!;
-        bool challengePassed = _faceDetectionService.detectChallengeCompletion(
-            face, currentChallenge.type);
+        bool challengePassed = _faceDetectionService.detectChallengeCompletion(face, currentChallenge.type);
 
         if (challengePassed) {
           currentChallenge.isCompleted = true;
           _session.currentChallengeIndex++;
 
           // Notify via callback
-          _onChallengeCompleted?.call(currentChallenge.type.toString());
+          _onChallengeCompleted?.call(currentChallenge.type);
 
           _updateStatusMessage();
         }
@@ -395,10 +405,8 @@ class LivenessController extends ChangeNotifier {
           final Map<String, dynamic> metadata = {
             'timestamp': DateTime.now().millisecondsSinceEpoch,
             'verificationResult': _isVerificationSuccessful,
-            'challenges':
-                _session.challenges.map((c) => c.type.toString()).toList(),
-            'sessionDuration':
-                DateTime.now().difference(_session.startTime).inMilliseconds,
+            'challenges': _session.challenges.map((c) => c.type.toString()).toList(),
+            'sessionDuration': DateTime.now().difference(_session.startTime).inMilliseconds,
             'lightingValue': _cameraService.lightingValue,
           };
 
@@ -411,8 +419,7 @@ class LivenessController extends ChangeNotifier {
     }
 
     // Notify via callback
-    _onLivenessCompleted
-        ?.call(_session.sessionId, _isVerificationSuccessful, {});
+    _onLivenessCompleted?.call(_session.sessionId, _isVerificationSuccessful, {});
   }
 
   /// Update the current status message

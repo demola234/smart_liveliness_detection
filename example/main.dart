@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
@@ -231,12 +232,23 @@ class HomeScreen extends StatelessWidget {
           config: config,
           theme: theme,
           onChallengeCompleted: (challengeType) {
-            log('Challenge completed: $challengeType');
+            log('Challenge completed: ${challengeType.name}');
           },
           onLivenessCompleted: (sessionId, isSuccessful, metadata) {
             log('Liveness verification completed:');
             log('Session ID: $sessionId');
             log('Success: $isSuccessful');
+          },
+          onFaceDetected: (ChallengeType challengeType, CameraImage image, List<Face> faces, CameraDescription camera) {
+            log('onFaceDetected - current Challenge: ${challengeType.name}');
+          },
+          onFaceNotDetected: (ChallengeType challengeType, LivenessController controller) {
+            log('onFaceNotDetected - current Challenge: ${challengeType.name}');
+
+            // Reset session if face is not detected and the head is not turned
+            if(![ChallengeType.tiltDown, ChallengeType.tiltUp, ChallengeType.nod].contains(challengeType)) {
+              controller.resetSession();
+            }
           },
         ),
       ),

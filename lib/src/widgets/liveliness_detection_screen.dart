@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
@@ -14,15 +15,19 @@ import 'package:smart_liveliness_detection/src/widgets/status_indicator.dart';
 import 'success_overlay.dart';
 
 /// Callback type for when a challenge is completed
-typedef ChallengeCompletedCallback = void Function(String challengeType);
+typedef ChallengeCompletedCallback = void Function(ChallengeType challengeType);
 
 /// Callback type for when liveness verification is completed
-typedef LivenessCompletedCallback = void Function(
-    String sessionId, bool isSuccessful, Map<String, dynamic> data);
+typedef LivenessCompletedCallback = void Function(String sessionId, bool isSuccessful, Map<String, dynamic> data);
 
 /// Callback type for when final image is captured with metadata
-typedef FinalImageCapturedCallback = void Function(
-    String sessionId, XFile imageFile, Map<String, dynamic> metadata);
+typedef FinalImageCapturedCallback = void Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata);
+
+/// Callback type for when face is detected
+typedef FaceDetectedCallback = void Function(ChallengeType challengeType, CameraImage image, List<Face> faces, CameraDescription camera);
+
+/// Callback type for when face is NOT detected (It will trigger the first face non-detection event after any face detection)
+typedef FaceNotDetectedCallback = void Function(ChallengeType challengeType, LivenessController controller);
 
 /// Main widget for liveness detection
 class LivenessDetectionScreen extends StatefulWidget {
@@ -40,6 +45,12 @@ class LivenessDetectionScreen extends StatefulWidget {
 
   /// Callback for when liveness verification is completed
   final LivenessCompletedCallback? onLivenessCompleted;
+
+  /// Callback for when face is detected
+  final FaceDetectedCallback? onFaceDetected;
+
+  /// Callback for when face is NOT detected
+  final FaceNotDetectedCallback? onFaceNotDetected;
 
   /// Whether to show app bar
   final bool showAppBar;
@@ -89,11 +100,12 @@ class LivenessDetectionScreen extends StatefulWidget {
     this.useColorProgress = true,
     this.captureFinalImage = false,
     this.onFinalImageCaptured,
+    this.onFaceDetected,
+    this.onFaceNotDetected,
   });
 
   @override
-  State<LivenessDetectionScreen> createState() =>
-      _LivenessDetectionScreenState();
+  State<LivenessDetectionScreen> createState() => _LivenessDetectionScreenState();
 }
 
 class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
@@ -110,19 +122,18 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
       theme: widget.theme,
       onChallengeCompleted: widget.onChallengeCompleted,
       // Make sure this is using the same type
-      onLivenessCompleted: widget.onLivenessCompleted != null
-          ? (sessionId, isSuccessful, data) {
-              widget.onLivenessCompleted!(sessionId, isSuccessful, data!);
-            }
-          : null,
+      onLivenessCompleted: widget.onLivenessCompleted != null ? (sessionId, isSuccessful, data) {
+        widget.onLivenessCompleted!(sessionId, isSuccessful, data!);
+      } : null,
       onFinalImageCaptured: _handleFinalImageCaptured,
       captureFinalImage: widget.captureFinalImage,
+      onFaceDetected: widget.onFaceDetected,
+      onFaceNotDetected: widget.onFaceNotDetected,
     );
     WidgetsBinding.instance.addObserver(this);
   }
 
-  void _handleFinalImageCaptured(
-      String sessionId, XFile imageFile, Map<String, dynamic> metadata) {
+  void _handleFinalImageCaptured(String sessionId, XFile imageFile, Map<String, dynamic> metadata) {
     setState(() {
       _finalImage = imageFile;
     });
