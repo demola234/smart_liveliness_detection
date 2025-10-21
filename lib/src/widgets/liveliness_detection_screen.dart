@@ -108,7 +108,7 @@ class LivenessDetectionScreen extends StatefulWidget {
 }
 
 class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   late LivenessController _controller;
   XFile? _finalImage;
 
@@ -117,6 +117,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
     super.initState();
     _controller = LivenessController(
       cameras: widget.cameras,
+      vsync: this,
       config: widget.config,
       theme: widget.theme,
       onChallengeCompleted: widget.onChallengeCompleted,
@@ -159,6 +160,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
     } else if (state == AppLifecycleState.resumed) {
       _controller = LivenessController(
         cameras: widget.cameras,
+        vsync: this,
         config: widget.config,
         theme: widget.theme,
         onChallengeCompleted: widget.onChallengeCompleted,
@@ -372,9 +374,18 @@ class LivenessDetectionView extends StatelessWidget {
                 // Camera preview
                 _buildCameraPreview(controller),
 
+                // AnimatedOvalOverlay(
+                //   isFaceDetected: controller.isFaceDetected,
+                //   config: controller.config,
+                //   theme: controller.theme,
+                //   progress: controller.progress,
+                //   zoomFactor: controller.zoomFactor,
+                // ),
+
                 // Oval overlay with color progress indicator
                 if (useColorProgress)
                   OvalColorProgressOverlay(
+                    zoomFactor: controller.zoomFactor,
                     isFaceDetected: controller.isFaceDetected,
                     config: controller.config,
                     theme: controller.theme,

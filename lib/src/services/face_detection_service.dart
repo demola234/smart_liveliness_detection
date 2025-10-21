@@ -13,6 +13,7 @@ import 'dart:math' as math;
 
 /// Service for face detection and gesture recognition
 class FaceDetectionService {
+
   /// ML Kit face detector
   late FaceDetector _faceDetector;
 
@@ -505,8 +506,6 @@ class FaceDetectionService {
     }
   }
 
-
-
   /// Get InputImageRotation based on camera sensor orientation
   InputImageRotation _getInputImageRotation(CameraDescription camera) {
     try {
@@ -528,6 +527,70 @@ class FaceDetectionService {
       debugPrint('Error getting rotation: $e');
       return InputImageRotation.rotation0deg;
     }
+  }
+
+  /// Checks whether the detected face is centered and sized appropriately within a reference oval.
+  bool isFaceWellPositioned(
+      Face face, {
+        required Rect ovalRect,
+        double zoomFactor = 1.0, // By default, consider the final oval (100%)
+      }) {
+
+    //region 1. Get current values
+    // Get the coordinates of the "box" that surrounds the face (bounding box)
+    final faceRect = face.boundingBox;
+
+    // Calculates the center point of the face
+    final faceCenterX = faceRect.left + faceRect.width / 2;
+    final faceCenterY = faceRect.top + faceRect.height / 2;
+
+    // Calculate the center point of the UI oval
+    final ovalCenterX = ovalRect.left + ovalRect.width / 2;
+    final ovalCenterY = ovalRect.top + ovalRect.height / 2;
+    //endregion
+
+    //region ## 2. Centering Validation: Is the face aligned with the center of the oval?
+    // Calculates the horizontal and vertical distance between the centers
+    final double horizontalDistance = (faceCenterX - ovalCenterX).abs();
+    final double verticalDistance = (faceCenterY - ovalCenterY).abs();
+
+    // Sets a tolerance. For example, the center of the face can be
+    // up to 25% of the width/height of the oval away from the center.
+    final double horizontalTolerance = ovalRect.width * 0.25;
+    final double verticalTolerance = ovalRect.height * 0.25;
+
+    final bool isCentered = horizontalDistance < horizontalTolerance
+        && verticalDistance < verticalTolerance;
+
+    if (!isCentered) {
+      debugPrint("Face is not centered. Distance H: $horizontalDistance > $horizontalTolerance, V: $verticalDistance > $verticalTolerance");
+      return false;
+    }
+    //endregion
+
+    //region ## 3. Size Validation: Is the face at the correct distance (not too close, not too far)?
+    // Defines the MINIMUM and MAXIMUM aspect ratio that the face should occupy in relation to the oval.
+    // We use zoomFactor to dynamically increase the minimum required size.
+    final double minFaceWidthRatio = 0.70 * zoomFactor;   // The face must be at least 70% of the height of the oval when zoom is 1.0
+    final double minFaceHeightRatio = 0.70 * zoomFactor;  // The face must be at least 70% of the height of the oval when zoom is 1.0
+
+    // Calculates the current aspect ratio of the face in relation to the oval
+    final double faceWidthToOvalRatio = faceRect.width / ovalRect.width;
+    final double faceHeightToOvalRatio = faceRect.height / ovalRect.height;
+
+    // Check if the face is the minimum required size
+    final bool hasCorrectSize = faceWidthToOvalRatio > minFaceWidthRatio
+        && faceHeightToOvalRatio > minFaceHeightRatio;
+
+    if (!hasCorrectSize) {
+      debugPrint("Incorrect size. Width: $faceWidthToOvalRatio (minimum: $minFaceWidthRatio), Height: $faceHeightToOvalRatio (minimum: $minFaceHeightRatio)");
+      return false; // If the size is incorrect, we stop.
+    }
+    //endregion
+
+    // 4. Success!
+    debugPrint("✅ Face well positioned!");
+    return true;
   }
 
   /// Reinitialize the face detector
@@ -572,7 +635,21 @@ class FaceDetectionService {
   }
 
   /// Detect if a challenge has been completed
-  bool detectChallengeCompletion(Face face, ChallengeType challengeType) {
+  bool detectChallengeCompletion(Face face, ChallengeType challengeType,
+      {Rect? ovalRect, double? zoomFactor}) {
+
+    // The zoom challenge has its own positioning logic during the animation,
+    // so we excluded it from this initial check.
+    if (challengeType != ChallengeType.zoom) {
+      // For ALL other challenges, we first ensure that the face is
+      // correctly positioned within the oval. If it isn't, we fail immediately.
+      if (ovalRect == null || !isFaceWellPositioned(face, ovalRect: ovalRect)) {
+        // We use zoomFactor: 1.0 by default because, for these challenges,
+        // we expect the face to be in the final position (large oval).
+        return false;
+      }
+    }
+
     switch (challengeType) {
       case ChallengeType.blink:
         return _detectBlink(face);
@@ -595,7 +672,39 @@ class FaceDetectionService {
           debugPrint("Unknown face detected after head tilt — skipping capture.",);
           return false;
         }
+      case ChallengeType.zoom:
+        if (ovalRect == null || zoomFactor == null) {
+          debugPrint("ERROR: Zoom challenge was called without ovalRect or zoomFactor.");
+          return false;
+        }
+        return _detectZoom(
+          face,
+          ovalRect: ovalRect,
+          zoomFactor: zoomFactor,
+        );
     }
+  }
+
+  bool _detectZoom(Face face, {required Rect ovalRect, required double zoomFactor}) {
+    // Validate the face position using the controller's current zoomFactor
+    final isPositionedForCurrentZoom = isFaceWellPositioned(
+      face,
+      ovalRect: ovalRect,
+      zoomFactor: zoomFactor,
+    );
+
+    // The challenge is only considered COMPLETE if two conditions are met:
+    // a) The zoom animation has finished (zoomFactor is at maximum, i.e., >= 1.0).
+    // b) And the face is correctly positioned in this final state.
+    final isAnimationComplete = zoomFactor >= 1.0;
+
+    if (isAnimationComplete && isPositionedForCurrentZoom) {
+      debugPrint("✅ Zoom Challenge Completed (detected on FaceDetectionService)");
+      return true;
+    }
+
+    // If the animation is not finished yet, or if the face is not positioned, the challenge is not yet completed.
+    return false;
   }
 
   bool _detectHeadTiltUp(Face face) {

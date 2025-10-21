@@ -27,6 +27,8 @@ class OvalColorProgressPainter extends CustomPainter {
   /// End color for the progress gradient
   final Color endColor;
 
+  final double zoomFactor;
+
   /// Constructor
   OvalColorProgressPainter({
     this.isFaceDetected = false,
@@ -36,6 +38,7 @@ class OvalColorProgressPainter extends CustomPainter {
     this.progress = 0.0,
     required this.startColor,
     required this.endColor,
+    this.zoomFactor = 1.0,
   });
 
   @override
@@ -46,6 +49,11 @@ class OvalColorProgressPainter extends CustomPainter {
     final ovalHeight = size.height * config.ovalHeightRatio;
     final ovalWidth = ovalHeight * config.ovalWidthRatio;
 
+    // Sets the initial size of the oval (e.g. 70% of the final size)
+    const double initialScale = 0.7;
+    // Interpolate the current scale based on the zoomFactor.
+    final double currentScale = initialScale + (1.0 - initialScale) * zoomFactor;
+
     // Apply animation if enabled and available
     final double strokeWidth =
         theme.useOvalPulseAnimation && animationValue != null
@@ -54,8 +62,8 @@ class OvalColorProgressPainter extends CustomPainter {
 
     final ovalRect = Rect.fromCenter(
       center: center,
-      width: ovalWidth,
-      height: ovalHeight,
+      width: ovalWidth * currentScale,
+      height: ovalHeight * currentScale,
     );
 
     // Draw overlay
@@ -93,12 +101,7 @@ class OvalColorProgressPainter extends CustomPainter {
     if (progress > 0 && isFaceDetected) {
       const double arcPadding = 5.0; // Small gap from the main oval
 
-      // Create a slightly larger oval for the progress arc
-      final progressOvalRect = Rect.fromCenter(
-        center: center,
-        width: ovalWidth + arcPadding * 2,
-        height: ovalHeight + arcPadding * 2,
-      );
+      final progressOvalRect = ovalRect.inflate(arcPadding);
 
       final progressPaint = Paint()
         ..color = endColor
@@ -148,6 +151,8 @@ class OvalColorProgressOverlay extends StatefulWidget {
   /// End color for the progress gradient (typically success color when complete)
   final Color? endColor;
 
+  final double zoomFactor;
+
   /// Constructor
   const OvalColorProgressOverlay({
     super.key,
@@ -157,6 +162,7 @@ class OvalColorProgressOverlay extends StatefulWidget {
     this.progress = 0.0,
     this.startColor,
     this.endColor,
+    this.zoomFactor = 1.0,
   });
 
   @override
@@ -210,6 +216,7 @@ class _OvalColorProgressOverlayState extends State<OvalColorProgressOverlay>
           return CustomPaint(
             size: Size.infinite,
             painter: OvalColorProgressPainter(
+              zoomFactor: widget.zoomFactor,
               isFaceDetected: widget.isFaceDetected,
               config: widget.config,
               theme: widget.theme,
@@ -225,6 +232,7 @@ class _OvalColorProgressOverlayState extends State<OvalColorProgressOverlay>
       return CustomPaint(
         size: Size.infinite,
         painter: OvalColorProgressPainter(
+          zoomFactor: widget.zoomFactor,
           isFaceDetected: widget.isFaceDetected,
           config: widget.config,
           theme: widget.theme,
