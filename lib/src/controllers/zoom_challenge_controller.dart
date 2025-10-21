@@ -11,25 +11,27 @@ enum ZoomChallengeState {
 
 class ZoomChallengeController extends ChangeNotifier {
   final AnimationController _animationController;
+  final double _initialValue;
 
   ZoomChallengeState _state = ZoomChallengeState.initial;
   ZoomChallengeState get state => _state;
 
   double get zoomFactor => _animationController.value;
 
-  ZoomChallengeController({required TickerProvider vsync})
-      : _animationController = AnimationController(
+  ZoomChallengeController({required TickerProvider vsync,
+    required double initialValue,
+  }) : _animationController = AnimationController(
     vsync: vsync,
     duration: const Duration(milliseconds: 500), // Duration of the animation
-    value: 0.0,
-  ) {
+    value: initialValue,
+  ), _initialValue = initialValue {
     _animationController.addListener(notifyListeners); // Notify the UI to rebuild
   }
 
   void startChallenge() {
     if (_state == ZoomChallengeState.initial) {
       _state = ZoomChallengeState.inProgress;
-      _animationController.forward(from: 0.0); // Start the animation from 0.0 to 1.0
+      _animationController.forward();
     }
   }
 
@@ -57,7 +59,8 @@ class ZoomChallengeController extends ChangeNotifier {
   /// Resets the challenge to its initial state.
   void reset() {
     _state = ZoomChallengeState.initial;
-    _animationController.reset();
+    //_animationController.reset();
+    _animationController.value = _initialValue;
     debugPrint("🔄️ Zoom Challenge Controller has been reset.");
     notifyListeners();
   }

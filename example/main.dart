@@ -110,7 +110,7 @@ class HomeScreen extends StatelessWidget {
               'Specific challenge sequence with custom messages',
               () {
                 const customConfig = LivenessConfig(
-                  initialZoomFactor: 0.6,
+                  initialZoomFactor: 0.1,
                   challengeTypes: [
                     ChallengeType.blink,
                     ChallengeType.zoom,
@@ -138,6 +138,17 @@ class HomeScreen extends StatelessWidget {
                     context, customConfig, const LivenessTheme(
                     successColor: Colors.green,
                     errorColor: Colors.redAccent,
+                    guidanceTextStyle: TextStyle(
+                      //color: Color(0xFF2E38B7),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    //overlayColor: Colors.white,
+                    // overlayOpacity: 0.85,
+                    // primaryColor: Colors.white,
+                    // ovalGuideColor: Colors.white, //.withValues(alpha: 0.87),
+                    // appBarBackgroundColor: Colors.white,
+                    // appBarTextColor: Colors.black87
                 ));
               },
             ),

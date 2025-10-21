@@ -97,6 +97,7 @@ class LivenessController extends ChangeNotifier {
     this.onReset,
   })  : _cameras = cameras,
         _config = config ?? const LivenessConfig(),
+        _currentZoomFactor = config?.initialZoomFactor ?? 1.0,
         _theme = theme ?? const LivenessTheme(),
         _cameraService = cameraService ?? CameraService(config: config),
         _faceDetectionService =faceDetectionService ?? FaceDetectionService(config: config),
@@ -110,7 +111,7 @@ class LivenessController extends ChangeNotifier {
         _session = LivenessSession(
           challenges: LivenessSession.generateRandomChallenges(config ?? const LivenessConfig()),
         ) {
-    _zoomChallengeController = ZoomChallengeController(vsync: vsync);
+    _zoomChallengeController = ZoomChallengeController(vsync: vsync, initialValue: _config.initialZoomFactor);
     _initialize();
   }
 
@@ -120,7 +121,6 @@ class LivenessController extends ChangeNotifier {
       _statusMessage = 'Initializing camera...';
       if (!_isDisposed) notifyListeners();
 
-      _currentZoomFactor = 0.0;
       _zoomChallengeController.reset();
 
       // Initialize camera service
@@ -534,8 +534,8 @@ class LivenessController extends ChangeNotifier {
     _statusMessage = 'Initializing...';
     _isVerificationSuccessful = false;
 
-    _zoomChallengeController.reset();
     _currentZoomFactor = _config.initialZoomFactor;
+    _zoomChallengeController.reset();
 
     if (onReset != null) {
       onReset!();
