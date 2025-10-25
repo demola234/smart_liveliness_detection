@@ -1,7 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -170,9 +168,9 @@ class FaceDetectionService {
 
     // Platform-specific size ratios
     final minFaceWidthRatio = isAndroid ? 0.25 : 0.3;
-    final maxFaceWidthRatio = 0.85;
+    const maxFaceWidthRatio = 0.85;
     final minFaceHeightRatio = isAndroid ? 0.25 : 0.3;
-    final maxFaceHeightRatio = 0.85;
+    const maxFaceHeightRatio = 0.85;
 
     // Calculate size ratios
     final faceWidthRatio = faceBox.width / ovalWidth;
@@ -201,9 +199,11 @@ class FaceDetectionService {
 
     // Check face proportion
     final double faceAspectRatio = faceBox.width / faceBox.height;
-    final double expectedAspectRatio = 0.75;
-    final double aspectTolerance = 0.3; // Increased tolerance for more flexibility
+    const double expectedAspectRatio = 0.75;
+    const double aspectTolerance = 0.3;
     final hasGoodProportion = (faceAspectRatio - expectedAspectRatio).abs() <= aspectTolerance;
+
+    debugPrint('Face aspect ratio: ${faceAspectRatio.toStringAsFixed(2)}, Expected: $expectedAspectRatio, Good proportion: $hasGoodProportion');
 
     // Debug information
     debugPrint('=== FACE CENTERING DEBUG ===');
@@ -251,7 +251,7 @@ class FaceDetectionService {
     }
 
     _isProcessingImage = true;
-    
+
     try {
       // Validate image data before processing
       if (image.planes.isEmpty || image.planes[0].bytes.isEmpty) {
@@ -268,22 +268,22 @@ class FaceDetectionService {
 
       // Process the image
       final faces = await _faceDetector.processImage(inputImage);
-      
+
       // Reset error count on successful processing
       _errorCount = 0;
-      
+
       return faces;
     } catch (e) {
       _errorCount++;
       debugPrint('Error processing image (attempt $_errorCount): $e');
-      
+
       // If too many consecutive errors, reset the detector
       if (_errorCount >= _config.maxConsecutiveErrors) {
         debugPrint('Too many consecutive errors, reinitializing detector');
         await _reinitializeDetector();
         _errorCount = 0;
       }
-      
+
       return [];
     } finally {
       _isProcessingImage = false;
@@ -412,26 +412,6 @@ class FaceDetectionService {
     } catch (e) {
       throw Exception('Failed to convert YUV420 to NV21: $e');
     }
-  }
-
-  /// Standard InputImage creation with format detection
-  InputImage? _createInputImageStandard(CameraImage image, CameraDescription camera) {
-
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
-
-    return InputImage.fromBytes(
-      bytes: bytes,
-      metadata: InputImageMetadata(
-        size: Size(image.width.toDouble(), image.height.toDouble()),
-        rotation: _getInputImageRotation(camera),
-        format: _getSafeInputImageFormat(image.format),
-        bytesPerRow: image.planes[0].bytesPerRow,
-      ),
-    );
   }
 
   /// Forced nv21 format for Android and bgra8888 for iOS InputImage creation

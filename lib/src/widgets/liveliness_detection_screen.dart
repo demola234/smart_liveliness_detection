@@ -6,7 +6,6 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
-import 'package:smart_liveliness_detection/src/widgets/face_landmarks_overlay.dart';
 import 'package:smart_liveliness_detection/src/widgets/instruction_overlay.dart';
 import 'package:smart_liveliness_detection/src/widgets/liveness_progress_bar.dart';
 import 'package:smart_liveliness_detection/src/widgets/oval_progress.dart';
@@ -120,6 +119,15 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
     });
   }
 
+  void _syncZoomFactor() {
+    final z = _controller.zoomFactor;
+    if (z != _zoomFactor) {
+      setState(() {
+        _zoomFactor = z;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -186,6 +194,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
         captureFinalImage: widget.captureFinalImage,
         onReset: _resetZoomFactor
       );
+      _controller.addListener(_syncZoomFactor);
       setState(() {
         _finalImage = null;
       });

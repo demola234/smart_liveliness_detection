@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -301,40 +299,9 @@ class LivenessController extends ChangeNotifier {
     debugPrint('Face center: ($faceCenterX, $faceCenterY)');
     debugPrint('Screen center: ($ovalCenterX, $ovalCenterY)');
 
-    // Platform-specific tolerances
-    final bool isAndroid = Platform.isAndroid;
-    final double horizontalToleranceMultiplier = isAndroid ? 1.2 : 1.0;
-    final double verticalToleranceMultiplier = isAndroid ? 1.1 : 1.0;
-
-    // Tolerance based on oval size (percentage of oval dimensions)
-    // final maxHorizontalOffset = ovalWidth * 0.20 * horizontalToleranceMultiplier;
-    // final maxVerticalOffset = ovalHeight * 0.15 * verticalToleranceMultiplier;
-
-    // Platform-specific size ratios
-    // final minFaceWidthRatio = isAndroid ? 0.25 : 0.3;
-    // final maxFaceWidthRatio = 0.85;
-    // final minFaceHeightRatio = isAndroid ? 0.25 : 0.3;
-    // final maxFaceHeightRatio = 0.85;
 
     // Calculate size ratios
     final faceWidthRatio = faceBox.width / ovalWidth;
-    final faceHeightRatio = faceBox.height / ovalHeight;
-
-    // Check if face is within oval boundaries
-    // final ovalLeft = ovalCenterX - ovalWidth / 2;
-    // final ovalRight = ovalCenterX + ovalWidth / 2;
-    // final ovalTop = ovalCenterY - ovalHeight / 2;
-    // final ovalBottom = ovalCenterY + ovalHeight / 2;
-
-    // final isInsideOvalHorizontally = faceCenterX >= ovalLeft && faceCenterX <= ovalRight;
-    // final isInsideOvalVertically = faceCenterY >= ovalTop && faceCenterY <= ovalBottom;
-
-    // final horizontalDistanceFromCenter = (faceCenterX - ovalCenterX).abs();
-    // final verticalDistanceFromCenter = (faceCenterY - ovalCenterY).abs();
-
-    // final isHorizontallyCentered = horizontalDistanceFromCenter <= maxHorizontalOffset;
-    // final isVerticallyCentered = verticalDistanceFromCenter <= maxVerticalOffset;
-
     final isHorizontallyOff = (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
     final isVerticallyOff = (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
 
