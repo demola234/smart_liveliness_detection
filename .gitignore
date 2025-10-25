@@ -60,3 +60,4 @@ app.*.map.json
 
 
 /lib/main.dart
+pubspec.lock
