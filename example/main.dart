@@ -194,7 +194,7 @@ class HomeScreen extends StatelessWidget {
                     poorLighting: 'Mova-se para uma área mais iluminada',
                     processingVerification: 'Processando verificação...',
                     verificationComplete: 'Verificação de vivacidade concluída!',
-                    spoofingDetected: "Possível falsificação detectada: rosto movido, mas dispositivo não",
+                    spoofingDetected: "Possível falsificação detectada.",
                     errorProcessing: 'Ocorreu um erro de processamento',
                   ),
                 );

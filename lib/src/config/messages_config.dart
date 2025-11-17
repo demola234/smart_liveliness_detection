@@ -79,7 +79,7 @@ class LivenessMessages {
     this.poorLighting = 'Please move to a better lit area',
     this.processingVerification = 'Processing verification...',
     this.verificationComplete = 'Liveness verification complete!',
-    this.spoofingDetected = "Potential spoofing detected: Face moved but device didn't",
+    this.spoofingDetected = "Potential spoofing detected.",
     this.errorProcessing = 'Processing error occurred',
   });
 }
