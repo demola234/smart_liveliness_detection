@@ -233,8 +233,10 @@ class LivenessController extends ChangeNotifier {
             isCentered = _faceDetectionService.checkFaceCentering(face, screenSize);
             _updateFaceCenteringGuidance(face, screenSize);
           } catch (e) {
-            debugPrint('Error checking face centering: $e');
-            _faceCenteringMessage = _config.messages.errorCheckingFacePosition;
+            if(!_session.isComplete) {
+              debugPrint('Error checking face centering: $e');
+              _faceCenteringMessage = _config.messages.errorCheckingFacePosition;
+            }
           }
 
           //region ## 3. Pass the calculated ovalRect to the processing method
@@ -261,8 +263,10 @@ class LivenessController extends ChangeNotifier {
         if (!_isDisposed) notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error in _processCameraImage: $e');
-      _statusMessage = _config.messages.errorProcessing;
+      if(!session.isComplete) {
+        debugPrint('Error in _processCameraImage: $e');
+        _statusMessage = _config.messages.errorProcessing;
+      }
       if (!_isDisposed) notifyListeners();
     } finally {
       _isProcessing = false;
