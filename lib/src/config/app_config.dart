@@ -45,6 +45,13 @@ class LivenessConfig {
   /// Whether to enable motion correlation check (anti-spoofing).
   final bool enableMotionCorrelationCheck;
 
+  /// Whether to enable contour analysis on face centering (anti-spoofing).
+  final bool enableContourAnalysisOnCentering;
+
+  /// List of challenges where contour analysis should also be applied.
+  /// Recommended for challenges where the face is expected to be frontal, like 'smile' or 'blink'.
+  final List<ChallengeType>? contourChallengeTypes;
+
   /// Camera zoom level for better face visibility
   final double cameraZoomLevel;
 
@@ -144,6 +151,8 @@ class LivenessConfig {
     this.minBrightPercentage = LivenessConstants.defaultMinBrightPercentage,
     this.maxBrightPercentage = LivenessConstants.defaultMaxBrightPercentage,
     this.enableMotionCorrelationCheck = LivenessConstants.defaultEnableMotionCorrelationCheck,
+    this.enableContourAnalysisOnCentering = LivenessConstants.defaultEnableContourAnalysisOnCentering,
+    this.contourChallengeTypes,
     this.cameraZoomLevel = LivenessConstants.defaultCameraZoomLevel,
     this.maxMotionReadings = LivenessConstants.defaultMaxMotionReadings,
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
@@ -189,6 +198,8 @@ class LivenessConfig {
     double? minBrightPercentage,
     double? maxBrightPercentage,
     bool? enableMotionCorrelationCheck,
+    bool? enableContourAnalysisOnCentering,
+    List<ChallengeType>? contourChallengeTypes,
     double? cameraZoomLevel,
     int? maxMotionReadings,
     int? maxHeadAngleReadings,
@@ -232,6 +243,8 @@ class LivenessConfig {
       minBrightPercentage: minBrightPercentage ?? this.minBrightPercentage,
       maxBrightPercentage: maxBrightPercentage ?? this.maxBrightPercentage,
       enableMotionCorrelationCheck: enableMotionCorrelationCheck ?? this.enableMotionCorrelationCheck,
+      enableContourAnalysisOnCentering: enableContourAnalysisOnCentering ?? this.enableContourAnalysisOnCentering,
+      contourChallengeTypes: contourChallengeTypes ?? this.contourChallengeTypes,
       cameraZoomLevel: cameraZoomLevel ?? this.cameraZoomLevel,
       maxMotionReadings: maxMotionReadings ?? this.maxMotionReadings,
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,

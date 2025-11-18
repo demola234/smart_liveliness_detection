@@ -679,6 +679,38 @@ class FaceDetectionService {
     }
   }
 
+  /// Verifies that the essential facial contours are present and complete.
+  /// This acts as a strong deterrent against mask-based spoofing attempts.
+  bool isContourComplete(Face face) {
+    // Define the list of contours that are essential for a real face.
+    // Masks often obscure one or more of these.
+    final List<FaceContourType> essentialContours = [
+      FaceContourType.face,
+      FaceContourType.noseBridge,
+      FaceContourType.leftCheek,
+      FaceContourType.rightCheek,
+      FaceContourType.leftEye,
+      FaceContourType.rightEye,
+      FaceContourType.upperLipTop,
+      FaceContourType.lowerLipBottom,
+    ];
+
+    // Check each essential contour.
+    for (final contourType in essentialContours) {
+      final contour = face.contours[contourType];
+
+      // If a contour is missing or has too few points, it's a red flag.
+      if (contour == null || contour.points.length < 3) {
+        debugPrint('Contour integrity check failed: Missing or incomplete contour - ${contourType.name}');
+        return false;
+      }
+    }
+
+    // If all essential contours are present, the check passes.
+    debugPrint('Contour integrity check passed.');
+    return true;
+  }
+
   bool _detectZoom(Face face, {required Rect ovalRect, required double zoomFactor}) {
     // Validate the face position using the controller's current zoomFactor
     final isPositionedForCurrentZoom = isFaceWellPositioned(

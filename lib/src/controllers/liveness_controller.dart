@@ -211,6 +211,15 @@ class LivenessController extends ChangeNotifier {
           final face = faces.first;
           _isFaceDetected = true;
 
+          // Contour analysis on centering phase
+          if (_config.enableContourAnalysisOnCentering && _session.state == LivenessState.centeringFace) {
+            if (!_faceDetectionService.isContourComplete(face)) {
+              _statusMessage = _config.messages.spoofingDetected;
+              if (!_isDisposed) notifyListeners();
+              return;
+            }
+          }
+
           //region ## 1. Calculate the screen size from the camera image
           // (exactly like you do in _updateFaceCenteringGuidance)
           final screenSize = Size(
@@ -350,6 +359,16 @@ class LivenessController extends ChangeNotifier {
     if (!_cameraService.isLightingGood) {
       _statusMessage = _config.messages.poorLighting;
       return;
+    }
+
+    // Additional contour check for specific challenges
+    final currentChallenge = _session.currentChallenge;
+    if (currentChallenge != null && _config.contourChallengeTypes?.contains(currentChallenge.type) == true) {
+      if (!_faceDetectionService.isContourComplete(face)) {
+        _statusMessage = _config.messages.spoofingDetected;
+        if (!_isDisposed) notifyListeners();
+        return;
+      }
     }
 
     switch (_session.state) {

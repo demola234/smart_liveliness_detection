@@ -382,14 +382,53 @@ class _CustomLivenessScreenState extends State<CustomLivenessScreen> {
 - `ChallengeType.Zoom` - The user needs to move their face closer to the camera, filling the oval.
 - `ChallengeType.normal` - Checks whether the user's face is centered. Ideal for taking a photo of the user.
 
-## Anti-Spoofing Measures
+## Advanced Anti-Spoofing Measures
 
-This package implements several anti-spoofing measures:
+This package implements several advanced, configurable anti-spoofing measures to provide a robust defense against common presentation attacks. All checks are enabled by default and can be configured via the `LivenessConfig` object.
 
-1. **Challenge randomization** - Unpredictable sequence of actions
-2. **Screen glare detection** - Detects presentation attacks using screens
-3. **Motion correlation** - Ensures device movement correlates with head movement
-4. **Timing validation** - Ensures challenges are completed within reasonable times
+### 1. Screen Glare Detection
+
+This check analyzes the camera feed for bright, reflective spots on the user's face, which are characteristic of someone trying to spoof the system by showing a photo or video on a digital screen. The detection uses a dynamic threshold that adapts to the overall brightness of the image, making it effective in various lighting conditions.
+
+**Configuration:**
+
+- `enableScreenGlareDetection`: Set to `false` to disable this check. (Default: `true`)
+- `glareBrightnessFactor`: Multiplier for the average brightness to set the dynamic glare threshold. (Default: `3.0`)
+- `minBrightPercentage` / `maxBrightPercentage`: The minimum and maximum percentage of bright pixels required to trigger the glare detection. (Defaults: `0.05` and `0.30`)
+
+### 2. Motion Correlation Check
+
+This is a powerful defense against spoofing attacks using static photos or videos. It ensures that the user's head movements (both turning and nodding) correlate with subtle movements of the device, as detected by the accelerometer. If the head moves significantly but the device remains perfectly still, it's a strong indicator of a spoofing attempt.
+
+**Configuration:**
+
+- `enableMotionCorrelationCheck`: Set to `false` to disable this check. (Default: `true`)
+- `significantHeadAngleRange`: The minimum range of head movement (in degrees) to be considered significant. (Default: `20.0`)
+- `minDeviceMovementThreshold`: The minimum amount of device motion required to pass the check if significant head motion is detected. (Default: `0.5`)
+
+### 3. Face Contour Analysis (Mask Detection)
+
+This feature provides a strong defense against physical spoofing attempts, such as using a printed or silicone mask. It works by verifying the integrity of essential facial contours provided by the ML Kit. If key features like the nose bridge, cheeks, or the overall face outline are missing or incomplete, the system flags it as a potential spoofing attempt.
+
+To balance security and user experience, this check can be configured to run at specific points:
+
+**Configuration:**
+
+- `enableContourAnalysisOnCentering`: When `true`, this performs the contour check during the initial face centering step. This is highly recommended as it's the best moment to catch a mask. (Default: `true`)
+- `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed. This is useful for challenges where the face is expected to be frontal, such as `ChallengeType.blink` or `ChallengeType.smile`. It is not recommended for challenges involving head turns or tilts.
+
+**Example:**
+
+```dart
+LivenessConfig(
+  // ... other settings
+  enableContourAnalysisOnCentering: true,
+  contourChallengeTypes: [
+    ChallengeType.blink,
+    ChallengeType.smile,
+  ],
+)
+```
 
 ## Demo 
 ![Example](https://github.com/demola234/smart_liveliness_detection/blob/main/screenshots/smart_liveliness_detector.gif?raw=true)
