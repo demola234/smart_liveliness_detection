@@ -52,6 +52,9 @@ class LivenessConfig {
   /// Recommended for challenges where the face is expected to be frontal, like 'smile' or 'blink'.
   final List<ChallengeType>? contourChallengeTypes;
 
+  /// The minimum number of secondary contours required for the contour analysis to pass.
+  final int minRequiredSecondaryContours;
+
   /// Camera zoom level for better face visibility
   final double cameraZoomLevel;
 
@@ -153,6 +156,7 @@ class LivenessConfig {
     this.enableMotionCorrelationCheck = LivenessConstants.defaultEnableMotionCorrelationCheck,
     this.enableContourAnalysisOnCentering = LivenessConstants.defaultEnableContourAnalysisOnCentering,
     this.contourChallengeTypes,
+    this.minRequiredSecondaryContours = LivenessConstants.defaultMinRequiredSecondaryContours,
     this.cameraZoomLevel = LivenessConstants.defaultCameraZoomLevel,
     this.maxMotionReadings = LivenessConstants.defaultMaxMotionReadings,
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
@@ -200,6 +204,7 @@ class LivenessConfig {
     bool? enableMotionCorrelationCheck,
     bool? enableContourAnalysisOnCentering,
     List<ChallengeType>? contourChallengeTypes,
+    int? minRequiredSecondaryContours,
     double? cameraZoomLevel,
     int? maxMotionReadings,
     int? maxHeadAngleReadings,
@@ -245,6 +250,7 @@ class LivenessConfig {
       enableMotionCorrelationCheck: enableMotionCorrelationCheck ?? this.enableMotionCorrelationCheck,
       enableContourAnalysisOnCentering: enableContourAnalysisOnCentering ?? this.enableContourAnalysisOnCentering,
       contourChallengeTypes: contourChallengeTypes ?? this.contourChallengeTypes,
+      minRequiredSecondaryContours: minRequiredSecondaryContours ?? this.minRequiredSecondaryContours,
       cameraZoomLevel: cameraZoomLevel ?? this.cameraZoomLevel,
       maxMotionReadings: maxMotionReadings ?? this.maxMotionReadings,
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,

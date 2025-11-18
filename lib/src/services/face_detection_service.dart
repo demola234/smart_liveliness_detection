@@ -682,31 +682,42 @@ class FaceDetectionService {
   /// Verifies that the essential facial contours are present and complete.
   /// This acts as a strong deterrent against mask-based spoofing attempts.
   bool isContourComplete(Face face) {
-    // Define the list of contours that are essential for a real face.
-    // Masks often obscure one or more of these.
-    final List<FaceContourType> essentialContours = [
+    // Define critical contours that MUST be present.
+    final List<FaceContourType> criticalContours = [
       FaceContourType.face,
-      FaceContourType.noseBridge,
-      FaceContourType.leftCheek,
-      FaceContourType.rightCheek,
       FaceContourType.leftEye,
       FaceContourType.rightEye,
-      FaceContourType.upperLipTop,
-      FaceContourType.lowerLipBottom,
     ];
 
-    // Check each essential contour.
-    for (final contourType in essentialContours) {
-      final contour = face.contours[contourType];
-
-      // If a contour is missing or has too few points, it's a red flag.
-      if (contour == null || contour.points.length < 3) {
-        debugPrint('Contour integrity check failed: Missing or incomplete contour - ${contourType.name}');
+    for (final contourType in criticalContours) {
+      if (face.contours[contourType] == null || face.contours[contourType]!.points.length < 3) {
+        debugPrint('Contour integrity check failed: Critical contour missing - ${contourType.name}');
         return false;
       }
     }
 
-    // If all essential contours are present, the check passes.
+    // Define secondary contours that are important but more prone to detection issues.
+    final List<FaceContourType> secondaryContours = [
+      FaceContourType.noseBridge,
+      FaceContourType.leftCheek,
+      FaceContourType.rightCheek,
+      FaceContourType.upperLipTop,
+      FaceContourType.lowerLipBottom,
+    ];
+
+    int detectedSecondaryContours = 0;
+    for (final contourType in secondaryContours) {
+      if (face.contours[contourType] != null && face.contours[contourType]!.points.length >= 3) {
+        detectedSecondaryContours++;
+      }
+    }
+
+    // Check if the number of detected secondary contours meets the minimum requirement.
+    if (detectedSecondaryContours < _config.minRequiredSecondaryContours) {
+      debugPrint('Contour integrity check failed: Not enough secondary contours detected ($detectedSecondaryContours/${_config.minRequiredSecondaryContours})');
+      return false;
+    }
+
     debugPrint('Contour integrity check passed.');
     return true;
   }

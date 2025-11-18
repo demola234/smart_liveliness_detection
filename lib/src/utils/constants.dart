@@ -24,6 +24,7 @@ class LivenessConstants {
   // Motion detection
   static const bool defaultEnableMotionCorrelationCheck = true;
   static const bool defaultEnableContourAnalysisOnCentering = true;
+  static const int defaultMinRequiredSecondaryContours = 2;
   static const int defaultMaxMotionReadings = 100;
   static const int defaultMaxHeadAngleReadings = 30;
   static const double defaultSignificantHeadAngleRange = 20.0;

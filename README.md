@@ -408,14 +408,13 @@ This is a powerful defense against spoofing attacks using static photos or video
 
 ### 3. Face Contour Analysis (Mask Detection)
 
-This feature provides a strong defense against physical spoofing attempts, such as using a printed or silicone mask. It works by verifying the integrity of essential facial contours provided by the ML Kit. If key features like the nose bridge, cheeks, or the overall face outline are missing or incomplete, the system flags it as a potential spoofing attempt.
-
-To balance security and user experience, this check can be configured to run at specific points:
+This feature provides a strong defense against physical spoofing attempts, such as using a printed or silicone mask. It works by verifying the integrity of essential facial contours provided by the ML Kit. To balance security with the prevention of false positives (e.g., due to lighting or glasses), the check is divided into critical and secondary contours.
 
 **Configuration:**
 
-- `enableContourAnalysisOnCentering`: When `true`, this performs the contour check during the initial face centering step. This is highly recommended as it's the best moment to catch a mask. (Default: `true`)
-- `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed. This is useful for challenges where the face is expected to be frontal, such as `ChallengeType.blink` or `ChallengeType.smile`. It is not recommended for challenges involving head turns or tilts.
+- `enableContourAnalysisOnCentering`: When `true`, performs the contour check during the initial face centering step. This is highly recommended as it's the best moment to catch a mask. (Default: `true`)
+- `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed. This is useful for challenges where the face is expected to be frontal, such as `ChallengeType.blink` or `Challenge.smile`. It is not recommended for challenges involving head turns or tilts.
+- `minRequiredSecondaryContours`: The minimum number of secondary contours (e.g., nose bridge, cheeks) that must be detected for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `2`)
 
 **Example:**
 
@@ -427,6 +426,7 @@ LivenessConfig(
     ChallengeType.blink,
     ChallengeType.smile,
   ],
+  minRequiredSecondaryContours: 2, // Requires 2 out of 5 secondary contours to be present
 )
 ```
 

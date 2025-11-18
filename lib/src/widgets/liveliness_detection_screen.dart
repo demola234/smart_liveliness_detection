@@ -409,16 +409,15 @@ class LivenessDetectionView extends StatelessWidget {
                 // ),
 
                 // Oval overlay with color progress indicator
-                if (useColorProgress)
-                  OvalColorProgressOverlay(
-                    zoomFactor: controller.zoomFactor,
-                    isFaceDetected: controller.isFaceDetected,
-                    config: controller.config,
-                    theme: controller.theme,
-                    progress: controller.progress,
-                    startColor: theme.primaryColor,
-                    endColor: theme.successColor,
-                  ),
+                OvalColorProgressOverlay(
+                  zoomFactor: controller.zoomFactor,
+                  isFaceDetected: controller.isFaceDetected,
+                  config: controller.config,
+                  theme: controller.theme,
+                  progress: useColorProgress ? controller.progress : 0.0,
+                  startColor: theme.primaryColor,
+                  endColor: theme.successColor,
+                ),
 
                 // Status indicators
                 if (showStatusIndicators) ...[
