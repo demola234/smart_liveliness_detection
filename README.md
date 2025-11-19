@@ -79,9 +79,12 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(title: const Text('Liveness Detection')),
         body: LivenessDetectionScreen(
           cameras: cameras,
-          onLivenessCompleted: (sessionId, isSuccessful) {
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
             log('Liveness verification completed: $isSuccessful');
             log('Session ID: $sessionId');
+            if (metadata != null) {
+              log('Anti-spoofing check results: ${metadata['antiSpoofingDetection']}');
+            }
           },
         ),
       ),
@@ -214,13 +217,24 @@ LivenessDetectionScreen(
   onChallengeCompleted: (challengeType) {
     log('Challenge completed: $challengeType');
   },
-  onLivenessCompleted: (sessionId, isSuccessful) {
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {
     log('Liveness verification completed:');
     log('Session ID: $sessionId');
-    log('Success: $isSuccessful');
+    log('Overall Success: $isSuccessful');
 
-    // You can now send this session ID to your backend
-    // for verification or proceed with your app flow
+    if (metadata != null && metadata.containsKey('antiSpoofingDetection')) {
+      final antiSpoofingResult = metadata['antiSpoofingDetection'];
+      final didPassMotionCheck = !antiSpoofingResult['motionCorrelationCheckFailed'];
+      final didPassGlareCheck = !antiSpoofingResult['screenGlareDetected'];
+      final didPassContourCheck = !antiSpoofingResult['lackOfFacialContoursDetected'];
+
+      log('Motion Check Passed: $didPassMotionCheck');
+      log('Glare Check Passed: $didPassGlareCheck');
+      log('Contour Check Passed: $didPassContourCheck');
+    }
+
+    // You can now send this session ID and the detailed results to your backend
+    // for verification or proceed with your app flow.
   },
 );
 ```
@@ -248,17 +262,19 @@ Enable capturing the user's image after successful verification:
 ```dart
 LivenessDetectionScreen(
   cameras: cameras,
-  showCaptureImageButton: true,
-  captureButtonText: 'Take Photo',
-  onImageCaptured: (sessionId, imageFile) {
+  captureFinalImage: true, // Enable final image capture
+  onFinalImageCaptured: (sessionId, imageFile, metadata) {
     // imageFile is an XFile that contains the captured image
     log('Image saved to: ${imageFile.path}');
 
+    // The metadata map contains the detailed anti-spoofing results
+    final antiSpoofingResult = metadata['antiSpoofingDetection'];
+    log('Anti-spoofing results from capture: $antiSpoofingResult');
+
     // You can now:
     // 1. Display the image
-    // 2. Upload it to your server
+    // 2. Upload it to your server along with the metadata
     // 3. Store it locally
-    // 4. Process it further
   },
 );
 ```
@@ -293,7 +309,7 @@ class _VerificationFlowState extends State<VerificationFlow> {
           // Step 2: Liveness Detection
           LivenessDetectionScreen(
             cameras: cameras,
-            onLivenessCompleted: (sessionId, isSuccessful) {
+            onLivenessCompleted: (sessionId, isSuccessful, result) {
               if (isSuccessful) {
                 setState(() {
                   _sessionId = sessionId;
@@ -335,7 +351,7 @@ class _CustomLivenessScreenState extends State<CustomLivenessScreen> {
       cameras: cameras,
       config: LivenessConfig(...),
       theme: LivenessTheme(...),
-      onLivenessCompleted: (sessionId, isSuccessful) {
+      onLivenessCompleted: (sessionId, isSuccessful, result) {
         // Handle completion
       },
     );
@@ -384,11 +400,21 @@ class _CustomLivenessScreenState extends State<CustomLivenessScreen> {
 
 ## Advanced Anti-Spoofing Measures
 
-This package implements several advanced, configurable anti-spoofing measures to provide a robust defense against common presentation attacks. All checks are enabled by default and can be configured via the `LivenessConfig` object.
+This package implements several advanced, configurable anti-spoofing measures to provide a robust defense against common presentation attacks. While some checks act as non-blocking flags, the motion correlation check determines the final success of the verification.
+
+Upon completion, the `onLivenessCompleted` and `onFinalImageCaptured` callbacks return a detailed metadata map with the results.
+
+### Anti-Spoofing Result Map
+
+Both callbacks provide a `metadata` map which may contain an `antiSpoofingDetection` key. This key holds a nested map with the following boolean flags:
+
+- `motionCorrelationCheckFailed`: The only blocking check by default. If `true`, the overall `isSuccessful` result of the liveness check will be `false`. This occurs if the head moves significantly but the device does not.
+- `screenGlareDetected`: A non-blocking flag. `true` if potential screen glare was detected on the user's face.
+- `lackOfFacialContoursDetected`: A non-blocking flag. `true` if the system failed to detect a sufficient number of facial contours, which could indicate a mask.
 
 ### 1. Screen Glare Detection
 
-This check analyzes the camera feed for bright, reflective spots on the user's face, which are characteristic of someone trying to spoof the system by showing a photo or video on a digital screen. The detection uses a dynamic threshold that adapts to the overall brightness of the image, making it effective in various lighting conditions.
+This check analyzes the camera feed for bright, reflective spots. It acts as a non-blocking flag in the final result.
 
 **Configuration:**
 
@@ -398,7 +424,7 @@ This check analyzes the camera feed for bright, reflective spots on the user's f
 
 ### 2. Motion Correlation Check
 
-This is a powerful defense against spoofing attacks using static photos or videos. It ensures that the user's head movements (both turning and nodding) correlate with subtle movements of the device, as detected by the accelerometer. If the head moves significantly but the device remains perfectly still, it's a strong indicator of a spoofing attempt.
+This is a powerful defense that determines the final success of the verification. It ensures head and device movements are correlated.
 
 **Configuration:**
 
@@ -408,13 +434,13 @@ This is a powerful defense against spoofing attacks using static photos or video
 
 ### 3. Face Contour Analysis (Mask Detection)
 
-This feature provides a strong defense against physical spoofing attempts, such as using a printed or silicone mask. It works by verifying the integrity of essential facial contours provided by the ML Kit. To balance security with the prevention of false positives (e.g., due to lighting or glasses), the check is divided into critical and secondary contours.
+This check verifies the integrity of facial contours and acts as a non-blocking flag in the final result.
 
 **Configuration:**
 
-- `enableContourAnalysisOnCentering`: When `true`, performs the contour check during the initial face centering step. This is highly recommended as it's the best moment to catch a mask. (Default: `true`)
-- `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed. This is useful for challenges where the face is expected to be frontal, such as `ChallengeType.blink` or `Challenge.smile`. It is not recommended for challenges involving head turns or tilts.
-- `minRequiredSecondaryContours`: The minimum number of secondary contours (e.g., nose bridge, cheeks) that must be detected for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `2`)
+- `enableContourAnalysisOnCentering`: When `true`, performs the contour check during the initial face centering step. (Default: `true`)
+- `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed (e.g., `ChallengeType.blink` or `ChallengeType.smile`).
+- `minRequiredSecondaryContours`: The minimum number of secondary contours required for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `2`)
 
 **Example:**
 

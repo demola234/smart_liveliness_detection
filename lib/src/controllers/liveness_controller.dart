@@ -64,7 +64,7 @@ class LivenessController extends ChangeNotifier {
   final FaceNotDetectedCallback? _onFaceNotDetected;
 
   /// Callback for when final image is captured
-  final Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata)? _onFinalImageCaptured;
+  final FinalImageCapturedCallback? _onFinalImageCaptured;
 
   /// Whether verification was successful (after completion)
   bool _isVerificationSuccessful = false;
@@ -75,6 +75,10 @@ class LivenessController extends ChangeNotifier {
   final bool _captureFinalImage;
 
   final VoidCallback? onReset;
+
+  // Anti-spoofing flags
+  bool _screenGlareDetected = false;
+  bool _lackOfFacialContoursDetected = false;
 
   /// Constructor
   LivenessController({
@@ -90,7 +94,7 @@ class LivenessController extends ChangeNotifier {
     LivenessCompletedCallback? onLivenessCompleted,
     FaceDetectedCallback? onFaceDetected,
     FaceNotDetectedCallback? onFaceNotDetected,
-    Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata)? onFinalImageCaptured,
+    FinalImageCapturedCallback? onFinalImageCaptured,
     bool captureFinalImage = true,
     this.onReset,
   })  : _cameras = cameras,
@@ -174,22 +178,17 @@ class LivenessController extends ChangeNotifier {
         debugPrint('Error calculating lighting: $e');
       }
 
-      //region !! Anti-spoofing detection: Screen glare detection phase
+      // Detect screen glare if enabled
       if (_config.enableScreenGlareDetection) {
-        bool hasScreenGlare = false;
         try {
-          hasScreenGlare = _cameraService.detectScreenGlare(image);
-          if (hasScreenGlare) {
+          if (_cameraService.detectScreenGlare(image)) {
             debugPrint('Detected potential screen glare, possible spoofing attempt');
-            _statusMessage = _config.messages.spoofingDetected;
-            if (!_isDisposed) notifyListeners();
-            return; // Stop processing to prevent spoofing
+            _screenGlareDetected = true;
           }
         } catch (e) {
           debugPrint('Error detecting screen glare: $e');
         }
       }
-      //endregion
 
       // Get the front camera
       final camera = _cameras.firstWhere(
@@ -211,16 +210,13 @@ class LivenessController extends ChangeNotifier {
           final face = faces.first;
           _isFaceDetected = true;
 
-          //region !! Anti-spoofing detection: Contour analysis on centering phase
+          // Contour analysis on centering phase
           if (_config.enableContourAnalysisOnCentering && _session.state == LivenessState.centeringFace) {
             if (!_faceDetectionService.isContourComplete(face)) {
-              debugPrint('Detected potential lack of facial contours, possible spoofing attempt');
-              _statusMessage = _config.messages.spoofingDetected;
-              if (!_isDisposed) notifyListeners();
-              return;
+              debugPrint('Detected potential lack of facial contours on centering, possible spoofing attempt');
+              _lackOfFacialContoursDetected = true;
             }
           }
-          //endregion
 
           //region ## 1. Calculate the screen size from the camera image
           // (exactly like you do in _updateFaceCenteringGuidance)
@@ -367,10 +363,8 @@ class LivenessController extends ChangeNotifier {
     final currentChallenge = _session.currentChallenge;
     if (currentChallenge != null && _config.contourChallengeTypes?.contains(currentChallenge.type) == true) {
       if (!_faceDetectionService.isContourComplete(face)) {
-        debugPrint('Detected potential lack of facial contours on challenge $currentChallenge, possible spoofing attempt');
-        _statusMessage = _config.messages.spoofingDetected;
-        if (!_isDisposed) notifyListeners();
-        return;
+        debugPrint('Detected potential lack of facial contours on challenge ${currentChallenge.type}, possible spoofing attempt');
+        _lackOfFacialContoursDetected = true;
       }
     }
     //endregion
@@ -476,42 +470,50 @@ class LivenessController extends ChangeNotifier {
   void _completeSession() async {
     _session.state = LivenessState.completed;
 
-    bool motionValid = true; // Assume valid if check is disabled
-
-    //region !! Anti-spoofing detection: Motion check phase
+    bool motionCorrelationFailed = false;
     if (_config.enableMotionCorrelationCheck) {
-      motionValid = _motionService.verifyMotionCorrelation(_faceDetectionService.headAngleReadings);
+      if (!_motionService.verifyMotionCorrelation(_faceDetectionService.headAngleReadings)) {
+        debugPrint('Potential spoofing detected: Motion correlation check failed.');
+        motionCorrelationFailed = true;
+      }
     }
-    //endregion
 
-    _isVerificationSuccessful = motionValid;
+    _isVerificationSuccessful = !motionCorrelationFailed;
 
-    if (!motionValid) {
-      debugPrint('Potential spoofing detected: Face moved but device didn\'t');
+    if (motionCorrelationFailed) {
       _statusMessage = _config.messages.spoofingDetected;
     } else {
       _statusMessage = _config.messages.verificationComplete;
     }
 
-    // Capture final image if enabled and verification was successful
-    if (_captureFinalImage &&
-        _isVerificationSuccessful &&
-        _singleCaptureService != null) {
+    final antiSpoofingResults = {
+      'screenGlareDetected': _screenGlareDetected,
+      'lackOfFacialContoursDetected': _lackOfFacialContoursDetected,
+      'motionCorrelationCheckFailed': motionCorrelationFailed,
+    };
+    
+    final metadata = {
+      'antiSpoofingDetection': antiSpoofingResults,
+    };
+
+    // Capture final image if enabled
+    if (_captureFinalImage && _singleCaptureService != null) {
       try {
         final XFile? finalImage = await _singleCaptureService!.captureImage();
 
         if (finalImage != null && _onFinalImageCaptured != null) {
           // Create metadata for the captured image
-          final Map<String, dynamic> metadata = {
+          final fullMetadata = {
             'timestamp': DateTime.now().millisecondsSinceEpoch,
             'verificationResult': _isVerificationSuccessful,
             'challenges': _session.challenges.map((c) => c.type.toString()).toList(),
             'sessionDuration': DateTime.now().difference(_session.startTime).inMilliseconds,
             'lightingValue': _cameraService.lightingValue,
+            'antiSpoofingDetection': antiSpoofingResults,
           };
 
           // Call the callback with the image and metadata
-          _onFinalImageCaptured!(_session.sessionId, finalImage, metadata);
+          _onFinalImageCaptured!(_session.sessionId, finalImage, fullMetadata);
         }
       } catch (e) {
         debugPrint('Error capturing final image: $e');
@@ -519,7 +521,7 @@ class LivenessController extends ChangeNotifier {
     }
 
     // Notify via callback
-    _onLivenessCompleted?.call(_session.sessionId, _isVerificationSuccessful, {});
+    _onLivenessCompleted?.call(_session.sessionId, _isVerificationSuccessful, metadata);
   }
 
   /// Update the current status message
@@ -538,6 +540,8 @@ class LivenessController extends ChangeNotifier {
     _motionService.resetTracking();
     _statusMessage = _config.messages.initializing;
     _isVerificationSuccessful = false;
+    _screenGlareDetected = false;
+    _lackOfFacialContoursDetected = false;
 
     _currentZoomFactor = _config.initialZoomFactor;
     _zoomChallengeController.reset();
