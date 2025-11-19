@@ -174,14 +174,13 @@ class LivenessController extends ChangeNotifier {
         debugPrint('Error calculating lighting: $e');
       }
 
-      // Detect screen glare if enabled
+      //region !! Anti-spoofing detection: Screen glare detection phase
       if (_config.enableScreenGlareDetection) {
         bool hasScreenGlare = false;
         try {
           hasScreenGlare = _cameraService.detectScreenGlare(image);
           if (hasScreenGlare) {
-            debugPrint(
-                'Detected potential screen glare, possible spoofing attempt');
+            debugPrint('Detected potential screen glare, possible spoofing attempt');
             _statusMessage = _config.messages.spoofingDetected;
             if (!_isDisposed) notifyListeners();
             return; // Stop processing to prevent spoofing
@@ -190,6 +189,7 @@ class LivenessController extends ChangeNotifier {
           debugPrint('Error detecting screen glare: $e');
         }
       }
+      //endregion
 
       // Get the front camera
       final camera = _cameras.firstWhere(
@@ -211,14 +211,16 @@ class LivenessController extends ChangeNotifier {
           final face = faces.first;
           _isFaceDetected = true;
 
-          // Contour analysis on centering phase
+          //region !! Anti-spoofing detection: Contour analysis on centering phase
           if (_config.enableContourAnalysisOnCentering && _session.state == LivenessState.centeringFace) {
             if (!_faceDetectionService.isContourComplete(face)) {
+              debugPrint('Detected potential lack of facial contours, possible spoofing attempt');
               _statusMessage = _config.messages.spoofingDetected;
               if (!_isDisposed) notifyListeners();
               return;
             }
           }
+          //endregion
 
           //region ## 1. Calculate the screen size from the camera image
           // (exactly like you do in _updateFaceCenteringGuidance)
@@ -361,15 +363,17 @@ class LivenessController extends ChangeNotifier {
       return;
     }
 
-    // Additional contour check for specific challenges
+    //region !! Anti-spoofing detection: Additional contour check for specific challenges
     final currentChallenge = _session.currentChallenge;
     if (currentChallenge != null && _config.contourChallengeTypes?.contains(currentChallenge.type) == true) {
       if (!_faceDetectionService.isContourComplete(face)) {
+        debugPrint('Detected potential lack of facial contours on challenge $currentChallenge, possible spoofing attempt');
         _statusMessage = _config.messages.spoofingDetected;
         if (!_isDisposed) notifyListeners();
         return;
       }
     }
+    //endregion
 
     switch (_session.state) {
       case LivenessState.initial:
@@ -473,10 +477,12 @@ class LivenessController extends ChangeNotifier {
     _session.state = LivenessState.completed;
 
     bool motionValid = true; // Assume valid if check is disabled
+
+    //region !! Anti-spoofing detection: Motion check phase
     if (_config.enableMotionCorrelationCheck) {
-      motionValid = _motionService
-          .verifyMotionCorrelation(_faceDetectionService.headAngleReadings);
+      motionValid = _motionService.verifyMotionCorrelation(_faceDetectionService.headAngleReadings);
     }
+    //endregion
 
     _isVerificationSuccessful = motionValid;
 
