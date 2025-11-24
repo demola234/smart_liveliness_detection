@@ -47,7 +47,7 @@ class CameraService {
       frontCamera,
       // WARNING: Set to ResolutionPreset.high. Do NOT set it to ResolutionPreset.max because for some phones does NOT work.
       // TODO: What is the best option, high OR medium? It need to be tested!
-      ResolutionPreset.medium, // Use medium instead of high to reduce load
+      ResolutionPreset.medium,
       enableAudio: false,
       // WARNING: According to google_ml_kit_flutter, It only supports nv21 format for Android and bgra8888 for iOS
       imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888, // Explicitly set format
@@ -55,7 +55,7 @@ class CameraService {
 
     try {
       await _controller!.initialize();
-      
+
       // Wait a bit longer for camera to stabilize
       await Future.delayed(const Duration(milliseconds: 500));
 
@@ -70,10 +70,10 @@ class CameraService {
 
           // Set focus mode to auto
           await _controller!.setFocusMode(FocusMode.auto);
-          
+
           // Set flash mode to off (for front camera)
           await _controller!.setFlashMode(FlashMode.off);
-          
+
         } catch (e) {
           debugPrint('Camera settings not supported: $e');
           // Continue even if some settings fail
@@ -82,7 +82,7 @@ class CameraService {
 
       _isInitialized = true;
       _isDisposing = false;
-      
+
       debugPrint('Camera initialized successfully');
       return _controller!;
     } catch (e) {
@@ -133,7 +133,7 @@ class CameraService {
   /// Restart camera after error
   Future<void> _restartCamera() async {
     if (_isDisposing) return;
-    
+
     debugPrint('Restarting camera...');
     try {
       final cameras = await availableCameras();
@@ -152,7 +152,7 @@ class CameraService {
       }
 
       final Uint8List yPlane = image.planes[0].bytes;
-      
+
       // Sample only a portion of pixels for performance
       const int sampleRate = 10; // Sample every 10th pixel
       int totalBrightness = 0;
@@ -199,7 +199,7 @@ class CameraService {
       if (sampledPixels == 0) return false;
 
       final double avgBrightness = totalBrightness / sampledPixels;
-      
+
       // Dynamic threshold based on average brightness
       final double glareThreshold = avgBrightness * _config.glareBrightnessFactor;
 
@@ -235,7 +235,7 @@ class CameraService {
   /// Update configuration
   void updateConfig(LivenessConfig config) async {
     _config = config;
-    
+
     // Only update zoom if camera is initialized and zoom level changed
     if (_isInitialized &&
         _controller != null &&

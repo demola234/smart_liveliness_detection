@@ -13,10 +13,6 @@ class LivenessProgressBar extends StatelessWidget {
     return LinearProgressIndicator(
       value: progress,
       backgroundColor: Colors.grey.withValues(alpha: 0.5),
-      // valueColor: AlwaysStoppedAnimation<Color>(
-      //   progress == 1.0 ? Colors.green : Colors.blue,
-      // ),
-      // minHeight: 10,
     );
   }
 }

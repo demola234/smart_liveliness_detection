@@ -10,7 +10,7 @@ class OvalOverlayPainter extends CustomPainter {
   final bool isFaceDetected;
 
   /// Zoom factor for the oval
-  final double zoomFactor; // Receives the factor from 0.0 to 1.0
+  final double zoomFactor;
 
   /// Liveness config
   final LivenessConfig config;
@@ -148,8 +148,8 @@ class OvalOverlayPainter extends CustomPainter {
           center: progressCenter, radius: progressCircleSize / 2);
       canvas.drawArc(
         rect,
-        -math.pi / 2, // Start from top
-        progress * math.pi * 2, // Sweep angle based on progress
+        -math.pi / 2,
+        progress * math.pi * 2,
         false,
         progressPaint,
       );

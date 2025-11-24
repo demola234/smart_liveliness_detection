@@ -179,9 +179,9 @@ class LivenessConfig {
     this.cameraRestartDelay = const Duration(milliseconds: 500),
     this.enableAggressiveErrorRecovery = true,
     this.imageProcessingTimeout = const Duration(milliseconds: 1000),
-    this.enablePerformanceMonitoring = false, // Disabled by default for performance
+    this.enablePerformanceMonitoring = false,
     this.performanceMonitoringInterval = const Duration(seconds: 5),
-    this.maxFrameDropRate = 0.7, // Allow up to 70% frame drops before reducing load
+    this.maxFrameDropRate = 0.7,
     this.enableAutomaticMemoryCleanup = true,
     this.memoryCleanupInterval = const Duration(seconds: 30),
     this.messages = const LivenessMessages(),
@@ -285,11 +285,11 @@ class LivenessConfig {
   /// Create a configuration optimized for stability (reduced crashes)
   factory LivenessConfig.stable() {
     return const LivenessConfig(
-      frameSkipInterval: 3, // Process every 4th frame
-      maxConsecutiveErrors: 3, // Restart detector sooner
+      frameSkipInterval: 3,
+      maxConsecutiveErrors: 3,
       enableAggressiveErrorRecovery: true,
       imageProcessingTimeout: Duration(milliseconds: 800),
-      maxFrameDropRate: 0.8, // Allow more frame drops
+      maxFrameDropRate: 0.8,
       enableAutomaticMemoryCleanup: true,
       memoryCleanupInterval: Duration(seconds: 20),
     );
@@ -298,12 +298,12 @@ class LivenessConfig {
   /// Create a configuration optimized for performance
   factory LivenessConfig.performance() {
     return const LivenessConfig(
-      frameSkipInterval: 1, // Process every 2nd frame
-      maxConsecutiveErrors: 8, // Allow more errors before restart
+      frameSkipInterval: 1,
+      maxConsecutiveErrors: 8,
       enableAggressiveErrorRecovery: false,
       imageProcessingTimeout: Duration(milliseconds: 1200),
       enablePerformanceMonitoring: true,
-      maxFrameDropRate: 0.5, // Lower drop rate tolerance
+      maxFrameDropRate: 0.5,
       enableAutomaticMemoryCleanup: true,
       memoryCleanupInterval: Duration(seconds: 45),
     );
@@ -312,12 +312,12 @@ class LivenessConfig {
   /// Create a configuration optimized for debugging
   factory LivenessConfig.debug() {
     return const LivenessConfig(
-      frameSkipInterval: 4, // Process every 5th frame for easier debugging
-      maxConsecutiveErrors: 2, // Restart quickly to see issues
+      frameSkipInterval: 4,
+      maxConsecutiveErrors: 2,
       enableAggressiveErrorRecovery: true,
       enablePerformanceMonitoring: true,
       performanceMonitoringInterval: Duration(seconds: 3),
-      maxFrameDropRate: 0.9, // Very tolerant for debugging
+      maxFrameDropRate: 0.9,
       enableAutomaticMemoryCleanup: true,
       memoryCleanupInterval: Duration(seconds: 10),
     );
