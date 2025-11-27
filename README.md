@@ -331,6 +331,61 @@ class _VerificationFlowState extends State<VerificationFlow> {
 }
 ```
 
+### Direct Controller Access
+
+For even more control, you can use the controller directly:
+
+```dart
+class CustomLivenessScreen extends StatefulWidget {
+  @override
+  _CustomLivenessScreenState createState() => _CustomLivenessScreenState();
+}
+
+class _CustomLivenessScreenState extends State<CustomLivenessScreen> {
+  late LivenessController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = LivenessController(
+      cameras: cameras,
+      config: LivenessConfig(...),
+      theme: LivenessTheme(...),
+      onLivenessCompleted: (sessionId, isSuccessful, result) {
+        // Handle completion
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider.value(
+      value: _controller,
+      child: Consumer<LivenessController>(
+        builder: (context, controller, _) {
+          return Scaffold(
+            body: Stack(
+              children: [
+                // Your custom UI...
+
+                if (controller.currentState == LivenessState.completed)
+                  // Show success UI
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
 ## Available Challenge Types
 
 - `ChallengeType.blink` - Verify that the user can blink
@@ -385,7 +440,21 @@ This check verifies the integrity of facial contours and acts as a non-blocking 
 
 - `enableContourAnalysisOnCentering`: When `true`, performs the contour check during the initial face centering step. (Default: `true`)
 - `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed (e.g., `ChallengeType.blink` or `ChallengeType.smile`).
-- `minRequiredSecondaryContours`: The minimum number of secondary contours required for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `2`)
+- `minRequiredSecondaryContours`: The minimum number of secondary contours (e.g., nose bridge, cheeks, upper lip bottom, lower lip top, eyebrows) that must be detected for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `5`)
+
+**Example:**
+
+```dart
+LivenessConfig(
+  // ... other settings
+  enableContourAnalysisOnCentering: true,
+  contourChallengeTypes: [
+    ChallengeType.blink,
+    ChallengeType.smile,
+  ],
+  minRequiredSecondaryContours: 5, // Requires 5 out of 10 secondary contours to be present
+)
+```
 
 ### 4. Continuous Identity Verification (Sandwich Strategy)
 
@@ -410,7 +479,7 @@ LivenessConfig(
     ChallengeType.blink,
     ChallengeType.smile,
   ],
-  minRequiredSecondaryContours: 2, // Requires 2 out of 5 secondary contours to be present
+  minRequiredSecondaryContours: 5, // Requires 5 out of 10 secondary contours to be present
   // Automatically add normal check at start and end
   sandwichNormalChallenge: true, 
 )

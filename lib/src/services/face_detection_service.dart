@@ -699,26 +699,37 @@ class FaceDetectionService {
     // Define secondary contours that are important but more prone to detection issues.
     final List<FaceContourType> secondaryContours = [
       FaceContourType.noseBridge,
+      FaceContourType.noseBottom,
       FaceContourType.leftCheek,
       FaceContourType.rightCheek,
       FaceContourType.upperLipTop,
+      FaceContourType.upperLipBottom,
+      FaceContourType.lowerLipTop,
       FaceContourType.lowerLipBottom,
+      FaceContourType.leftEyebrowTop,
+      FaceContourType.rightEyebrowTop,
     ];
 
     int detectedSecondaryContours = 0;
+    List<String> detectedSecondaryNames = [];
+    List<String> missingSecondaryNames = [];
+
     for (final contourType in secondaryContours) {
       if (face.contours[contourType] != null && face.contours[contourType]!.points.length >= 3) {
         detectedSecondaryContours++;
+        detectedSecondaryNames.add(contourType.name);
+      } else {
+        missingSecondaryNames.add(contourType.name);
       }
     }
 
     // Check if the number of detected secondary contours meets the minimum requirement.
     if (detectedSecondaryContours < _config.minRequiredSecondaryContours) {
-      debugPrint('Contour integrity check failed: Not enough secondary contours detected ($detectedSecondaryContours/${_config.minRequiredSecondaryContours})');
+      debugPrint('Contour integrity check failed: Not enough secondary contours detected ($detectedSecondaryContours/${_config.minRequiredSecondaryContours}). Missing: $missingSecondaryNames');
       return false;
     }
 
-    debugPrint('Contour integrity check passed.');
+    debugPrint('Contour integrity check passed. Detected secondary: $detectedSecondaryNames');
     return true;
   }
 
