@@ -55,6 +55,10 @@ class LivenessConfig {
   /// The minimum number of secondary contours required for the contour analysis to pass.
   final int minRequiredSecondaryContours;
 
+  /// Whether to automatically add a `ChallengeType.normal` at the beginning and end of random challenges.
+  /// This is highly recommended for security.
+  final bool sandwichNormalChallenge;
+
   /// Camera zoom level for better face visibility
   final double cameraZoomLevel;
 
@@ -157,6 +161,7 @@ class LivenessConfig {
     this.enableContourAnalysisOnCentering = LivenessConstants.defaultEnableContourAnalysisOnCentering,
     this.contourChallengeTypes,
     this.minRequiredSecondaryContours = LivenessConstants.defaultMinRequiredSecondaryContours,
+    this.sandwichNormalChallenge = LivenessConstants.defaultSandwichNormalChallenge,
     this.cameraZoomLevel = LivenessConstants.defaultCameraZoomLevel,
     this.maxMotionReadings = LivenessConstants.defaultMaxMotionReadings,
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
@@ -205,6 +210,7 @@ class LivenessConfig {
     bool? enableContourAnalysisOnCentering,
     List<ChallengeType>? contourChallengeTypes,
     int? minRequiredSecondaryContours,
+    bool? sandwichNormalChallenge,
     double? cameraZoomLevel,
     int? maxMotionReadings,
     int? maxHeadAngleReadings,
@@ -251,6 +257,7 @@ class LivenessConfig {
       enableContourAnalysisOnCentering: enableContourAnalysisOnCentering ?? this.enableContourAnalysisOnCentering,
       contourChallengeTypes: contourChallengeTypes ?? this.contourChallengeTypes,
       minRequiredSecondaryContours: minRequiredSecondaryContours ?? this.minRequiredSecondaryContours,
+      sandwichNormalChallenge: sandwichNormalChallenge ?? this.sandwichNormalChallenge,
       cameraZoomLevel: cameraZoomLevel ?? this.cameraZoomLevel,
       maxMotionReadings: maxMotionReadings ?? this.maxMotionReadings,
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,

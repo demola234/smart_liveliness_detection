@@ -331,61 +331,6 @@ class _VerificationFlowState extends State<VerificationFlow> {
 }
 ```
 
-### Direct Controller Access
-
-For even more control, you can use the controller directly:
-
-```dart
-class CustomLivenessScreen extends StatefulWidget {
-  @override
-  _CustomLivenessScreenState createState() => _CustomLivenessScreenState();
-}
-
-class _CustomLivenessScreenState extends State<CustomLivenessScreen> {
-  late LivenessController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = LivenessController(
-      cameras: cameras,
-      config: LivenessConfig(...),
-      theme: LivenessTheme(...),
-      onLivenessCompleted: (sessionId, isSuccessful, result) {
-        // Handle completion
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Consumer<LivenessController>(
-        builder: (context, controller, _) {
-          return Scaffold(
-            body: Stack(
-              children: [
-                // Your custom UI...
-
-                if (controller.currentState == LivenessState.completed)
-                  // Show success UI
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-```
-
 ## Available Challenge Types
 
 - `ChallengeType.blink` - Verify that the user can blink
@@ -442,6 +387,19 @@ This check verifies the integrity of facial contours and acts as a non-blocking 
 - `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed (e.g., `ChallengeType.blink` or `ChallengeType.smile`).
 - `minRequiredSecondaryContours`: The minimum number of secondary contours required for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `2`)
 
+### 4. Continuous Identity Verification (Sandwich Strategy)
+
+To prevent "swap attacks" (where a real user starts the session but then swaps to a photo/video), it is highly recommended to perform a face check at the beginning and at the end of the session.
+
+This strategy "sandwiches" the liveness challenges between two `ChallengeType.normal` checks. The package can automatically insert these checks for random challenge sequences.
+
+**Configuration:**
+
+- `sandwichNormalChallenge`: When `true`, automatically adds a `ChallengeType.normal` at the start and end of the randomly generated challenge list. (Default: `false` for backward compatibility)
+
+**Manual Configuration Note:**
+If you are providing a custom list of `challengeTypes` instead of using random generation, it is strongly recommended that you manually add `ChallengeType.normal` as the first and last items in your list.
+
 **Example:**
 
 ```dart
@@ -453,6 +411,8 @@ LivenessConfig(
     ChallengeType.smile,
   ],
   minRequiredSecondaryContours: 2, // Requires 2 out of 5 secondary contours to be present
+  // Automatically add normal check at start and end
+  sandwichNormalChallenge: true, 
 )
 ```
 

@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
+import 'package:smart_liveliness_detection/src/models/challenge.dart';
 import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
@@ -113,6 +114,27 @@ class LivenessController extends ChangeNotifier {
         _session = LivenessSession(
           challenges: LivenessSession.generateRandomChallenges(config ?? const LivenessConfig()),
         ) {
+    
+    // Apply "sandwich" logic if enabled and using random challenges
+    if (_config.sandwichNormalChallenge && challengeTypes == null) {
+      final challenges = _session.challenges;
+      // Add normal challenge at the beginning if not present
+      if (challenges.isEmpty || challenges.first.type != ChallengeType.normal) {
+        challenges.insert(0, Challenge(
+          ChallengeType.normal,
+          customInstruction: _config.challengeInstructions?[ChallengeType.normal] ?? _config.messages.initialInstruction,
+        ));
+      }
+      
+      // Add normal challenge at the end if not present
+      if (challenges.last.type != ChallengeType.normal) {
+        challenges.add(Challenge(
+          ChallengeType.normal,
+          customInstruction: _config.challengeInstructions?[ChallengeType.normal] ?? _config.messages.initialInstruction,
+        ));
+      }
+    }
+
     _zoomChallengeController = ZoomChallengeController(vsync: vsync, initialValue: _config.initialZoomFactor);
     _initialize();
   }
