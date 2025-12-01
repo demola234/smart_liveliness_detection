@@ -59,6 +59,9 @@ class LivenessConfig {
   /// This is highly recommended for security.
   final bool sandwichNormalChallenge;
 
+  /// Whether the session should fail if motion correlation check fails at the end.
+  final bool failOnMotionCorrelationFailedAtTheEnd;
+
   /// Camera zoom level for better face visibility
   final double cameraZoomLevel;
 
@@ -162,6 +165,7 @@ class LivenessConfig {
     this.contourChallengeTypes,
     this.minRequiredSecondaryContours = LivenessConstants.defaultMinRequiredSecondaryContours,
     this.sandwichNormalChallenge = LivenessConstants.defaultSandwichNormalChallenge,
+    this.failOnMotionCorrelationFailedAtTheEnd = LivenessConstants.defaultFailOnMotionCorrelationFailedAtTheEnd,
     this.cameraZoomLevel = LivenessConstants.defaultCameraZoomLevel,
     this.maxMotionReadings = LivenessConstants.defaultMaxMotionReadings,
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
@@ -211,6 +215,7 @@ class LivenessConfig {
     List<ChallengeType>? contourChallengeTypes,
     int? minRequiredSecondaryContours,
     bool? sandwichNormalChallenge,
+    bool? failOnMotionCorrelationFailedAtTheEnd,
     double? cameraZoomLevel,
     int? maxMotionReadings,
     int? maxHeadAngleReadings,
@@ -258,6 +263,7 @@ class LivenessConfig {
       contourChallengeTypes: contourChallengeTypes ?? this.contourChallengeTypes,
       minRequiredSecondaryContours: minRequiredSecondaryContours ?? this.minRequiredSecondaryContours,
       sandwichNormalChallenge: sandwichNormalChallenge ?? this.sandwichNormalChallenge,
+      failOnMotionCorrelationFailedAtTheEnd: failOnMotionCorrelationFailedAtTheEnd ?? this.failOnMotionCorrelationFailedAtTheEnd,
       cameraZoomLevel: cameraZoomLevel ?? this.cameraZoomLevel,
       maxMotionReadings: maxMotionReadings ?? this.maxMotionReadings,
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,

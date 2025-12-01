@@ -286,6 +286,21 @@ class LivenessController extends ChangeNotifier {
         } else {
           // WARNING: It will be called only after onFaceDetected is called! It will trigger the first face non-detection event after any face detection
           if(_isFaceDetected) {
+            // Identify challenges where losing the face is acceptable/expected
+            final bool isMovementChallenge = _session.currentChallenge?.type == ChallengeType.turnLeft ||
+                _session.currentChallenge?.type == ChallengeType.turnRight ||
+                _session.currentChallenge?.type == ChallengeType.tiltUp ||
+                _session.currentChallenge?.type == ChallengeType.tiltDown ||
+                _session.currentChallenge?.type == ChallengeType.nod;
+
+            // Reset session if face is lost during a non-movement challenge
+            if (_session.state == LivenessState.performingChallenges && !isMovementChallenge) {
+              debugPrint('Face lost during non-movement challenge, resetting session.');
+              _statusMessage = _config.messages.noFaceDetected;
+              resetSession();
+              return; 
+            }
+
             // Notify via callback
             _onFaceNotDetected?.call(_session.currentChallenge!.type, this);
           }
@@ -500,9 +515,13 @@ class LivenessController extends ChangeNotifier {
       }
     }
 
-    _isVerificationSuccessful = !motionCorrelationFailed;
+    // Determine overall success based on configuration
+    _isVerificationSuccessful = true;
+    if (_config.failOnMotionCorrelationFailedAtTheEnd && motionCorrelationFailed) {
+      _isVerificationSuccessful = false;
+    }
 
-    if (motionCorrelationFailed) {
+    if (!_isVerificationSuccessful) {
       _statusMessage = _config.messages.spoofingDetected;
     } else {
       _statusMessage = _config.messages.verificationComplete;

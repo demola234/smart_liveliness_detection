@@ -26,6 +26,7 @@ class LivenessConstants {
   static const bool defaultEnableContourAnalysisOnCentering = true;
   static const int defaultMinRequiredSecondaryContours = 5;
   static const bool defaultSandwichNormalChallenge = false;
+  static const bool defaultFailOnMotionCorrelationFailedAtTheEnd = true;
   static const int defaultMaxMotionReadings = 100;
   static const int defaultMaxHeadAngleReadings = 30;
   static const double defaultSignificantHeadMovementStdDev = 5.0;

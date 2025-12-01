@@ -431,6 +431,7 @@ This is a powerful defense that determines the final success of the verification
 - `enableMotionCorrelationCheck`: Set to `false` to disable this check. (Default: `true`)
 - `significantHeadMovementStdDev`: The standard deviation threshold for head movement to be considered significant. A higher value is more tolerant. (Default: `5.0`)
 - `minDeviceMovementThreshold`: The minimum amount of device motion required to pass the check if significant head motion is detected. (Default: `0.5`)
+- `failOnMotionCorrelationFailedAtTheEnd`: When `true`, a failure in the motion correlation check will cause the overall liveness verification to be considered unsuccessful. When `false`, the check will still run and its result will be available in the `antiSpoofingDetection` metadata, but it will not block the overall success of the session. (Default: `true`)
 
 ### 3. Face Contour Analysis (Mask Detection)
 
