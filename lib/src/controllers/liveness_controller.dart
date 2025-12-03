@@ -81,6 +81,8 @@ class LivenessController extends ChangeNotifier {
   bool _screenGlareDetected = false;
   bool _lackOfFacialContoursDetected = false;
 
+  bool _firstChallengePassed = false;
+
   /// Constructor
   LivenessController({
     required List<CameraDescription> cameras,
@@ -282,7 +284,7 @@ class LivenessController extends ChangeNotifier {
           //endregion
 
           // Notify via callback
-          _onFaceDetected?.call(_session.currentChallenge!.type, image, faces, camera);
+          _onFaceDetected?.call(_session.currentChallenge!.type, _firstChallengePassed, image, faces, camera);
         } else {
           // WARNING: It will be called only after onFaceDetected is called! It will trigger the first face non-detection event after any face detection
           if(_isFaceDetected) {
@@ -468,6 +470,10 @@ class LivenessController extends ChangeNotifier {
         if (challengePassed) {
           currentChallenge.isCompleted = true;
 
+          if (!_firstChallengePassed) {
+            _firstChallengePassed = true;
+          }
+
           // If the challenge that ended was a zoom, reset the animation controller.
           if (currentChallenge.type == ChallengeType.zoom) {
             _currentZoomFactor = _zoomChallengeController.zoomFactor;
@@ -586,6 +592,7 @@ class LivenessController extends ChangeNotifier {
     _isVerificationSuccessful = false;
     _screenGlareDetected = false;
     _lackOfFacialContoursDetected = false;
+    _firstChallengePassed = false;
 
     _currentZoomFactor = _config.initialZoomFactor;
     _zoomChallengeController.reset();

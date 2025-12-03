@@ -22,7 +22,7 @@ typedef LivenessCompletedCallback = void Function(String sessionId, bool isSucce
 typedef FinalImageCapturedCallback = void Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata);
 
 /// Callback type for when face is detected
-typedef FaceDetectedCallback = void Function(ChallengeType challengeType, CameraImage image, List<Face> faces, CameraDescription camera);
+typedef FaceDetectedCallback = void Function(ChallengeType challengeType, bool firstChallengePassed, CameraImage image, List<Face> faces, CameraDescription camera);
 
 /// Callback type for when face is NOT detected (It will trigger the first face non-detection event after any face detection)
 typedef FaceNotDetectedCallback = void Function(ChallengeType challengeType, LivenessController controller);
