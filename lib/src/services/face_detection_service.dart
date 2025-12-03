@@ -39,6 +39,8 @@ class FaceDetectionService {
   /// History of head angle readings (dx: angleX, dy: angleY)
   final List<Offset> _headAngleReadings = [];
 
+  bool _isTiltDownChallengeReady = false;
+
   /// Configuration for liveness detection
   final LivenessConfig _config;
 
@@ -760,7 +762,28 @@ class FaceDetectionService {
   }
 
   bool _detectHeadTiltDown(Face face) {
-    return _detectHeadTilt(face, up: false);
+    final double? rotX = face.headEulerAngleX;
+    if (rotX == null) return false;
+
+    final double tiltThreshold = _config.headTurnThreshold;
+    final double neutralThreshold = tiltThreshold / 2;
+
+    if (!_isTiltDownChallengeReady) {
+      if (rotX.abs() < neutralThreshold) {
+        debugPrint('Head is in neutral position, ready for tilt down.');
+        _isTiltDownChallengeReady = true;
+      }
+    }
+
+    if (_isTiltDownChallengeReady) {
+      if (rotX < -tiltThreshold) {
+        debugPrint('Head tilt down detected successfully.');
+        _isTiltDownChallengeReady = false; 
+        return true;
+      }
+    }
+
+    return false;
   }
 
   List<double>? _referenceEmbedding; // Store registered person's face embedding
@@ -965,6 +988,7 @@ class FaceDetectionService {
     _isFaceCentered = false;
     _errorCount = 0;
     _frameSkipCounter = 0;
+    _isTiltDownChallengeReady = false;
 
     _faceLocked = false;
     _lockedTrackingId = null;
