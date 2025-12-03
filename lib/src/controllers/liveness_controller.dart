@@ -414,6 +414,9 @@ class LivenessController extends ChangeNotifier {
 
       case LivenessState.centeringFace:
         if (_faceDetectionService.isFaceCentered) {
+          _faceDetectionService.resetTracking();
+          _motionService.resetTracking();
+
           _session.state = LivenessState.performingChallenges;
           _updateStatusMessage();
           if (!_isDisposed) notifyListeners();
