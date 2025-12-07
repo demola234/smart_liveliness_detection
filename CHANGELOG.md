@@ -1,4 +1,13 @@
-# Changelog 
+# Changelog
+## Version 0.2.2- November 25, 2025
+* Improvement and new features:
+* - Challenge hint animations: Display GIF/Lottie animations to guide users through challenges
+* - Customizable hint positions: Choose from multiple positions (top center, bottom center, corners)
+* - Per-challenge hint configuration: Configure hints individually for each challenge type
+* - Optional custom animations: Users can provide their own GIF or Lottie files
+* - Flexible hint display: Enable/disable hints globally or per challenge
+* - Default hint animations: Built-in GIFs for blink, smile, nod, and head rotation challenges
+
 ## Version 0.2.1- November 24, 2025
 * Bug fixing, improvements and new features:
 

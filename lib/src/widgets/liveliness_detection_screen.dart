@@ -11,6 +11,8 @@ import 'package:smart_liveliness_detection/src/widgets/liveness_progress_bar.dar
 import 'package:smart_liveliness_detection/src/widgets/oval_progress.dart';
 import 'package:smart_liveliness_detection/src/widgets/status_indicator.dart';
 import 'package:smart_liveliness_detection/src/widgets/success_overlay.dart';
+import 'package:smart_liveliness_detection/src/widgets/challenge_hint_widget.dart';
+import 'package:smart_liveliness_detection/src/config/challenge_hint_config.dart';
 
 /// Callback type for when a challenge is completed
 typedef ChallengeCompletedCallback = void Function(ChallengeType challengeType);
@@ -469,6 +471,15 @@ class LivenessDetectionView extends StatelessWidget {
                     ),
                   ),
 
+                // Challenge hint widget
+                if (controller.currentState == LivenessState.performingChallenges &&
+                    controller.session.currentChallenge != null)
+                  _buildChallengeHint(
+                    controller,
+                    mediaQuery,
+                    showAppBar,
+                  ),
+
                 // Progress bar (if color progress is disabled)
                 if (!useColorProgress)
                   Positioned(
@@ -517,5 +528,33 @@ class LivenessDetectionView extends StatelessWidget {
     } else {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
+  }
+
+  Widget _buildChallengeHint(
+    LivenessController controller,
+    MediaQueryData mediaQuery,
+    bool showAppBar,
+  ) {
+    final config = controller.config;
+    final currentChallenge = controller.session.currentChallenge!;
+
+    final hintConfig = config.challengeHints?[currentChallenge.type] ??
+        config.defaultChallengeHintConfig;
+
+    if (hintConfig == null || !hintConfig.enabled) {
+      return const SizedBox.shrink();
+    }
+
+    final hintWidget = ChallengeHintWidget(
+      challengeType: currentChallenge.type,
+      config: hintConfig,
+      key: ValueKey('hint_${currentChallenge.type}'),
+    );
+
+    return hintConfig.position.positionWidget(
+      hintWidget,
+      mediaQuery,
+      showAppBar: showAppBar,
+    );
   }
 }
