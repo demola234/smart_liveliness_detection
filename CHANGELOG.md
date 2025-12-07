@@ -1,4 +1,7 @@
 # Changelog
+## Version 0.2.3 - November 26, 2025
+* Bug fixing and improvements:
+* - Minor bug fixes
 ## Version 0.2.2- November 25, 2025
 * Improvement and new features:
 * - Challenge hint animations: Display GIF/Lottie animations to guide users through challenges

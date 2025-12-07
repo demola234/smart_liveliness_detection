@@ -21,7 +21,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_liveliness_detection: ^0.2.1
+  smart_liveliness_detection: ^0.2.3
 ```
 
 Then run:
