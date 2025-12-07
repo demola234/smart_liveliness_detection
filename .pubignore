@@ -1,21 +1,29 @@
 pubspec.lock
 
 # Build folders
-android/build/
-ios/build/
-android/.gradle/
-android/app/build/
+build/
+**/build/
+**/.gradle/
+**/.dart_tool/
+
+# Platform folders - not needed for pure Flutter packages
+ios/
+android/
 
 # IDE
 .vscode/
 .idea/
 
-# Example and test files (optional, but reduces size)
+# Example and test files
 example/
 test/
 
-# Screenshots (keep in git but don't publish)
+# Screenshots
 screenshots/
 
 # Main.dart shouldn't be in lib folder for a package
 lib/main.dart
+
+# Git
+.git/
+.gitignore
