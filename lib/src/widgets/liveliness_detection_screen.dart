@@ -5,14 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
-import 'package:smart_liveliness_detection/src/utils/enums.dart';
 import 'package:smart_liveliness_detection/src/widgets/instruction_overlay.dart';
 import 'package:smart_liveliness_detection/src/widgets/liveness_progress_bar.dart';
 import 'package:smart_liveliness_detection/src/widgets/oval_progress.dart';
 import 'package:smart_liveliness_detection/src/widgets/status_indicator.dart';
 import 'package:smart_liveliness_detection/src/widgets/success_overlay.dart';
 import 'package:smart_liveliness_detection/src/widgets/challenge_hint_widget.dart';
-import 'package:smart_liveliness_detection/src/config/challenge_hint_config.dart';
 
 /// Callback type for when a challenge is completed
 typedef ChallengeCompletedCallback = void Function(ChallengeType challengeType);

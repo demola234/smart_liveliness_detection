@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
-import 'package:smart_liveliness_detection/src/config/messages_config.dart';
-import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
