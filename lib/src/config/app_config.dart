@@ -1,4 +1,5 @@
 import 'package:smart_liveliness_detection/src/config/messages_config.dart';
+import 'package:smart_liveliness_detection/src/config/challenge_hint_config.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 import '../utils/constants.dart';
@@ -140,6 +141,13 @@ class LivenessConfig {
   /// A collection of customizable messages for the liveness UI.
   final LivenessMessages messages;
 
+  /// Default configuration for challenge hints (GIF/Lottie animations)
+  final ChallengeHintConfig? defaultChallengeHintConfig;
+
+  /// Per-challenge hint configurations
+  /// If a challenge type is not in this map, defaultChallengeHintConfig will be used
+  final Map<ChallengeType, ChallengeHintConfig>? challengeHints;
+
   const LivenessConfig({
     this.maxSessionDuration = LivenessConstants.defaultMaxSessionDuration,
     this.minFaceSize = LivenessConstants.defaultMinFaceSize,
@@ -185,6 +193,8 @@ class LivenessConfig {
     this.enableAutomaticMemoryCleanup = true,
     this.memoryCleanupInterval = const Duration(seconds: 30),
     this.messages = const LivenessMessages(),
+    this.defaultChallengeHintConfig,
+    this.challengeHints,
   });
 
   /// Create a copy of this configuration with some values replaced
@@ -233,6 +243,8 @@ class LivenessConfig {
     bool? enableAutomaticMemoryCleanup,
     Duration? memoryCleanupInterval,
     LivenessMessages? messages,
+    ChallengeHintConfig? defaultChallengeHintConfig,
+    Map<ChallengeType, ChallengeHintConfig>? challengeHints,
   }) {
     return LivenessConfig(
       maxSessionDuration: maxSessionDuration ?? this.maxSessionDuration,
@@ -279,6 +291,8 @@ class LivenessConfig {
       enableAutomaticMemoryCleanup: enableAutomaticMemoryCleanup ?? this.enableAutomaticMemoryCleanup,
       memoryCleanupInterval: memoryCleanupInterval ?? this.memoryCleanupInterval,
       messages: messages ?? this.messages,
+      defaultChallengeHintConfig: defaultChallengeHintConfig ?? this.defaultChallengeHintConfig,
+      challengeHints: challengeHints ?? this.challengeHints,
     );
   }
 

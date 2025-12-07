@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
-import 'package:smart_liveliness_detection/src/config/messages_config.dart';
-import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -255,6 +253,18 @@ class HomeScreen extends StatelessWidget {
                     context, customConfig, const LivenessTheme());
               },
             ),
+            _buildExampleButton(
+              context,
+              'Challenge Hints (Default)',
+              'Display built-in GIF hints for challenges',
+              () => _navigateToLivenessWithDefaultHints(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Challenge Hints (Custom Position)',
+              'Customize hint position and size per challenge',
+              () => _navigateToLivenessWithCustomHints(context),
+            ),
           ],
         ),
       ),
@@ -454,6 +464,144 @@ class HomeScreen extends StatelessWidget {
             log('Session ID: $sessionId');
             log('Success: $isSuccessful');
             log('Metadata: $metadata');
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithDefaultHints(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.smile,
+              ChallengeType.turnLeft,
+              ChallengeType.turnRight,
+              ChallengeType.nod,
+            ],
+            // Enable default hints for all challenges
+            defaultChallengeHintConfig: ChallengeHintConfig(
+              enabled: true,
+              position: ChallengeHintPosition.topCenter,
+              size: 100.0,
+              displayDuration: Duration(seconds: 2),
+            ),
+          ),
+          theme: const LivenessTheme(
+            primaryColor: Colors.blue,
+            successColor: Colors.green,
+          ),
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness verification completed:');
+            log('Session ID: $sessionId');
+            log('Success: $isSuccessful');
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithCustomHints(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.smile,
+              ChallengeType.turnLeft,
+              ChallengeType.turnRight,
+              ChallengeType.nod,
+            ],
+            // Custom hints per challenge type
+            challengeHints: {
+              ChallengeType.blink: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topCenter,
+                size: 120.0,
+                displayDuration: Duration(seconds: 3),
+              ),
+              ChallengeType.smile: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.bottomCenter,
+                size: 100.0,
+                displayDuration: Duration(seconds: 2),
+              ),
+              ChallengeType.turnLeft: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topRight,
+                size: 80.0,
+              ),
+              ChallengeType.turnRight: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topLeft,
+                size: 80.0,
+              ),
+              ChallengeType.nod: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.bottomCenter,
+                size: 110.0,
+              ),
+            },
+            // Fallback for challenges not in the map
+            defaultChallengeHintConfig: ChallengeHintConfig(
+              enabled: false,
+            ),
+          ),
+          theme: LivenessTheme.fromMaterialColor(
+            Colors.purple,
+            brightness: Brightness.dark,
+          ),
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness verification completed:');
+            log('Session ID: $sessionId');
+            log('Success: $isSuccessful');
+
+            // Show success dialog
+            if (context.mounted && isSuccessful) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Success!'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.green,
+                        size: 64,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Liveness verification passed!'),
+                      const SizedBox(height: 8),
+                      Text('Session ID: $sessionId'),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
           },
         ),
       ),
