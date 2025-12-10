@@ -7,7 +7,6 @@ import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/motion_service.dart';
-import 'package:smart_liveliness_detection/src/utils/enums.dart';
 import 'package:smart_liveliness_detection/src/controllers/zoom_challenge_controller.dart';
 
 

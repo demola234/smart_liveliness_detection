@@ -6,3 +6,12 @@ enum LivenessState {
   performingChallenges,
   completed
 }
+
+enum ChallengeHintPosition {
+  topCenter,
+  bottomCenter,
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}

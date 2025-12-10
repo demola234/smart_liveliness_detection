@@ -10,6 +10,7 @@ A highly customizable Flutter package for face liveness detection with multiple 
 - 🔍 Anti-spoofing measures (screen glare detection, motion correlation)
 - 🎨 Fully customizable UI with theming support
 - 🌈 Animated progress indicators, status displays, and overlays
+- 🎬 Challenge hint animations with GIF/Lottie support
 - 📱 Simple integration with Flutter apps
 - 📸 Optional image capture capability
 
@@ -20,7 +21,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_liveliness_detection: ^0.2.1
+  smart_liveliness_detection: ^0.2.3
 ```
 
 Then run:
@@ -204,6 +205,100 @@ LivenessTheme theme = LivenessTheme.fromMaterialColor(
   brightness: Brightness.dark,
 );
 ```
+
+### Challenge Hints
+
+Display animated GIF or Lottie hints to guide users through challenges:
+
+#### Using Default Hints
+
+Enable built-in hint animations with default settings:
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: LivenessConfig(
+    defaultChallengeHintConfig: ChallengeHintConfig(
+      enabled: true,
+      position: ChallengeHintPosition.topCenter,
+      size: 100.0,
+      displayDuration: Duration(seconds: 2),
+    ),
+  ),
+);
+```
+
+#### Per-Challenge Configuration
+
+Configure different hints for specific challenge types:
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: LivenessConfig(
+    challengeHints: {
+      ChallengeType.blink: ChallengeHintConfig(
+        enabled: true,
+        position: ChallengeHintPosition.topCenter,
+        size: 120.0,
+      ),
+      ChallengeType.smile: ChallengeHintConfig(
+        enabled: true,
+        position: ChallengeHintPosition.bottomCenter,
+        size: 100.0,
+      ),
+      ChallengeType.turnLeft: ChallengeHintConfig(
+        enabled: false, // Disable hint for this challenge
+      ),
+    },
+    // Fallback for challenges not in the map
+    defaultChallengeHintConfig: ChallengeHintConfig(
+      enabled: true,
+    ),
+  ),
+);
+```
+
+#### Custom GIF/Lottie Files
+
+Use your own animations:
+
+```dart
+// Custom GIF
+ChallengeHintConfig(
+  enabled: true,
+  assetPath: 'assets/my_animations/custom_blink.gif',
+  position: ChallengeHintPosition.topCenter,
+  size: 100.0,
+)
+
+// Custom Lottie (requires lottie package)
+ChallengeHintConfig(
+  enabled: true,
+  assetPath: 'assets/my_animations/custom_smile.json',
+  isLottie: true,
+  position: ChallengeHintPosition.bottomCenter,
+)
+```
+
+**Available Positions:**
+- `ChallengeHintPosition.topCenter`
+- `ChallengeHintPosition.bottomCenter`
+- `ChallengeHintPosition.topLeft`
+- `ChallengeHintPosition.topRight`
+- `ChallengeHintPosition.bottomLeft`
+- `ChallengeHintPosition.bottomRight`
+
+**Built-in Hint Animations:**
+
+The package includes default GIF animations for:
+- `ChallengeType.blink` - Eye blinking animation
+- `ChallengeType.smile` - Smiling animation
+- `ChallengeType.nod` - Head nodding animation
+- `ChallengeType.turnLeft` - Head rotating left animation
+- `ChallengeType.turnRight` - Head rotating right animation
+
+For a complete guide on challenge hints, see [CHALLENGE_HINTS.md](CHALLENGE_HINTS.md).
 
 ### Callbacks
 

@@ -9,6 +9,7 @@ import 'package:smart_liveliness_detection/src/utils/enums.dart';
 export 'src/config/app_config.dart';
 export 'src/config/messages_config.dart';
 export 'src/config/theme_config.dart';
+export 'src/config/challenge_hint_config.dart';
 // Controllers
 export 'src/controllers/liveness_controller.dart';
 // Models
@@ -16,6 +17,7 @@ export 'src/models/challenge.dart';
 export 'src/models/liveness_session.dart';
 // Utilities
 export 'src/utils/constants.dart';
+export 'src/utils/enums.dart';
 // Export public APIs
 
 // Main widgets
