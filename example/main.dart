@@ -328,14 +328,14 @@ class HomeScreen extends StatelessWidget {
             log('Success: $isSuccessful');
             log('Metadata: $metadata');
           },
-          onFaceDetected: (ChallengeType challengeType, CameraImage image, List<Face> faces, CameraDescription camera) {
+          onFaceDetected: (ChallengeType challengeType, bool firstChallengePassed, CameraImage image, List<Face> faces, CameraDescription camera) {
             log('onFaceDetected - current Challenge: ${challengeType.name}');
           },
           onFaceNotDetected: (ChallengeType challengeType, LivenessController controller) {
             log('onFaceNotDetected - current Challenge: ${challengeType.name}');
 
             // Reset session if face is not detected and the head is not turned
-            if(![ChallengeType.tiltDown, ChallengeType.tiltUp, ChallengeType.nod].contains(challengeType)) {
+            if(![ChallengeType.tiltDown, ChallengeType.tiltUp, ChallengeType.turnRight, ChallengeType.turnLeft, ChallengeType.nod].contains(challengeType)) {
               controller.resetSession();
             }
           },

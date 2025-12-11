@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
+import 'package:smart_liveliness_detection/src/models/challenge.dart';
 import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
@@ -79,6 +80,8 @@ class LivenessController extends ChangeNotifier {
   bool _screenGlareDetected = false;
   bool _lackOfFacialContoursDetected = false;
 
+  bool _firstChallengePassed = false;
+
   /// Constructor
   LivenessController({
     required List<CameraDescription> cameras,
@@ -112,6 +115,27 @@ class LivenessController extends ChangeNotifier {
         _session = LivenessSession(
           challenges: LivenessSession.generateRandomChallenges(config ?? const LivenessConfig()),
         ) {
+    
+    // Apply "sandwich" logic if enabled and using random challenges
+    if (_config.sandwichNormalChallenge && challengeTypes == null) {
+      final challenges = _session.challenges;
+      // Add normal challenge at the beginning if not present
+      if (challenges.isEmpty || challenges.first.type != ChallengeType.normal) {
+        challenges.insert(0, Challenge(
+          ChallengeType.normal,
+          customInstruction: _config.challengeInstructions?[ChallengeType.normal] ?? _config.messages.initialInstruction,
+        ));
+      }
+      
+      // Add normal challenge at the end if not present
+      if (challenges.last.type != ChallengeType.normal) {
+        challenges.add(Challenge(
+          ChallengeType.normal,
+          customInstruction: _config.challengeInstructions?[ChallengeType.normal] ?? _config.messages.initialInstruction,
+        ));
+      }
+    }
+
     _zoomChallengeController = ZoomChallengeController(vsync: vsync, initialValue: _config.initialZoomFactor);
     _initialize();
   }
@@ -259,10 +283,25 @@ class LivenessController extends ChangeNotifier {
           //endregion
 
           // Notify via callback
-          _onFaceDetected?.call(_session.currentChallenge!.type, image, faces, camera);
+          _onFaceDetected?.call(_session.currentChallenge!.type, _firstChallengePassed, image, faces, camera);
         } else {
           // WARNING: It will be called only after onFaceDetected is called! It will trigger the first face non-detection event after any face detection
           if(_isFaceDetected) {
+            // Identify challenges where losing the face is acceptable/expected
+            final bool isMovementChallenge = _session.currentChallenge?.type == ChallengeType.turnLeft ||
+                _session.currentChallenge?.type == ChallengeType.turnRight ||
+                _session.currentChallenge?.type == ChallengeType.tiltUp ||
+                _session.currentChallenge?.type == ChallengeType.tiltDown ||
+                _session.currentChallenge?.type == ChallengeType.nod;
+
+            // Reset session if face is lost during a non-movement challenge
+            if (_session.state == LivenessState.performingChallenges && !isMovementChallenge) {
+              debugPrint('Face lost during non-movement challenge, resetting session.');
+              _statusMessage = _config.messages.noFaceDetected;
+              resetSession();
+              return; 
+            }
+
             // Notify via callback
             _onFaceNotDetected?.call(_session.currentChallenge!.type, this);
           }
@@ -376,6 +415,9 @@ class LivenessController extends ChangeNotifier {
 
       case LivenessState.centeringFace:
         if (_faceDetectionService.isFaceCentered) {
+          _faceDetectionService.resetTracking();
+          _motionService.resetTracking();
+
           _session.state = LivenessState.performingChallenges;
           _updateStatusMessage();
           if (!_isDisposed) notifyListeners();
@@ -427,6 +469,10 @@ class LivenessController extends ChangeNotifier {
         if (challengePassed) {
           currentChallenge.isCompleted = true;
 
+          if (!_firstChallengePassed) {
+            _firstChallengePassed = true;
+          }
+
           // If the challenge that ended was a zoom, reset the animation controller.
           if (currentChallenge.type == ChallengeType.zoom) {
             _currentZoomFactor = _zoomChallengeController.zoomFactor;
@@ -477,9 +523,13 @@ class LivenessController extends ChangeNotifier {
       }
     }
 
-    _isVerificationSuccessful = !motionCorrelationFailed;
+    // Determine overall success based on configuration
+    _isVerificationSuccessful = true;
+    if (_config.failOnMotionCorrelationFailedAtTheEnd && motionCorrelationFailed) {
+      _isVerificationSuccessful = false;
+    }
 
-    if (motionCorrelationFailed) {
+    if (!_isVerificationSuccessful) {
       _statusMessage = _config.messages.spoofingDetected;
     } else {
       _statusMessage = _config.messages.verificationComplete;
@@ -541,6 +591,7 @@ class LivenessController extends ChangeNotifier {
     _isVerificationSuccessful = false;
     _screenGlareDetected = false;
     _lackOfFacialContoursDetected = false;
+    _firstChallengePassed = false;
 
     _currentZoomFactor = _config.initialZoomFactor;
     _zoomChallengeController.reset();

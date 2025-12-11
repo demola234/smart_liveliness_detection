@@ -44,45 +44,59 @@ class MotionService {
     }
   }
 
+  /// Calculates the standard deviation of a list of values.
+  double _calculateStandardDeviation(List<double> values) {
+    if (values.length < 2) {
+      return 0.0;
+    }
+    double mean = values.reduce((a, b) => a + b) / values.length;
+    double variance = values.map((x) => math.pow(x - mean, 2)).reduce((a, b) => a + b) / values.length;
+    return math.sqrt(variance);
+  }
+
   /// Check if head motion correlates with device motion (anti-spoofing).
-  /// This is improved to be more robust against spoofing attempts.
-  /// It accounts for the device's movement in all directions and fails safely if there is insufficient data.
+  /// This version uses standard deviation for both head and device movement to be more robust.
   bool verifyMotionCorrelation(List<Offset> headAngleReadings) {
     // Fail-safe: if not enough data is available, consider it a potential issue.
-    if (headAngleReadings.length < 5 || _accelerometerReadings.length < 5) {
+    if (headAngleReadings.length < 10 || _accelerometerReadings.length < 10) {
       debugPrint('Not enough motion data to verify correlation, failing check.');
       return false;
     }
 
-    // Calculate the range of head movement for both X and Y axes.
-    double maxHeadAngleX = headAngleReadings.map((o) => o.dx).reduce(math.max);
-    double minHeadAngleX = headAngleReadings.map((o) => o.dx).reduce(math.min);
-    double headAngleRangeX = maxHeadAngleX - minHeadAngleX;
+    // Calculate the standard deviation of head movement for both X and Y axes.
+    final headAnglesX = headAngleReadings.map((o) => o.dx).toList();
+    final headAnglesY = headAngleReadings.map((o) => o.dy).toList();
+    double headAngleStdDevX = _calculateStandardDeviation(headAnglesX);
+    double headAngleStdDevY = _calculateStandardDeviation(headAnglesY);
 
-    double maxHeadAngleY = headAngleReadings.map((o) => o.dy).reduce(math.max);
-    double minHeadAngleY = headAngleReadings.map((o) => o.dy).reduce(math.min);
-    double headAngleRangeY = maxHeadAngleY - minHeadAngleY;
+    // Calculate the standard deviation of device motion for each axis independently.
+    // Using magnitude is flawed because rotation can change components without changing magnitude significantly.
+    final deviceAccX = _accelerometerReadings.map((e) => e.x).toList();
+    final deviceAccY = _accelerometerReadings.map((e) => e.y).toList();
+    final deviceAccZ = _accelerometerReadings.map((e) => e.z).toList();
 
-    // Calculate the magnitude of accelerometer vector for each reading.
-    final motionMagnitudes = _accelerometerReadings
-        .map((e) => math.sqrt(e.x * e.x + e.y * e.y + e.z * e.z))
-        .toList();
+    double deviceStdDevX = _calculateStandardDeviation(deviceAccX);
+    double deviceStdDevY = _calculateStandardDeviation(deviceAccY);
+    double deviceStdDevZ = _calculateStandardDeviation(deviceAccZ);
 
-    // Calculate the range of device motion based on vector magnitudes.
-    double maxDeviceMotion = motionMagnitudes.reduce(math.max);
-    double minDeviceMotion = motionMagnitudes.reduce(math.min);
-    double deviceMotionRange = maxDeviceMotion - minDeviceMotion;
+    // We consider the "device motion" as the maximum deviation observed in any axis.
+    double maxDeviceMotionStdDev = [deviceStdDevX, deviceStdDevY, deviceStdDevZ].reduce(math.max);
 
     debugPrint(
-        'Head angle range X: $headAngleRangeX, Y: $headAngleRangeY, Device motion range: $deviceMotionRange');
+        'Head StdDev(X:${headAngleStdDevX.toStringAsFixed(2)}, Y:${headAngleStdDevY.toStringAsFixed(2)}) | Device StdDev(Max:${maxDeviceMotionStdDev.toStringAsFixed(2)})');
 
-    // Spoofing is suspected if the head moved significantly in either axis, but the device did not.
-    bool isSpoofingAttempt = (headAngleRangeX > _config.significantHeadAngleRange ||
-        headAngleRangeY > _config.significantHeadAngleRange) &&
-        deviceMotionRange < _config.minDeviceMovementThreshold;
+    // A significant head movement is detected if the standard deviation in either axis is above the threshold.
+    bool significantHeadMovement = headAngleStdDevX > _config.significantHeadMovementStdDev ||
+        headAngleStdDevY > _config.significantHeadMovementStdDev;
+
+    // An insignificant device movement is detected if the MAX device deviation is below the threshold.
+    bool insignificantDeviceMovement = maxDeviceMotionStdDev < _config.minDeviceMovementThreshold;
+
+    // Spoofing is suspected if the head moved significantly, but the device did not.
+    bool isSpoofingAttempt = significantHeadMovement && insignificantDeviceMovement;
 
     if (isSpoofingAttempt) {
-      debugPrint('Potential spoofing detected: Significant head motion with minimal device motion.');
+      debugPrint('Potential spoofing detected: Significant head motion (StdDev) with minimal device motion.');
     }
 
     // The check is valid if no spoofing is detected.

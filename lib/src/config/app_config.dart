@@ -56,6 +56,13 @@ class LivenessConfig {
   /// The minimum number of secondary contours required for the contour analysis to pass.
   final int minRequiredSecondaryContours;
 
+  /// Whether to automatically add a `ChallengeType.normal` at the beginning and end of random challenges.
+  /// This is highly recommended for security.
+  final bool sandwichNormalChallenge;
+
+  /// Whether the session should fail if motion correlation check fails at the end.
+  final bool failOnMotionCorrelationFailedAtTheEnd;
+
   /// Camera zoom level for better face visibility
   final double cameraZoomLevel;
 
@@ -65,8 +72,8 @@ class LivenessConfig {
   /// Maximum number of head angle readings to store
   final int maxHeadAngleReadings;
 
-  /// Range of head angles considered significant for spoofing detection
-  final double significantHeadAngleRange;
+  /// Standard deviation threshold for significant head movement.
+  final double significantHeadMovementStdDev;
 
   /// Minimum device movement threshold for spoofing detection
   final double minDeviceMovementThreshold;
@@ -165,10 +172,12 @@ class LivenessConfig {
     this.enableContourAnalysisOnCentering = LivenessConstants.defaultEnableContourAnalysisOnCentering,
     this.contourChallengeTypes,
     this.minRequiredSecondaryContours = LivenessConstants.defaultMinRequiredSecondaryContours,
+    this.sandwichNormalChallenge = LivenessConstants.defaultSandwichNormalChallenge,
+    this.failOnMotionCorrelationFailedAtTheEnd = LivenessConstants.defaultFailOnMotionCorrelationFailedAtTheEnd,
     this.cameraZoomLevel = LivenessConstants.defaultCameraZoomLevel,
     this.maxMotionReadings = LivenessConstants.defaultMaxMotionReadings,
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
-    this.significantHeadAngleRange = LivenessConstants.defaultSignificantHeadAngleRange,
+    this.significantHeadMovementStdDev = LivenessConstants.defaultSignificantHeadMovementStdDev,
     this.minDeviceMovementThreshold = LivenessConstants.defaultMinDeviceMovementThreshold,
     this.ovalHeightRatio = LivenessConstants.defaultOvalHeightRatio,
     this.ovalWidthRatio = LivenessConstants.defaultOvalWidthRatio,
@@ -215,10 +224,12 @@ class LivenessConfig {
     bool? enableContourAnalysisOnCentering,
     List<ChallengeType>? contourChallengeTypes,
     int? minRequiredSecondaryContours,
+    bool? sandwichNormalChallenge,
+    bool? failOnMotionCorrelationFailedAtTheEnd,
     double? cameraZoomLevel,
     int? maxMotionReadings,
     int? maxHeadAngleReadings,
-    double? significantHeadAngleRange,
+    double? significantHeadMovementStdDev,
     double? minDeviceMovementThreshold,
     double? ovalHeightRatio,
     double? ovalWidthRatio,
@@ -263,10 +274,12 @@ class LivenessConfig {
       enableContourAnalysisOnCentering: enableContourAnalysisOnCentering ?? this.enableContourAnalysisOnCentering,
       contourChallengeTypes: contourChallengeTypes ?? this.contourChallengeTypes,
       minRequiredSecondaryContours: minRequiredSecondaryContours ?? this.minRequiredSecondaryContours,
+      sandwichNormalChallenge: sandwichNormalChallenge ?? this.sandwichNormalChallenge,
+      failOnMotionCorrelationFailedAtTheEnd: failOnMotionCorrelationFailedAtTheEnd ?? this.failOnMotionCorrelationFailedAtTheEnd,
       cameraZoomLevel: cameraZoomLevel ?? this.cameraZoomLevel,
       maxMotionReadings: maxMotionReadings ?? this.maxMotionReadings,
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,
-      significantHeadAngleRange: significantHeadAngleRange ?? this.significantHeadAngleRange,
+      significantHeadMovementStdDev: significantHeadMovementStdDev ?? this.significantHeadMovementStdDev,
       minDeviceMovementThreshold: minDeviceMovementThreshold ?? this.minDeviceMovementThreshold,
       ovalHeightRatio: ovalHeightRatio ?? this.ovalHeightRatio,
       ovalWidthRatio: ovalWidthRatio ?? this.ovalWidthRatio,

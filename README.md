@@ -519,13 +519,14 @@ This check analyzes the camera feed for bright, reflective spots. It acts as a n
 
 ### 2. Motion Correlation Check
 
-This is a powerful defense that determines the final success of the verification. It ensures head and device movements are correlated.
+This is a powerful defense that determines the final success of the verification. To prevent false positives from minor tremors, it uses the standard deviation of head angles to detect significant movement. It ensures head and device movements are correlated.
 
 **Configuration:**
 
 - `enableMotionCorrelationCheck`: Set to `false` to disable this check. (Default: `true`)
-- `significantHeadAngleRange`: The minimum range of head movement (in degrees) to be considered significant. (Default: `20.0`)
+- `significantHeadMovementStdDev`: The standard deviation threshold for head movement to be considered significant. A higher value is more tolerant. (Default: `5.0`)
 - `minDeviceMovementThreshold`: The minimum amount of device motion required to pass the check if significant head motion is detected. (Default: `0.5`)
+- `failOnMotionCorrelationFailedAtTheEnd`: When `true`, a failure in the motion correlation check will cause the overall liveness verification to be considered unsuccessful. When `false`, the check will still run and its result will be available in the `antiSpoofingDetection` metadata, but it will not block the overall success of the session. (Default: `true`)
 
 ### 3. Face Contour Analysis (Mask Detection)
 
@@ -535,7 +536,7 @@ This check verifies the integrity of facial contours and acts as a non-blocking 
 
 - `enableContourAnalysisOnCentering`: When `true`, performs the contour check during the initial face centering step. (Default: `true`)
 - `contourChallengeTypes`: A list of `ChallengeType` where the contour check should also be performed (e.g., `ChallengeType.blink` or `ChallengeType.smile`).
-- `minRequiredSecondaryContours`: The minimum number of secondary contours required for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `2`)
+- `minRequiredSecondaryContours`: The minimum number of secondary contours (e.g., nose bridge, cheeks, upper lip bottom, lower lip top, eyebrows) that must be detected for the check to pass. This makes the detection tolerant to minor imperfections. (Default: `5`)
 
 **Example:**
 
@@ -547,7 +548,36 @@ LivenessConfig(
     ChallengeType.blink,
     ChallengeType.smile,
   ],
-  minRequiredSecondaryContours: 2, // Requires 2 out of 5 secondary contours to be present
+  minRequiredSecondaryContours: 5, // Requires 5 out of 10 secondary contours to be present
+)
+```
+
+### 4. Continuous Identity Verification (Sandwich Strategy)
+
+To prevent "swap attacks" (where a real user starts the session but then swaps to a photo/video), it is highly recommended to perform a face check at the beginning and at the end of the session.
+
+This strategy "sandwiches" the liveness challenges between two `ChallengeType.normal` checks. The package can automatically insert these checks for random challenge sequences.
+
+**Configuration:**
+
+- `sandwichNormalChallenge`: When `true`, automatically adds a `ChallengeType.normal` at the start and end of the randomly generated challenge list. (Default: `false` for backward compatibility)
+
+**Manual Configuration Note:**
+If you are providing a custom list of `challengeTypes` instead of using random generation, it is strongly recommended that you manually add `ChallengeType.normal` as the first and last items in your list.
+
+**Example:**
+
+```dart
+LivenessConfig(
+  // ... other settings
+  enableContourAnalysisOnCentering: true,
+  contourChallengeTypes: [
+    ChallengeType.blink,
+    ChallengeType.smile,
+  ],
+  minRequiredSecondaryContours: 5, // Requires 5 out of 10 secondary contours to be present
+  // Automatically add normal check at start and end
+  sandwichNormalChallenge: true, 
 )
 ```
 

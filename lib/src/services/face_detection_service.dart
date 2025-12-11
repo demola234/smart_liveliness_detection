@@ -38,6 +38,8 @@ class FaceDetectionService {
   /// History of head angle readings (dx: angleX, dy: angleY)
   final List<Offset> _headAngleReadings = [];
 
+  bool _isTiltDownChallengeReady = false;
+
   /// Configuration for liveness detection
   final LivenessConfig _config;
 
@@ -698,26 +700,37 @@ class FaceDetectionService {
     // Define secondary contours that are important but more prone to detection issues.
     final List<FaceContourType> secondaryContours = [
       FaceContourType.noseBridge,
+      FaceContourType.noseBottom,
       FaceContourType.leftCheek,
       FaceContourType.rightCheek,
       FaceContourType.upperLipTop,
+      FaceContourType.upperLipBottom,
+      FaceContourType.lowerLipTop,
       FaceContourType.lowerLipBottom,
+      FaceContourType.leftEyebrowTop,
+      FaceContourType.rightEyebrowTop,
     ];
 
     int detectedSecondaryContours = 0;
+    List<String> detectedSecondaryNames = [];
+    List<String> missingSecondaryNames = [];
+
     for (final contourType in secondaryContours) {
       if (face.contours[contourType] != null && face.contours[contourType]!.points.length >= 3) {
         detectedSecondaryContours++;
+        detectedSecondaryNames.add(contourType.name);
+      } else {
+        missingSecondaryNames.add(contourType.name);
       }
     }
 
     // Check if the number of detected secondary contours meets the minimum requirement.
     if (detectedSecondaryContours < _config.minRequiredSecondaryContours) {
-      debugPrint('Contour integrity check failed: Not enough secondary contours detected ($detectedSecondaryContours/${_config.minRequiredSecondaryContours})');
+      debugPrint('Contour integrity check failed: Not enough secondary contours detected ($detectedSecondaryContours/${_config.minRequiredSecondaryContours}). Missing: $missingSecondaryNames');
       return false;
     }
 
-    debugPrint('Contour integrity check passed.');
+    debugPrint('Contour integrity check passed. Detected secondary: $detectedSecondaryNames');
     return true;
   }
 
@@ -748,7 +761,28 @@ class FaceDetectionService {
   }
 
   bool _detectHeadTiltDown(Face face) {
-    return _detectHeadTilt(face, up: false);
+    final double? rotX = face.headEulerAngleX;
+    if (rotX == null) return false;
+
+    final double tiltThreshold = _config.headTurnThreshold;
+    final double neutralThreshold = tiltThreshold / 2;
+
+    if (!_isTiltDownChallengeReady) {
+      if (rotX.abs() < neutralThreshold) {
+        debugPrint('Head is in neutral position, ready for tilt down.');
+        _isTiltDownChallengeReady = true;
+      }
+    }
+
+    if (_isTiltDownChallengeReady) {
+      if (rotX < -tiltThreshold) {
+        debugPrint('Head tilt down detected successfully.');
+        _isTiltDownChallengeReady = false; 
+        return true;
+      }
+    }
+
+    return false;
   }
 
   List<double>? _referenceEmbedding; // Store registered person's face embedding
@@ -953,6 +987,7 @@ class FaceDetectionService {
     _isFaceCentered = false;
     _errorCount = 0;
     _frameSkipCounter = 0;
+    _isTiltDownChallengeReady = false;
 
     _faceLocked = false;
     _lockedTrackingId = null;
