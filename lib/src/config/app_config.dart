@@ -111,6 +111,10 @@ class LivenessConfig {
   /// Custom messages for each challenge type
   final Map<ChallengeType, String>? challengeInstructions;
 
+  /// Whether to enable relaxed face positioning requirements during head tilt down challenge.
+  /// This helps when the head tilt movement naturally changes the face size or position significantly.
+  final bool enableRelaxedFacePositioningOnTiltDown;
+
   // NEW ERROR HANDLING AND PERFORMANCE PROPERTIES
 
   /// Maximum number of consecutive processing errors before reinitializing detector
@@ -189,6 +193,7 @@ class LivenessConfig {
     this.numberOfRandomChallenges = 3,
     this.alwaysIncludeBlink = true,
     this.challengeInstructions,
+    this.enableRelaxedFacePositioningOnTiltDown = true,
     // New error handling and performance properties with sensible defaults
     this.maxConsecutiveErrors = 5,
     this.frameSkipInterval = 2,
@@ -241,6 +246,7 @@ class LivenessConfig {
     int? numberOfRandomChallenges,
     bool? alwaysIncludeBlink,
     Map<ChallengeType, String>? challengeInstructions,
+    bool? enableRelaxedFacePositioningOnTiltDown,
     // New parameters
     int? maxConsecutiveErrors,
     int? frameSkipInterval,
@@ -291,6 +297,7 @@ class LivenessConfig {
       numberOfRandomChallenges: numberOfRandomChallenges ?? this.numberOfRandomChallenges,
       alwaysIncludeBlink: alwaysIncludeBlink ?? this.alwaysIncludeBlink,
       challengeInstructions: challengeInstructions ?? this.challengeInstructions,
+      enableRelaxedFacePositioningOnTiltDown: enableRelaxedFacePositioningOnTiltDown ?? this.enableRelaxedFacePositioningOnTiltDown,
       // New parameters
       maxConsecutiveErrors: maxConsecutiveErrors ?? this.maxConsecutiveErrors,
       frameSkipInterval: frameSkipInterval ?? this.frameSkipInterval,

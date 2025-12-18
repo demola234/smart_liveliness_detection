@@ -548,7 +548,7 @@ class FaceDetectionService {
     // up to 25% of the width/height of the oval away from the center.
     // NOTE: For challenge type tiltDown, we increase the tolerance because the user's head moves closer to the camera.
     double toleranceMultiplier = 1.0;
-    if (challengeType == ChallengeType.tiltDown) {
+    if (challengeType == ChallengeType.tiltDown && _config.enableRelaxedFacePositioningOnTiltDown) {
       toleranceMultiplier = 1.5;
     }
 
