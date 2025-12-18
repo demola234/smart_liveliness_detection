@@ -14,6 +14,12 @@ class MotionService {
   /// Subscription to accelerometer events
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
 
+  /// Gyroscope readings
+  final List<GyroscopeEvent> _gyroscopeReadings = [];
+
+  /// Subscription to gyroscope events
+  StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;
+
   /// Configuration for liveness detection
   LivenessConfig _config;
 
@@ -31,6 +37,15 @@ class MotionService {
         _accelerometerReadings.removeAt(0);
       }
     });
+
+    if (_config.enableGyroscopeCheck) {
+      _gyroscopeSubscription = gyroscopeEventStream().listen((GyroscopeEvent event) {
+        _gyroscopeReadings.add(event);
+        if (_gyroscopeReadings.length > _config.maxMotionReadings) {
+          _gyroscopeReadings.removeAt(0);
+        }
+      });
+    }
   }
 
   /// Update configuration
@@ -41,6 +56,10 @@ class MotionService {
     if (_accelerometerReadings.length > _config.maxMotionReadings) {
       _accelerometerReadings.removeRange(
           0, _accelerometerReadings.length - _config.maxMotionReadings);
+    }
+    if (_gyroscopeReadings.length > _config.maxMotionReadings) {
+      _gyroscopeReadings.removeRange(
+          0, _gyroscopeReadings.length - _config.maxMotionReadings);
     }
   }
 
@@ -91,7 +110,27 @@ class MotionService {
         headAngleStdDevY > _config.significantHeadMovementStdDev;
 
     // An insignificant device movement is detected if the MAX device deviation is below the threshold.
+    // If Gyroscope check is enabled, we also check if the rotational movement is insignificant.
     bool insignificantDeviceMovement = maxDeviceMotionStdDev < _config.minDeviceMovementThreshold;
+
+    if (_config.enableGyroscopeCheck && _gyroscopeReadings.length >= 10) {
+      final deviceGyroX = _gyroscopeReadings.map((e) => e.x).toList();
+      final deviceGyroY = _gyroscopeReadings.map((e) => e.y).toList();
+      final deviceGyroZ = _gyroscopeReadings.map((e) => e.z).toList();
+
+      double deviceGyroStdDevX = _calculateStandardDeviation(deviceGyroX);
+      double deviceGyroStdDevY = _calculateStandardDeviation(deviceGyroY);
+      double deviceGyroStdDevZ = _calculateStandardDeviation(deviceGyroZ);
+
+      double maxDeviceGyroStdDev = [deviceGyroStdDevX, deviceGyroStdDevY, deviceGyroStdDevZ].reduce(math.max);
+      
+      debugPrint('Device Gyro StdDev(Max:${maxDeviceGyroStdDev.toStringAsFixed(2)})');
+
+      bool insignificantGyroMovement = maxDeviceGyroStdDev < _config.minGyroscopeMovementThreshold;
+
+      // To be considered a spoof with gyro enabled, BOTH accelerometer AND gyroscope must show minimal movement.
+      insignificantDeviceMovement = insignificantDeviceMovement && insignificantGyroMovement;
+    }
 
     // Spoofing is suspected if the head moved significantly, but the device did not.
     bool isSpoofingAttempt = significantHeadMovement && insignificantDeviceMovement;
@@ -107,15 +146,22 @@ class MotionService {
   /// Reset all motion tracking
   void resetTracking() {
     _accelerometerReadings.clear();
+    _gyroscopeReadings.clear();
   }
 
   /// Clean up resources
   void dispose() {
     _accelerometerSubscription?.cancel();
     _accelerometerSubscription = null;
+    _gyroscopeSubscription?.cancel();
+    _gyroscopeSubscription = null;
   }
 
   /// Get raw accelerometer readings
   List<AccelerometerEvent> get accelerometerReadings =>
       List<AccelerometerEvent>.unmodifiable(_accelerometerReadings);
+      
+  /// Get raw gyroscope readings
+  List<GyroscopeEvent> get gyroscopeReadings =>
+      List<GyroscopeEvent>.unmodifiable(_gyroscopeReadings);
 }

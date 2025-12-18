@@ -75,8 +75,14 @@ class LivenessConfig {
   /// Standard deviation threshold for significant head movement.
   final double significantHeadMovementStdDev;
 
-  /// Minimum device movement threshold for spoofing detection
+  /// Minimum device movement threshold for spoofing detection (Accelerometer)
   final double minDeviceMovementThreshold;
+
+  /// Whether to enable gyroscope check for motion correlation (anti-spoofing).
+  final bool enableGyroscopeCheck;
+
+  /// Minimum device movement threshold for spoofing detection (Gyroscope)
+  final double minGyroscopeMovementThreshold;
 
   /// Height ratio of the oval face guide relative to screen height
   final double ovalHeightRatio;
@@ -183,6 +189,8 @@ class LivenessConfig {
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
     this.significantHeadMovementStdDev = LivenessConstants.defaultSignificantHeadMovementStdDev,
     this.minDeviceMovementThreshold = LivenessConstants.defaultMinDeviceMovementThreshold,
+    this.enableGyroscopeCheck = LivenessConstants.defaultEnableGyroscopeCheck,
+    this.minGyroscopeMovementThreshold = LivenessConstants.defaultMinGyroscopeMovementThreshold,
     this.ovalHeightRatio = LivenessConstants.defaultOvalHeightRatio,
     this.ovalWidthRatio = LivenessConstants.defaultOvalWidthRatio,
     this.strokeWidth = LivenessConstants.defaultStrokeWidth,
@@ -236,6 +244,8 @@ class LivenessConfig {
     int? maxHeadAngleReadings,
     double? significantHeadMovementStdDev,
     double? minDeviceMovementThreshold,
+    bool? enableGyroscopeCheck,
+    double? minGyroscopeMovementThreshold,
     double? ovalHeightRatio,
     double? ovalWidthRatio,
     double? strokeWidth,
@@ -287,6 +297,8 @@ class LivenessConfig {
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,
       significantHeadMovementStdDev: significantHeadMovementStdDev ?? this.significantHeadMovementStdDev,
       minDeviceMovementThreshold: minDeviceMovementThreshold ?? this.minDeviceMovementThreshold,
+      enableGyroscopeCheck: enableGyroscopeCheck ?? this.enableGyroscopeCheck,
+      minGyroscopeMovementThreshold: minGyroscopeMovementThreshold ?? this.minGyroscopeMovementThreshold,
       ovalHeightRatio: ovalHeightRatio ?? this.ovalHeightRatio,
       ovalWidthRatio: ovalWidthRatio ?? this.ovalWidthRatio,
       strokeWidth: strokeWidth ?? this.strokeWidth,
