@@ -523,6 +523,7 @@ class FaceDetectionService {
       Face face, {
         required Rect ovalRect,
         double zoomFactor = 1.0, // By default, consider the final oval (100%)
+        ChallengeType? challengeType,
       }) {
 
     //region 1. Get current values
@@ -545,8 +546,14 @@ class FaceDetectionService {
 
     // Sets a tolerance. For example, the center of the face can be
     // up to 25% of the width/height of the oval away from the center.
-    final double horizontalTolerance = ovalRect.width * 0.25;
-    final double verticalTolerance = ovalRect.height * 0.25;
+    // NOTE: For challenge type tiltDown, we increase the tolerance because the user's head moves closer to the camera.
+    double toleranceMultiplier = 1.0;
+    if (challengeType == ChallengeType.tiltDown) {
+      toleranceMultiplier = 1.5;
+    }
+
+    final double horizontalTolerance = ovalRect.width * 0.25 * toleranceMultiplier;
+    final double verticalTolerance = ovalRect.height * 0.25 * toleranceMultiplier;
 
     final bool isCentered = horizontalDistance < horizontalTolerance
         && verticalDistance < verticalTolerance;
@@ -638,7 +645,7 @@ class FaceDetectionService {
       }
 
 
-      if (!isFaceWellPositioned(face, ovalRect: ovalRect, zoomFactor: zoomFactor)) {
+      if (!isFaceWellPositioned(face, ovalRect: ovalRect, zoomFactor: zoomFactor, challengeType: challengeType)) {
         // We use zoomFactor: 1.0 by default because, for these challenges,
         // we expect the face to be in the final position (large oval).
         return false;
