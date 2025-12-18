@@ -29,8 +29,9 @@ class LivenessConstants {
   static const bool defaultFailOnMotionCorrelationFailedAtTheEnd = true;
   static const int defaultMaxMotionReadings = 100;
   static const int defaultMaxHeadAngleReadings = 30;
-  static const double defaultSignificantHeadMovementStdDev = 5.0;
-  static const double defaultMinDeviceMovementThreshold = 0.5;
+  // Adjusted to avoid false positives (User holding phone steadily)
+  static const double defaultSignificantHeadMovementStdDev = 8.0; // Increased from 5.0
+  static const double defaultMinDeviceMovementThreshold = 0.1; // Decreased from 0.5
 
   // UI settings
   static const double defaultOvalHeightRatio = 0.55;

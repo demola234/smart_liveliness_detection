@@ -57,10 +57,11 @@ class MotionService {
   /// Check if head motion correlates with device motion (anti-spoofing).
   /// This version uses standard deviation for both head and device movement to be more robust.
   bool verifyMotionCorrelation(List<Offset> headAngleReadings) {
-    // Fail-safe: if not enough data is available, consider it a potential issue.
+    // Fail-safe: if not enough data is available, we cannot prove it is a spoof.
+    // Giving the benefit of the doubt to the user to avoid false positives on fast sessions.
     if (headAngleReadings.length < 10 || _accelerometerReadings.length < 10) {
-      debugPrint('Not enough motion data to verify correlation, failing check.');
-      return false;
+      debugPrint('Not enough motion data to verify correlation, passing check (benefit of doubt).');
+      return true;
     }
 
     // Calculate the standard deviation of head movement for both X and Y axes.
