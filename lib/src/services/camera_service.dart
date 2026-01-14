@@ -36,7 +36,7 @@ class CameraService {
       return _controller!;
     }
 
-    await dispose(); // Clean up any existing controller
+    await dispose();
 
     final frontCamera = cameras.firstWhere(
       (camera) => camera.lensDirection == CameraLensDirection.front,
@@ -154,7 +154,7 @@ class CameraService {
       final Uint8List yPlane = image.planes[0].bytes;
 
       // Sample only a portion of pixels for performance
-      const int sampleRate = 10; // Sample every 10th pixel
+      const int sampleRate = 10;
       int totalBrightness = 0;
       int sampledPixels = 0;
 

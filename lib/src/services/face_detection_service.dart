@@ -164,14 +164,17 @@ class FaceDetectionService {
     final double verticalToleranceMultiplier = isAndroid ? 1.1 : 1.0;
 
     // Tolerance based on oval size (percentage of oval dimensions)
-    final maxHorizontalOffset = ovalWidth * 0.20 * horizontalToleranceMultiplier;
-    final maxVerticalOffset = ovalHeight * 0.15 * verticalToleranceMultiplier;
+    // Reduced tolerance to ensure face is well-positioned for challenges
+    final maxHorizontalOffset = ovalWidth * 0.15 * horizontalToleranceMultiplier;
+    final maxVerticalOffset = ovalHeight * 0.12 * verticalToleranceMultiplier;
 
     // Platform-specific size ratios
-    final minFaceWidthRatio = isAndroid ? 0.25 : 0.3;
-    const maxFaceWidthRatio = 0.85;
-    final minFaceHeightRatio = isAndroid ? 0.25 : 0.3;
-    const maxFaceHeightRatio = 0.85;
+    // Updated to be consistent with challenge requirements (0.70 minimum for challenges)
+    // Using 0.60 minimum here to give some buffer and guide users to the right position
+    final minFaceWidthRatio = isAndroid ? 0.60 : 0.65;
+    const maxFaceWidthRatio = 0.95;
+    final minFaceHeightRatio = isAndroid ? 0.60 : 0.65;
+    const maxFaceHeightRatio = 0.95;
 
     // Calculate size ratios
     final faceWidthRatio = faceBox.width / ovalWidth;
@@ -544,16 +547,15 @@ class FaceDetectionService {
     final double horizontalDistance = (faceCenterX - ovalCenterX).abs();
     final double verticalDistance = (faceCenterY - ovalCenterY).abs();
 
-    // Sets a tolerance. For example, the center of the face can be
-    // up to 25% of the width/height of the oval away from the center.
-    // NOTE: For challenge type tiltDown, we increase the tolerance because the user's head moves closer to the camera.
+    // Sets a tolerance. Reduced to match initialization requirements for consistency.
+    // NOTE: For tiltDown challenge, we increase tolerance because the user's head moves closer to the camera.
     double toleranceMultiplier = 1.0;
     if (challengeType == ChallengeType.tiltDown && _config.enableRelaxedFacePositioningOnTiltDown) {
       toleranceMultiplier = 1.5;
     }
 
-    final double horizontalTolerance = ovalRect.width * 0.25 * toleranceMultiplier;
-    final double verticalTolerance = ovalRect.height * 0.25 * toleranceMultiplier;
+    final double horizontalTolerance = ovalRect.width * 0.15 * toleranceMultiplier;
+    final double verticalTolerance = ovalRect.height * 0.12 * toleranceMultiplier;
 
     final bool isCentered = horizontalDistance < horizontalTolerance
         && verticalDistance < verticalTolerance;

@@ -359,8 +359,10 @@ class LivenessController extends ChangeNotifier {
     final isHorizontallyOff = (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
     final isVerticallyOff = (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
 
-    final isTooBig = faceWidthRatio > 1.5;
-    final isTooSmall = faceWidthRatio < 0.5;
+    // Updated thresholds to be consistent with initialization and challenge requirements
+    // Challenges require 0.70 minimum, so we guide users to stay above 0.60
+    final isTooBig = faceWidthRatio > 1.0;
+    final isTooSmall = faceWidthRatio < 0.60;
 
     // Direction logic using the corrected coordinates
     if (isTooBig) {
