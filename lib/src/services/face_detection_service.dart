@@ -901,7 +901,12 @@ class FaceDetectionService {
   /// Detect left head turn
   bool _detectLeftTurn(Face face) {
     if (face.headEulerAngleY != null) {
-      return face.headEulerAngleY! > _config.headTurnThreshold;
+      if (Platform.isIOS) {
+        // WARNING: ANDROID - Turning the head to the left generates a negative headEulerAngleY. IOS - generates a positive headEulerAngleY.
+        return face.headEulerAngleY! < -_config.headTurnThreshold;
+      } else {
+        return face.headEulerAngleY! > _config.headTurnThreshold;
+      }
     }
     return false;
   }
@@ -909,7 +914,12 @@ class FaceDetectionService {
   /// Detect right head turn
   bool _detectRightTurn(Face face) {
     if (face.headEulerAngleY != null) {
-      return face.headEulerAngleY! < -_config.headTurnThreshold;
+      if (Platform.isIOS) {
+        //WARNING: ANDROID - Turning the head to the right generates a positive headEulerAngleY. IOS - generates a negative headEulerAngleY.
+        return face.headEulerAngleY! > _config.headTurnThreshold;
+      } else {
+        return face.headEulerAngleY! < -_config.headTurnThreshold;
+      }
     }
     return false;
   }
