@@ -75,8 +75,14 @@ class LivenessConfig {
   /// Standard deviation threshold for significant head movement.
   final double significantHeadMovementStdDev;
 
-  /// Minimum device movement threshold for spoofing detection
+  /// Minimum device movement threshold for spoofing detection (Accelerometer)
   final double minDeviceMovementThreshold;
+
+  /// Whether to enable gyroscope check for motion correlation (anti-spoofing).
+  final bool enableGyroscopeCheck;
+
+  /// Minimum device movement threshold for spoofing detection (Gyroscope)
+  final double minGyroscopeMovementThreshold;
 
   /// Height ratio of the oval face guide relative to screen height
   final double ovalHeightRatio;
@@ -110,6 +116,10 @@ class LivenessConfig {
 
   /// Custom messages for each challenge type
   final Map<ChallengeType, String>? challengeInstructions;
+
+  /// Whether to enable relaxed face positioning requirements during head tilt down challenge.
+  /// This helps when the head tilt movement naturally changes the face size or position significantly.
+  final bool enableRelaxedFacePositioningOnTiltDown;
 
   // NEW ERROR HANDLING AND PERFORMANCE PROPERTIES
 
@@ -179,6 +189,8 @@ class LivenessConfig {
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
     this.significantHeadMovementStdDev = LivenessConstants.defaultSignificantHeadMovementStdDev,
     this.minDeviceMovementThreshold = LivenessConstants.defaultMinDeviceMovementThreshold,
+    this.enableGyroscopeCheck = LivenessConstants.defaultEnableGyroscopeCheck,
+    this.minGyroscopeMovementThreshold = LivenessConstants.defaultMinGyroscopeMovementThreshold,
     this.ovalHeightRatio = LivenessConstants.defaultOvalHeightRatio,
     this.ovalWidthRatio = LivenessConstants.defaultOvalWidthRatio,
     this.strokeWidth = LivenessConstants.defaultStrokeWidth,
@@ -189,6 +201,7 @@ class LivenessConfig {
     this.numberOfRandomChallenges = 3,
     this.alwaysIncludeBlink = true,
     this.challengeInstructions,
+    this.enableRelaxedFacePositioningOnTiltDown = true,
     // New error handling and performance properties with sensible defaults
     this.maxConsecutiveErrors = 5,
     this.frameSkipInterval = 2,
@@ -231,6 +244,8 @@ class LivenessConfig {
     int? maxHeadAngleReadings,
     double? significantHeadMovementStdDev,
     double? minDeviceMovementThreshold,
+    bool? enableGyroscopeCheck,
+    double? minGyroscopeMovementThreshold,
     double? ovalHeightRatio,
     double? ovalWidthRatio,
     double? strokeWidth,
@@ -241,6 +256,7 @@ class LivenessConfig {
     int? numberOfRandomChallenges,
     bool? alwaysIncludeBlink,
     Map<ChallengeType, String>? challengeInstructions,
+    bool? enableRelaxedFacePositioningOnTiltDown,
     // New parameters
     int? maxConsecutiveErrors,
     int? frameSkipInterval,
@@ -281,6 +297,8 @@ class LivenessConfig {
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,
       significantHeadMovementStdDev: significantHeadMovementStdDev ?? this.significantHeadMovementStdDev,
       minDeviceMovementThreshold: minDeviceMovementThreshold ?? this.minDeviceMovementThreshold,
+      enableGyroscopeCheck: enableGyroscopeCheck ?? this.enableGyroscopeCheck,
+      minGyroscopeMovementThreshold: minGyroscopeMovementThreshold ?? this.minGyroscopeMovementThreshold,
       ovalHeightRatio: ovalHeightRatio ?? this.ovalHeightRatio,
       ovalWidthRatio: ovalWidthRatio ?? this.ovalWidthRatio,
       strokeWidth: strokeWidth ?? this.strokeWidth,
@@ -291,6 +309,7 @@ class LivenessConfig {
       numberOfRandomChallenges: numberOfRandomChallenges ?? this.numberOfRandomChallenges,
       alwaysIncludeBlink: alwaysIncludeBlink ?? this.alwaysIncludeBlink,
       challengeInstructions: challengeInstructions ?? this.challengeInstructions,
+      enableRelaxedFacePositioningOnTiltDown: enableRelaxedFacePositioningOnTiltDown ?? this.enableRelaxedFacePositioningOnTiltDown,
       // New parameters
       maxConsecutiveErrors: maxConsecutiveErrors ?? this.maxConsecutiveErrors,
       frameSkipInterval: frameSkipInterval ?? this.frameSkipInterval,

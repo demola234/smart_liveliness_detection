@@ -7,7 +7,7 @@ A highly customizable Flutter package for face liveness detection with multiple 
 - 💯 Multiple liveness challenge types (blinking, smiling, head turns, nodding, zoom, center the face, tilt up, tilt down)
 - 🔄 Random challenge sequence generation for enhanced security
 - 🎯 Face centering guidance with visual feedback
-- 🔍 Anti-spoofing measures (screen glare detection, motion correlation)
+- 🔍 Anti-spoofing measures (screen glare detection, motion correlation with gyroscope support)
 - 🎨 Fully customizable UI with theming support
 - 🌈 Animated progress indicators, status displays, and overlays
 - 🎬 Challenge hint animations with GIF/Lottie support
@@ -127,6 +127,14 @@ LivenessConfig config = LivenessConfig(
 
   // Session settings
   maxSessionDuration: Duration(minutes: 2),
+
+  // Motion Detection Settings
+  enableGyroscopeCheck: false, // Set to true to use Gyroscope for better accuracy
+  minDeviceMovementThreshold: 0.1, // Lower threshold to avoid false positives for steady hands
+  significantHeadMovementStdDev: 8.0, // Higher threshold for head movement detection
+  
+  // Relaxed Face Positioning (Tilt Down)
+  enableRelaxedFacePositioningOnTiltDown: true, // Allow face to be larger/closer during tilt down
 );
 ```
 
@@ -517,16 +525,27 @@ This check analyzes the camera feed for bright, reflective spots. It acts as a n
 - `glareBrightnessFactor`: Multiplier for the average brightness to set the dynamic glare threshold. (Default: `3.0`)
 - `minBrightPercentage` / `maxBrightPercentage`: The minimum and maximum percentage of bright pixels required to trigger the glare detection. (Defaults: `0.05` and `0.30`)
 
-### 2. Motion Correlation Check
+### 2. Motion Correlation Check (Enhanced)
 
-This is a powerful defense that determines the final success of the verification. To prevent false positives from minor tremors, it uses the standard deviation of head angles to detect significant movement. It ensures head and device movements are correlated.
+This is a powerful defense that determines the final success of the verification. It ensures that head movements are correlated with device movements (even micro-movements), detecting if a static device is filming a screen.
+
+**Now with Gyroscope Support:**
+The check can now utilize the device's gyroscope for increased accuracy, significantly reducing false positives for users with steady hands.
 
 **Configuration:**
 
 - `enableMotionCorrelationCheck`: Set to `false` to disable this check. (Default: `true`)
-- `significantHeadMovementStdDev`: The standard deviation threshold for head movement to be considered significant. A higher value is more tolerant. (Default: `5.0`)
-- `minDeviceMovementThreshold`: The minimum amount of device motion required to pass the check if significant head motion is detected. (Default: `0.5`)
-- `failOnMotionCorrelationFailedAtTheEnd`: When `true`, a failure in the motion correlation check will cause the overall liveness verification to be considered unsuccessful. When `false`, the check will still run and its result will be available in the `antiSpoofingDetection` metadata, but it will not block the overall success of the session. (Default: `true`)
+- `enableGyroscopeCheck`: Set to `true` to use the Gyroscope sensor. This improves accuracy by detecting rotational movements. (Default: `false`)
+- `significantHeadMovementStdDev`: The standard deviation threshold for head movement to be considered significant. (Default: `8.0`)
+- `minDeviceMovementThreshold`: The minimum amount of accelerometer motion required. (Default: `0.1`)
+- `minGyroscopeMovementThreshold`: The minimum amount of gyroscope rotation required. (Default: `0.05`)
+- `failOnMotionCorrelationFailedAtTheEnd`: When `true`, a failure in the motion correlation check will cause the overall liveness verification to be considered unsuccessful. (Default: `true`)
+
+**How it works:**
+The system only flags a potential spoofing attempt if:
+1. Significant head movement is detected (StdDev > 8.0).
+2. AND Accelerometer movement is minimal (StdDev < 0.1).
+3. AND (if enabled) Gyroscope movement is minimal (StdDev < 0.05).
 
 ### 3. Face Contour Analysis (Mask Detection)
 
