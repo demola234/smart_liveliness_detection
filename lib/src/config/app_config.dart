@@ -1,5 +1,6 @@
 import 'package:smart_liveliness_detection/src/config/messages_config.dart';
 import 'package:smart_liveliness_detection/src/config/challenge_hint_config.dart';
+import 'package:smart_liveliness_detection/src/config/voice_guidance_config.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 import '../utils/constants.dart';
@@ -165,6 +166,16 @@ class LivenessConfig {
   /// If a challenge type is not in this map, defaultChallengeHintConfig will be used
   final Map<ChallengeType, ChallengeHintConfig>? challengeHints;
 
+  /// Optional voice guidance configuration.
+  ///
+  /// When provided and [VoiceGuidanceConfig.enabled] is `true`, the package
+  /// will speak challenge instructions, positioning feedback, and the
+  /// completion message aloud via the device TTS engine.
+  ///
+  /// When `null`, voice guidance is completely disabled and no TTS engine
+  /// is initialised.
+  final VoiceGuidanceConfig? voiceGuidance;
+
   const LivenessConfig({
     this.maxSessionDuration = LivenessConstants.defaultMaxSessionDuration,
     this.minFaceSize = LivenessConstants.defaultMinFaceSize,
@@ -217,6 +228,7 @@ class LivenessConfig {
     this.messages = const LivenessMessages(),
     this.defaultChallengeHintConfig,
     this.challengeHints,
+    this.voiceGuidance,
   });
 
   /// Create a copy of this configuration with some values replaced
@@ -272,6 +284,7 @@ class LivenessConfig {
     LivenessMessages? messages,
     ChallengeHintConfig? defaultChallengeHintConfig,
     Map<ChallengeType, ChallengeHintConfig>? challengeHints,
+    VoiceGuidanceConfig? voiceGuidance,
   }) {
     return LivenessConfig(
       maxSessionDuration: maxSessionDuration ?? this.maxSessionDuration,
@@ -325,6 +338,7 @@ class LivenessConfig {
       messages: messages ?? this.messages,
       defaultChallengeHintConfig: defaultChallengeHintConfig ?? this.defaultChallengeHintConfig,
       challengeHints: challengeHints ?? this.challengeHints,
+      voiceGuidance: voiceGuidance ?? this.voiceGuidance,
     );
   }
 

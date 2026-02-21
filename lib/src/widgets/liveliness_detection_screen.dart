@@ -80,6 +80,21 @@ class LivenessDetectionScreen extends StatefulWidget {
   /// Callback for when final image is captured with metadata
   final FinalImageCapturedCallback? onFinalImageCaptured;
 
+  /// Optional futuristic painter style for the progress bar.
+  ///
+  /// When set, the bottom progress area is replaced by an animated
+  /// [FuturisticLivenessBar] using the chosen [LivenessUiStyle].
+  /// When `null` the default progress indicator is used.
+  final LivenessUiStyle? painterStyle;
+
+  /// When `true` a floating button lets the user switch [painterStyle] at
+  /// runtime via [LivenessStylePicker]. Has no effect when [painterStyle]
+  /// is `null`.
+  final bool allowStyleChange;
+
+  /// Height of the futuristic bar in logical pixels (default 64).
+  final double futuristicBarHeight;
+
   /// Constructor
   const LivenessDetectionScreen({
     super.key,
@@ -100,6 +115,9 @@ class LivenessDetectionScreen extends StatefulWidget {
     this.onFinalImageCaptured,
     this.onFaceDetected,
     this.onFaceNotDetected,
+    this.painterStyle,
+    this.allowStyleChange = false,
+    this.futuristicBarHeight = 64,
   });
 
   @override
@@ -226,6 +244,9 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
           onImageCaptured: _handleManualCapture,
           captureButtonText: widget.captureButtonText,
           useColorProgress: widget.useColorProgress,
+          painterStyle: widget.painterStyle,
+          allowStyleChange: widget.allowStyleChange,
+          futuristicBarHeight: widget.futuristicBarHeight,
         );
       }),
     );
@@ -298,7 +319,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
 }
 
 /// View component of the liveness detection screen
-class LivenessDetectionView extends StatelessWidget {
+class LivenessDetectionView extends StatefulWidget {
   /// Whether to show app bar
   final bool showAppBar;
 
@@ -325,6 +346,17 @@ class LivenessDetectionView extends StatelessWidget {
 
   final String? initializingMessage;
 
+  /// Optional futuristic painter style. When set, the default progress bar is
+  /// replaced by an animated [FuturisticLivenessBar].
+  final LivenessUiStyle? painterStyle;
+
+  /// When `true`, a floating palette button lets the user switch styles at
+  /// runtime via [LivenessStylePicker]. Has no effect when [painterStyle] is `null`.
+  final bool allowStyleChange;
+
+  /// Height of the futuristic bar in logical pixels (default 64).
+  final double futuristicBarHeight;
+
   /// Constructor
   const LivenessDetectionView({
     super.key,
@@ -336,8 +368,34 @@ class LivenessDetectionView extends StatelessWidget {
     this.onImageCaptured,
     this.captureButtonText,
     this.useColorProgress = true,
-    this.initializingMessage = 'Initializing camera...'
+    this.initializingMessage = 'Initializing camera...',
+    this.painterStyle,
+    this.allowStyleChange = false,
+    this.futuristicBarHeight = 64,
   });
+
+  @override
+  State<LivenessDetectionView> createState() => _LivenessDetectionViewState();
+}
+
+class _LivenessDetectionViewState extends State<LivenessDetectionView> {
+  LivenessUiStyle? _currentStyle;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStyle = widget.painterStyle;
+  }
+
+  Future<void> _pickStyle(BuildContext context) async {
+    final chosen = await LivenessStylePicker.show(
+      context,
+      _currentStyle ?? LivenessUiStyle.quantum,
+    );
+    if (chosen != null && mounted) {
+      setState(() => _currentStyle = chosen);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -357,7 +415,7 @@ class LivenessDetectionView extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                initializingMessage!,
+                widget.initializingMessage!,
                 style: TextStyle(
                   fontSize: 16,
                   color: theme.statusTextStyle.color,
@@ -370,8 +428,8 @@ class LivenessDetectionView extends StatelessWidget {
     }
 
     // Build app bar if enabled
-    final appBar = showAppBar
-        ? customAppBar ??
+    final appBar = widget.showAppBar
+        ? widget.customAppBar ??
             AppBar(
               title: const Text('Face Liveness Detection'),
               backgroundColor: theme.appBarBackgroundColor,
@@ -386,8 +444,14 @@ class LivenessDetectionView extends StatelessWidget {
             )
         : null;
 
+    // When a futuristic style is active, tint the whole screen with its
+    // background colour so the themed UI spans the entire display.
+    final scaffoldBg = _currentStyle != null
+        ? _currentStyle!.theme.backgroundColor
+        : theme.backgroundColor;
+
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: scaffoldBg,
       extendBodyBehindAppBar: true,
       appBar: appBar,
       body: SafeArea(
@@ -400,29 +464,32 @@ class LivenessDetectionView extends StatelessWidget {
                 // Camera preview
                 _buildCameraPreview(controller),
 
-                // AnimatedOvalOverlay(
-                //   isFaceDetected: controller.isFaceDetected,
-                //   config: controller.config,
-                //   theme: controller.theme,
-                //   progress: controller.progress,
-                //   zoomFactor: controller.zoomFactor,
-                // ),
-
-                // Oval overlay with color progress indicator
-                OvalColorProgressOverlay(
-                  zoomFactor: controller.zoomFactor,
-                  isFaceDetected: controller.isFaceDetected,
-                  config: controller.config,
-                  theme: controller.theme,
-                  progress: useColorProgress ? controller.progress : 0.0,
-                  startColor: theme.primaryColor,
-                  endColor: theme.successColor,
-                ),
+                // Oval overlay — futuristic HUD when a style is active,
+                // standard colour-progress overlay otherwise.
+                if (_currentStyle != null)
+                  FuturisticOvalOverlay(
+                    isFaceDetected: controller.isFaceDetected,
+                    config: controller.config,
+                    theme: controller.theme,
+                    progress: widget.useColorProgress ? controller.progress : 0.0,
+                    style: _currentStyle!,
+                    zoomFactor: controller.zoomFactor,
+                  )
+                else
+                  OvalColorProgressOverlay(
+                    zoomFactor: controller.zoomFactor,
+                    isFaceDetected: controller.isFaceDetected,
+                    config: controller.config,
+                    theme: controller.theme,
+                    progress: widget.useColorProgress ? controller.progress : 0.0,
+                    startColor: theme.primaryColor,
+                    endColor: theme.successColor,
+                  ),
 
                 // Status indicators
-                if (showStatusIndicators) ...[
+                if (widget.showStatusIndicators) ...[
                   Positioned(
-                    top: showAppBar ? 130 : 40,
+                    top: widget.showAppBar ? 130 : 40,
                     right: 20,
                     child: StatusIndicator.faceDetection(
                       isActive: controller.isFaceDetected,
@@ -430,7 +497,7 @@ class LivenessDetectionView extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: showAppBar ? 130 : 40,
+                    top: widget.showAppBar ? 130 : 40,
                     left: 20,
                     child: StatusIndicator.lighting(
                       isActive: controller.isLightingGood,
@@ -441,7 +508,7 @@ class LivenessDetectionView extends StatelessWidget {
 
                 // Status message
                 Positioned(
-                  top: (showAppBar ? kToolbarHeight : 0) +
+                  top: (widget.showAppBar ? kToolbarHeight : 0) +
                       mediaQuery.padding.top +
                       20,
                   left: 20,
@@ -475,11 +542,11 @@ class LivenessDetectionView extends StatelessWidget {
                   _buildChallengeHint(
                     controller,
                     mediaQuery,
-                    showAppBar,
+                    widget.showAppBar,
                   ),
 
-                // Progress bar (if color progress is disabled)
-                if (!useColorProgress)
+                // ── Progress bar (default / legacy) ───────────────────────
+                if (_currentStyle == null && !widget.useColorProgress)
                   Positioned(
                     bottom: 40 + mediaQuery.padding.bottom,
                     left: 20,
@@ -489,19 +556,48 @@ class LivenessDetectionView extends StatelessWidget {
                     ),
                   ),
 
+
+                // ── Style-picker floating button ──────────────────────────
+                if (_currentStyle != null && widget.allowStyleChange)
+                  Positioned(
+                    bottom: 20 + mediaQuery.padding.bottom,
+                    right: 20,
+                    child: GestureDetector(
+                      onTap: () => _pickStyle(context),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _currentStyle!.theme.accentColor
+                              .withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _currentStyle!.theme.accentColor,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.palette_outlined,
+                          color: _currentStyle!.theme.accentColor,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+
                 // Success overlay
                 if (controller.currentState == LivenessState.completed)
-                  customSuccessOverlay ??
+                  widget.customSuccessOverlay ??
                       SuccessOverlay(
                         sessionId: controller.sessionId,
                         onReset: controller.resetSession,
                         theme: theme,
                         isSuccessful: controller.isVerificationSuccessful,
-                        showCaptureImageButton: showCaptureImageButton,
-                        captureButtonText: captureButtonText,
-                        onCaptureImage: showCaptureImageButton
+                        showCaptureImageButton: widget.showCaptureImageButton,
+                        captureButtonText: widget.captureButtonText,
+                        onCaptureImage: widget.showCaptureImageButton
                             ? (sessionId) async {
-                                onImageCaptured?.call(sessionId);
+                                widget.onImageCaptured?.call(sessionId);
                               }
                             : null,
                       ),
