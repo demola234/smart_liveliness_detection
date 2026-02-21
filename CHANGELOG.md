@@ -1,4 +1,13 @@
 # Changelog
+## Version 0.3.2 - February 21, 2026
+* Patch: Version bump and minor stability improvements
+
+## Version 0.3.1 - February 21, 2026
+### Bug Fixes
+* Fixed a critical bug in `VoiceGuidanceService` where TTS would attempt to speak even when not initialized, causing crashes on some devices. Added a guard clause to prevent any TTS operations if the service is not properly initialized.
+* Resolved head turning challenges not resetting the session correctly when the face was not detected, ensuring a more consistent user experience.
+* Improved error handling in the camera service to prevent crashes when the camera feed is interrupted or unavailable.
+
 ## Version 0.3.0 - February 21, 2026
 
 ### New Features

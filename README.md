@@ -9,7 +9,11 @@ A highly customizable Flutter package for face liveness detection with multiple 
 - 🎯 Face centering guidance with visual feedback
 - 🔍 Anti-spoofing measures (screen glare detection, motion correlation with gyroscope support)
 - 🎨 Fully customizable UI with theming support
-- 🌈 Animated progress indicators, status displays, and overlays
+- 🌈 13 animated futuristic UI painter styles (quantum, hologram, cosmos, synapse, and more)
+- 🖼️ Futuristic oval overlay with animated progress ring and scan line
+- 🗂️ Runtime style picker bottom sheet with live animated previews
+- 🃏 Challenge hint widget with 5 visual styles and 4 entrance animations
+- 🔊 Voice Guidance — spoken TTS instructions for full accessibility support
 - 🎬 Challenge hint animations with GIF/Lottie support
 - 📱 Simple integration with Flutter apps
 - 📸 Optional image capture capability
@@ -21,7 +25,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_liveliness_detection: ^0.2.3
+  smart_liveliness_detection: ^0.3.2
 ```
 
 Then run:
@@ -34,19 +38,39 @@ Make sure to add camera permissions to your app:
 
 ### iOS
 
-Add the following to your `Info.plist`:
+Add the camera permission to your `Info.plist`:
 
 ```xml
 <key>NSCameraUsageDescription</key>
 <string>This app needs camera access for face liveness verification</string>
 ```
 
+If you use **Voice Guidance**, add the following to `ios/Runner/AppDelegate.swift` so TTS audio plays even when the ring/silent switch is off:
+
+```swift
+import AVFoundation
+
+// Inside application(_:didFinishLaunchingWithOptions:), before GeneratedPluginRegistrant.register:
+try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .mixWithOthers)
+try? AVAudioSession.sharedInstance().setActive(true)
+```
+
 ### Android
 
-Add the following to your `AndroidManifest.xml`:
+Add the camera permission to your `AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.CAMERA" />
+```
+
+If you use **Voice Guidance** and target Android 11+, also add the TTS query inside the `<queries>` block:
+
+```xml
+<queries>
+  <intent>
+    <action android:name="android.intent.action.TTS_SERVICE" />
+  </intent>
+</queries>
 ```
 
 ## Quick Start
@@ -307,6 +331,110 @@ The package includes default GIF animations for:
 - `ChallengeType.turnRight` - Head rotating right animation
 
 For a complete guide on challenge hints, see [CHALLENGE_HINTS.md](CHALLENGE_HINTS.md).
+
+### Voice Guidance (Accessibility)
+
+Enable spoken TTS instructions so visually impaired users can complete liveness verification without looking at the screen.
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: LivenessConfig(
+    voiceGuidance: VoiceGuidanceConfig(
+      enabled: true,
+      language: 'en-US',       // Any BCP-47 language code
+      volume: 1.0,             // 0.0–1.0
+      speechRate: 0.5,         // 0.0–1.0 (0.5 = normal pace)
+      pitch: 1.0,              // 0.5–2.0
+      speakPositioningFeedback: true,    // "Move closer", "Move right", etc.
+      speakChallengeInstructions: true,  // Each challenge instruction
+      speakCompletion: true,             // Success/failure message
+      repeatInterval: Duration(seconds: 3), // Min time before repeating the same message
+    ),
+  ),
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {},
+);
+```
+
+**Convenience presets:**
+
+```dart
+// No centering feedback — only challenges and completion are spoken
+VoiceGuidanceConfig.minimal()
+
+// Slower speech rate and shorter repeat interval — optimised for screen-reader users
+VoiceGuidanceConfig.accessibility()
+```
+
+When `voiceGuidance` is `null` or `enabled: false`, zero TTS overhead is incurred.
+
+---
+
+### Futuristic UI Painter Styles
+
+Choose from 13 animated canvas overlay styles via `LivenessStyle`:
+
+| Style | Description |
+|---|---|
+| `quantum` | Pulsing energy rings with particle scatter |
+| `liquidMetal` | Flowing chrome shimmer with metallic sheen |
+| `cosmos` | Deep-space star field with nebula gradient |
+| `hologram` | Cyan holographic scan lines and grid |
+| `singularity` | Gravitational lens distortion vortex |
+| `synapse` | Neural network node-and-edge animation |
+| `kinetic` | Motion-blur speed lines and momentum trails |
+| `prism` | Rainbow light refraction prismatic effect |
+| `obsidian` | Volcanic glass dark sheen with ember glow |
+| `monolith` | Stark geometric brutalist framing |
+| `chronos` | Clockwork gears and time-dial overlay |
+| `floating` | Soft levitating bubble particles |
+| `sumi` | Japanese ink-wash calligraphic brushwork |
+
+Pass the style to the screen:
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  livenessStyle: LivenessStyle.hologram, // pick any style
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {},
+);
+```
+
+#### Liveness Style Picker
+
+Let users switch styles at runtime using the built-in bottom sheet with live animated previews:
+
+```dart
+showLivenessStylePicker(
+  context,
+  currentStyle: _currentStyle,
+  onStyleSelected: (style) {
+    setState(() => _currentStyle = style);
+  },
+);
+```
+
+---
+
+### Challenge Hint Widget Styles & Animations
+
+The `ChallengeHintWidget` now supports visual styles and entrance animations:
+
+```dart
+ChallengeHintConfig(
+  enabled: true,
+  hintStyle: ChallengeHintStyle.glass,       // plain | glass | futuristic | minimal | neon
+  hintAnimation: ChallengeHintAnimation.bounceIn, // scaleIn | slideUp | bounceIn | flipIn
+  position: ChallengeHintPosition.topCenter,
+  size: 100.0,
+)
+```
+
+**Available styles:** `plain`, `glass`, `futuristic`, `minimal`, `neon`
+
+**Available animations:** `scaleIn`, `slideUp`, `bounceIn`, `flipIn`
+
+---
 
 ### Callbacks
 
