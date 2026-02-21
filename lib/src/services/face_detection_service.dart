@@ -486,7 +486,6 @@ class FaceDetectionService {
         return InputImageFormat.nv21;
       case ImageFormatGroup.jpeg:
       case ImageFormatGroup.unknown:
-      default:
         // For any unsupported or unknown format, default to nv21 for android and bgra8888 for iOS
         if(Platform.isAndroid) {
           debugPrint('Using nv21 (Android) fallback for format: ${format.group}');

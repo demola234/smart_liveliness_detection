@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:smart_liveliness_detection/src/config/app_config.dart';
 import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 
@@ -15,13 +14,11 @@ void main() {
 
   group('CameraService - Initialization', () {
     late CameraService cameraService;
-    late MockCameraController mockController;
     late List<CameraDescription> mockCameras;
     late CameraDescription frontCamera;
     late CameraDescription backCamera;
 
     setUp(() {
-      mockController = MockCameraController();
       cameraService = CameraService();
 
       frontCamera = FakeCameraDescription(

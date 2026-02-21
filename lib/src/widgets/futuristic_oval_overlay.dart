@@ -384,8 +384,8 @@ class _FuturisticOvalPainter extends CustomPainter {
 
     // Scanline dashes running around the main oval
     const dashCount = 42;
-    final dashAngle = (2 * math.pi / dashCount) * 0.62;
-    final gapAngle = (2 * math.pi / dashCount) * 0.38;
+    const dashAngle = (2 * math.pi / dashCount) * 0.62;
+    const gapAngle = (2 * math.pi / dashCount) * 0.38;
 
     for (var i = 0; i < dashCount; i++) {
       final startA = i * (dashAngle + gapAngle);
@@ -587,7 +587,7 @@ class _FuturisticOvalPainter extends CustomPainter {
 
   void _drawPrismBorder(Canvas canvas, Rect oval) {
     const segments = 60;
-    final segAngle = 2 * math.pi / segments;
+    const segAngle = 2 * math.pi / segments;
 
     for (var i = 0; i < segments; i++) {
       final startA = i * segAngle;
@@ -753,8 +753,8 @@ class _FuturisticOvalPainter extends CustomPainter {
 
     for (final pt in [leftPt, rightPt]) {
       canvas.drawLine(
-        pt + Offset(0, -slitLen),
-        pt + Offset(0, slitLen),
+        pt + const Offset(0, -slitLen),
+        pt + const Offset(0, slitLen),
         Paint()
           ..color = Colors.white.withValues(alpha: 0.6 + 0.3 * pulse)
           ..strokeWidth = 1.5,

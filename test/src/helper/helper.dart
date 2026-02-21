@@ -2,7 +2,6 @@
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 class MockCameraController extends Mock implements CameraController {}
