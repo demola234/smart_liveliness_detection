@@ -2,7 +2,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
-import 'package:smart_liveliness_detection/src/models/challenge.dart';
 import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
