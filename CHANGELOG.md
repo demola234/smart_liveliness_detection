@@ -1,4 +1,56 @@
 # Changelog
+## Version 0.3.0 - February 21, 2026
+
+### New Features
+
+#### Voice Guidance & Accessibility
+* Added `VoiceGuidanceConfig` — fully configurable TTS settings (language, volume, speech rate, pitch, repeat interval)
+* Added `VoiceGuidanceService` — debounced TTS wrapper built on `flutter_tts` that prevents audio flooding from ~30 fps camera callbacks
+* Voice guidance speaks: initial instruction, face centering feedback, each challenge instruction, and completion/failure result
+* Fine-grained control flags: `speakPositioningFeedback`, `speakChallengeInstructions`, `speakCompletion`
+* Two convenience presets: `VoiceGuidanceConfig.minimal()` (no centering speech) and `VoiceGuidanceConfig.accessibility()` (slower rate, shorter repeat interval)
+* Exported `VoiceGuidanceConfig` from the top-level package barrel
+* Zero overhead when disabled — `VoiceGuidanceService` is only instantiated when `voiceGuidance?.enabled == true`
+
+#### Futuristic UI Painter Styles
+* Added 13 new animated canvas overlay painter styles selectable via `LivenessStyle` enum:
+  * `quantum` — pulsing energy rings with particle scatter effect
+  * `liquidMetal` — flowing chrome shimmer with metallic sheen
+  * `cosmos` — deep-space star field with nebula gradient
+  * `hologram` — cyan holographic scan lines and grid
+  * `singularity` — gravitational lens distortion vortex
+  * `synapse` — neural network node-and-edge animation
+  * `kinetic` — motion-blur speed lines and momentum trails
+  * `prism` — rainbow light refraction prismatic effect
+  * `obsidian` — volcanic glass dark sheen with ember glow
+  * `monolith` — stark geometric brutalist framing
+  * `chronos` — clockwork gears and time-dial overlay
+  * `floating` — soft levitating bubble particles
+  * `sumi` — Japanese ink-wash calligraphic brushwork
+
+#### Futuristic Oval Overlay (`FuturisticOvalOverlay`)
+* Style-matched animated oval face frame with per-style border color, glow, and corner HUD brackets
+* Rotating progress ring that fills as liveness challenges are completed
+* Animated scan-line sweep across the face region
+
+#### Liveness Style Picker (`LivenessStylePicker`)
+* New bottom-sheet widget for switching painter styles at runtime
+* Live animated mini-previews of all 13 styles rendered inside the picker
+
+#### Challenge Hint Widget Enhancements
+* Added `ChallengeHintStyle` enum with 5 visual styles: `plain`, `glass`, `futuristic`, `minimal`, `neon`
+* Added `ChallengeHintAnimation` enum with 4 entrance animations: `scaleIn`, `slideUp`, `bounceIn`, `flipIn`
+* Hint widget now respects both style and animation on every challenge transition
+
+### Dependencies
+* Added `flutter_tts: ^4.2.0`
+
+### Platform Setup
+* **Android**: Added `android.intent.action.TTS_SERVICE` `<queries>` intent to `AndroidManifest.xml` for Android 11+ package visibility
+* **iOS**: Configured `AVAudioSession` with `.playback` category and `.mixWithOthers` option in `AppDelegate.swift` so TTS audio is heard even when the ring/silent switch is off
+
+---
+
 ## Version 0.2.3 - November 26, 2025
 * Bug fixing and improvements:
 * - Minor bug fixes

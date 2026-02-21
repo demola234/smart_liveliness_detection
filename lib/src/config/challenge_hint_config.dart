@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 class ChallengeHintConfig {
@@ -15,6 +16,17 @@ class ChallengeHintConfig {
 
   final bool isLottie;
 
+  /// Visual container style for the hint guide.
+  final ChallengeHintStyle hintStyle;
+
+  /// Entrance / exit animation for the hint guide.
+  final ChallengeHintAnimation hintAnimation;
+
+  /// Accent colour used by [ChallengeHintStyle.futuristic] and
+  /// [ChallengeHintStyle.neon] borders / glows.
+  /// Falls back to cyan (`0xFF00D4FF`) when not provided.
+  final Color? accentColor;
+
   const ChallengeHintConfig({
     this.enabled = true,
     this.assetPath,
@@ -23,6 +35,9 @@ class ChallengeHintConfig {
     this.displayDuration = const Duration(seconds: 2),
     this.animateEntrance = true,
     this.isLottie = false,
+    this.hintStyle = ChallengeHintStyle.plain,
+    this.hintAnimation = ChallengeHintAnimation.scaleIn,
+    this.accentColor,
   });
 
   ChallengeHintConfig copyWith({
@@ -33,6 +48,9 @@ class ChallengeHintConfig {
     Duration? displayDuration,
     bool? animateEntrance,
     bool? isLottie,
+    ChallengeHintStyle? hintStyle,
+    ChallengeHintAnimation? hintAnimation,
+    Color? accentColor,
   }) {
     return ChallengeHintConfig(
       enabled: enabled ?? this.enabled,
@@ -42,6 +60,9 @@ class ChallengeHintConfig {
       displayDuration: displayDuration ?? this.displayDuration,
       animateEntrance: animateEntrance ?? this.animateEntrance,
       isLottie: isLottie ?? this.isLottie,
+      hintStyle: hintStyle ?? this.hintStyle,
+      hintAnimation: hintAnimation ?? this.hintAnimation,
+      accentColor: accentColor ?? this.accentColor,
     );
   }
 

@@ -265,6 +265,36 @@ class HomeScreen extends StatelessWidget {
               'Customize hint position and size per challenge',
               () => _navigateToLivenessWithCustomHints(context),
             ),
+            _buildExampleButton(
+              context,
+              'Futuristic UI — Fixed Style',
+              'Animated progress bar with a preset painter (Quantum)',
+              () => _navigateToLivenessWithFuturisticStyle(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Futuristic UI — Style Picker',
+              'Switch between 13 animated painters at runtime',
+              () => _navigateToLivenessWithStylePicker(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Futuristic + Neon Hints',
+              'Kinetic fluid-arc theme with neon-glowing hint cards and elastic bounce animation. Palette button switches themes.',
+              () => _navigateToFuturisticNeonHints(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Hint Styles Showcase',
+              'Each challenge shows a different hint style (plain → glass → futuristic → minimal → neon) with matching animations.',
+              () => _navigateToHintStylesShowcase(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Voice Guidance',
+              'Spoken instructions and positioning feedback via device TTS',
+              () => _navigateToLivenessWithVoiceGuidance(context),
+            ),
           ],
         ),
       ),
@@ -503,6 +533,315 @@ class HomeScreen extends StatelessWidget {
             log('Liveness verification completed:');
             log('Session ID: $sessionId');
             log('Success: $isSuccessful');
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithFuturisticStyle(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.turnRight,
+              ChallengeType.smile,
+            ],
+          ),
+          theme: const LivenessTheme(),
+          // Fixed futuristic painter — no style-picker button shown
+          painterStyle: LivenessUiStyle.quantum,
+          futuristicBarHeight: 72,
+          showAppBar: false,
+          showStatusIndicators: true,
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted && isSuccessful) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Verified!'),
+                  content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithStylePicker(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.turnRight,
+              ChallengeType.smile,
+            ],
+          ),
+          theme: const LivenessTheme(),
+          // Start with cosmos; palette button lets the user switch styles
+          painterStyle: LivenessUiStyle.cosmos,
+          allowStyleChange: true,
+          futuristicBarHeight: 72,
+          showAppBar: false,
+          showStatusIndicators: true,
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted && isSuccessful) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Verified!'),
+                  content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToFuturisticNeonHints(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.turnRight,
+              ChallengeType.smile,
+              ChallengeType.nod,
+            ],
+            // Neon hint cards that match the kinetic accent colour
+            defaultChallengeHintConfig: ChallengeHintConfig(
+              enabled: true,
+              position: ChallengeHintPosition.topCenter,
+              size: 110.0,
+              displayDuration: Duration(seconds: 3),
+              hintStyle: ChallengeHintStyle.neon,
+              hintAnimation: ChallengeHintAnimation.bounceIn,
+              accentColor: Color(0xFFFF6B35), // kinetic orange
+            ),
+          ),
+          theme: const LivenessTheme(),
+          // Kinetic style — shows the fluid-arc conduit + rippled oval border
+          painterStyle: LivenessUiStyle.kinetic,
+          // Palette button (bottom-right) lets the user swipe through themes
+          allowStyleChange: true,
+          showAppBar: false,
+          showStatusIndicators: true,
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted && isSuccessful) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Verified!'),
+                  content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToHintStylesShowcase(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.turnRight,
+              ChallengeType.smile,
+              ChallengeType.nod,
+            ],
+            // Each challenge gets a distinct hint style + animation
+            challengeHints: {
+              ChallengeType.blink: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topCenter,
+                size: 110.0,
+                hintStyle: ChallengeHintStyle.plain,
+                hintAnimation: ChallengeHintAnimation.scaleIn,
+              ),
+              ChallengeType.turnLeft: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topCenter,
+                size: 110.0,
+                hintStyle: ChallengeHintStyle.glass,
+                hintAnimation: ChallengeHintAnimation.slideUp,
+              ),
+              ChallengeType.turnRight: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topCenter,
+                size: 110.0,
+                hintStyle: ChallengeHintStyle.futuristic,
+                hintAnimation: ChallengeHintAnimation.flipIn,
+                accentColor: Color(0xFF00D4FF), // quantum cyan
+              ),
+              ChallengeType.smile: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topCenter,
+                size: 110.0,
+                hintStyle: ChallengeHintStyle.minimal,
+                hintAnimation: ChallengeHintAnimation.bounceIn,
+                accentColor: Color(0xFF00FF88), // synapse green
+              ),
+              ChallengeType.nod: ChallengeHintConfig(
+                enabled: true,
+                position: ChallengeHintPosition.topCenter,
+                size: 110.0,
+                hintStyle: ChallengeHintStyle.neon,
+                hintAnimation: ChallengeHintAnimation.bounceIn,
+                accentColor: Color(0xFF5B8CFF), // cosmos blue
+              ),
+            },
+          ),
+          theme: const LivenessTheme(),
+          // Start with cosmos; palette button lets user swipe through all themes
+          painterStyle: LivenessUiStyle.cosmos,
+          allowStyleChange: true,
+          showAppBar: false,
+          showStatusIndicators: true,
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted && isSuccessful) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Verified!'),
+                  content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithVoiceGuidance(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            challengeInstructions: {
+              ChallengeType.blink: 'Please blink your eyes',
+              ChallengeType.turnLeft: 'Please turn your head to the left',
+              ChallengeType.smile: 'Please smile',
+            },
+            voiceGuidance: VoiceGuidanceConfig(
+              enabled: true,
+              language: 'en-US',
+              speechRate: 0.5,
+              speakPositioningFeedback: true,
+              speakChallengeInstructions: true,
+              speakCompletion: true,
+              repeatInterval: Duration(seconds: 3),
+            ),
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(isSuccessful ? 'Verified!' : 'Failed'),
+                  content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
           },
         ),
       ),

@@ -2,11 +2,11 @@ import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
-import 'package:smart_liveliness_detection/src/models/challenge.dart';
 import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/motion_service.dart';
+import 'package:smart_liveliness_detection/src/services/voice_guidance_service.dart';
 import 'package:smart_liveliness_detection/src/controllers/zoom_challenge_controller.dart';
 
 
@@ -82,6 +82,9 @@ class LivenessController extends ChangeNotifier {
 
   bool _firstChallengePassed = false;
 
+  /// Voice guidance service (null when voice guidance is disabled)
+  VoiceGuidanceService? _voiceGuidanceService;
+
   /// Constructor
   LivenessController({
     required List<CameraDescription> cameras,
@@ -137,11 +140,13 @@ class LivenessController extends ChangeNotifier {
     }
 
     _zoomChallengeController = ZoomChallengeController(vsync: vsync, initialValue: _config.initialZoomFactor);
-    _initialize();
+    initialize();
   }
 
   /// Initialize the controller and services
-  Future<void> _initialize() async {
+  @protected
+  @visibleForTesting
+  Future<void> initialize() async {
     try {
       _statusMessage = _config.messages.initializingCamera;
       if (!_isDisposed) notifyListeners();
@@ -166,6 +171,13 @@ class LivenessController extends ChangeNotifier {
 
       _statusMessage = _config.messages.initialInstruction;
       if (!_isDisposed) notifyListeners();
+
+      // Initialise voice guidance if configured
+      if (_config.voiceGuidance?.enabled == true) {
+        _voiceGuidanceService = VoiceGuidanceService(config: _config.voiceGuidance!);
+        await _voiceGuidanceService!.initialize();
+        _voiceGuidanceService!.speak(_config.messages.initialInstruction);
+      }
     } catch (e) {
       debugPrint('Error initializing liveness controller: $e');
       _statusMessage = _config.messages.errorInitializingCamera;
@@ -359,8 +371,10 @@ class LivenessController extends ChangeNotifier {
     final isHorizontallyOff = (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
     final isVerticallyOff = (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
 
-    final isTooBig = faceWidthRatio > 1.5;
-    final isTooSmall = faceWidthRatio < 0.5;
+    // Updated thresholds to be consistent with initialization and challenge requirements
+    // Challenges require 0.70 minimum, so we guide users to stay above 0.60
+    final isTooBig = faceWidthRatio > 1.0;
+    final isTooSmall = faceWidthRatio < 0.60;
 
     // Direction logic using the corrected coordinates
     if (isTooBig) {
@@ -420,6 +434,7 @@ class LivenessController extends ChangeNotifier {
 
           _session.state = LivenessState.performingChallenges;
           _updateStatusMessage();
+          _speak(_statusMessage);
           if (!_isDisposed) notifyListeners();
 
           // Schedule the ACTUAL start of the challenge animation for the next event cycle.
@@ -436,6 +451,7 @@ class LivenessController extends ChangeNotifier {
           return;
         } else {
           _statusMessage = _faceCenteringMessage;
+          _speak(_faceCenteringMessage, isPositioning: true);
         }
         break;
 
@@ -485,6 +501,7 @@ class LivenessController extends ChangeNotifier {
           _onChallengeCompleted?.call(currentChallenge.type);
 
           _updateStatusMessage();
+          _speak(_statusMessage);
 
           if (!_isDisposed) notifyListeners();
 
@@ -534,6 +551,7 @@ class LivenessController extends ChangeNotifier {
     } else {
       _statusMessage = _config.messages.verificationComplete;
     }
+    _speak(_statusMessage, isCompletion: true);
 
     final antiSpoofingResults = {
       'screenGlareDetected': _screenGlareDetected,
@@ -582,8 +600,22 @@ class LivenessController extends ChangeNotifier {
     }
   }
 
+  /// Speaks [text] via the voice guidance service, respecting the per-category
+  /// enable flags on [VoiceGuidanceConfig]. Does nothing when voice guidance
+  /// is disabled or not configured.
+  void _speak(String text, {bool isPositioning = false, bool isCompletion = false}) {
+    final voice = _config.voiceGuidance;
+    if (voice == null || !voice.enabled) return;
+    if (isPositioning && !voice.speakPositioningFeedback) return;
+    if (isCompletion && !voice.speakCompletion) return;
+    // Challenge instructions: only spoken when neither flag is set
+    if (!isPositioning && !isCompletion && !voice.speakChallengeInstructions) return;
+    _voiceGuidanceService?.speak(text);
+  }
+
   /// Reset the session
   void resetSession() {
+    _voiceGuidanceService?.stop();
     _session = _session.reset(_config);
     _faceDetectionService.resetTracking();
     _motionService.resetTracking();
@@ -711,6 +743,7 @@ class LivenessController extends ChangeNotifier {
       _cameraService.dispose();
       _faceDetectionService.dispose();
       _motionService.dispose();
+      _voiceGuidanceService?.dispose();
     } catch (e) {
       debugPrint('Error during disposal: $e');
     }
