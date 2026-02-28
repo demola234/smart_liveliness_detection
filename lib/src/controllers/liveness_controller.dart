@@ -2,13 +2,12 @@ import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
+import 'package:smart_liveliness_detection/src/controllers/zoom_challenge_controller.dart';
 import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/motion_service.dart';
 import 'package:smart_liveliness_detection/src/services/voice_guidance_service.dart';
-import 'package:smart_liveliness_detection/src/controllers/zoom_challenge_controller.dart';
-
 
 /// Controller for liveness detection session
 class LivenessController extends ChangeNotifier {
@@ -107,7 +106,8 @@ class LivenessController extends ChangeNotifier {
         _currentZoomFactor = config?.initialZoomFactor ?? 1.0,
         _theme = theme ?? const LivenessTheme(),
         _cameraService = cameraService ?? CameraService(config: config),
-        _faceDetectionService =faceDetectionService ?? FaceDetectionService(config: config),
+        _faceDetectionService =
+            faceDetectionService ?? FaceDetectionService(config: config),
         _motionService = motionService ?? MotionService(config: config),
         _onChallengeCompleted = onChallengeCompleted,
         _onLivenessCompleted = onLivenessCompleted,
@@ -116,30 +116,37 @@ class LivenessController extends ChangeNotifier {
         _onFinalImageCaptured = onFinalImageCaptured,
         _captureFinalImage = captureFinalImage,
         _session = LivenessSession(
-          challenges: LivenessSession.generateRandomChallenges(config ?? const LivenessConfig()),
+          challenges: LivenessSession.generateRandomChallenges(
+              config ?? const LivenessConfig()),
         ) {
-    
     // Apply "sandwich" logic if enabled and using random challenges
     if (_config.sandwichNormalChallenge && challengeTypes == null) {
       final challenges = _session.challenges;
       // Add normal challenge at the beginning if not present
       if (challenges.isEmpty || challenges.first.type != ChallengeType.normal) {
-        challenges.insert(0, Challenge(
-          ChallengeType.normal,
-          customInstruction: _config.challengeInstructions?[ChallengeType.normal] ?? _config.messages.initialInstruction,
-        ));
+        challenges.insert(
+            0,
+            Challenge(
+              ChallengeType.normal,
+              customInstruction:
+                  _config.challengeInstructions?[ChallengeType.normal] ??
+                      _config.messages.initialInstruction,
+            ));
       }
-      
+
       // Add normal challenge at the end if not present
       if (challenges.last.type != ChallengeType.normal) {
         challenges.add(Challenge(
           ChallengeType.normal,
-          customInstruction: _config.challengeInstructions?[ChallengeType.normal] ?? _config.messages.initialInstruction,
+          customInstruction:
+              _config.challengeInstructions?[ChallengeType.normal] ??
+                  _config.messages.initialInstruction,
         ));
       }
     }
 
-    _zoomChallengeController = ZoomChallengeController(vsync: vsync, initialValue: _config.initialZoomFactor);
+    _zoomChallengeController = ZoomChallengeController(
+        vsync: vsync, initialValue: _config.initialZoomFactor);
     initialize();
   }
 
@@ -160,7 +167,7 @@ class LivenessController extends ChangeNotifier {
       _motionService.startAccelerometerTracking();
 
       // Start image stream with error handling
-      await _cameraService.startImageStream(_processCameraImage);
+      await _cameraService.startImageStream(processCameraImage);
 
       // Initialize single capture service if enabled
       if (_captureFinalImage && _cameraService.controller != null) {
@@ -174,7 +181,8 @@ class LivenessController extends ChangeNotifier {
 
       // Initialise voice guidance if configured
       if (_config.voiceGuidance?.enabled == true) {
-        _voiceGuidanceService = VoiceGuidanceService(config: _config.voiceGuidance!);
+        _voiceGuidanceService =
+            VoiceGuidanceService(config: _config.voiceGuidance!);
         await _voiceGuidanceService!.initialize();
         _voiceGuidanceService!.speak(_config.messages.initialInstruction);
       }
@@ -186,8 +194,8 @@ class LivenessController extends ChangeNotifier {
   }
 
   /// Process images from the camera stream
-  Future<void> _processCameraImage(CameraImage image) async {
-
+  @visibleForTesting
+  Future<void> processCameraImage(CameraImage image) async {
     if (_isDisposed) {
       return;
     }
@@ -217,7 +225,8 @@ class LivenessController extends ChangeNotifier {
       if (_config.enableScreenGlareDetection) {
         try {
           if (_cameraService.detectScreenGlare(image)) {
-            debugPrint('Detected potential screen glare, possible spoofing attempt');
+            debugPrint(
+                'Detected potential screen glare, possible spoofing attempt');
             _screenGlareDetected = true;
           }
         } catch (e) {
@@ -240,15 +249,17 @@ class LivenessController extends ChangeNotifier {
         // Continue with empty face list
       }
 
-      if(faces != null) {
+      if (faces != null) {
         if (faces.isNotEmpty) {
           final face = faces.first;
           _isFaceDetected = true;
 
           // Contour analysis on centering phase
-          if (_config.enableContourAnalysisOnCentering && _session.state == LivenessState.centeringFace) {
+          if (_config.enableContourAnalysisOnCentering &&
+              _session.state == LivenessState.centeringFace) {
             if (!_faceDetectionService.isContourComplete(face)) {
-              debugPrint('Detected potential lack of facial contours on centering, possible spoofing attempt');
+              debugPrint(
+                  'Detected potential lack of facial contours on centering, possible spoofing attempt');
               _lackOfFacialContoursDetected = true;
             }
           }
@@ -260,11 +271,18 @@ class LivenessController extends ChangeNotifier {
             image.height.toDouble(),
           );
 
-          Size screenSizeAux = Size(screenSize.width > screenSize.height ? screenSize.height : screenSize.width, screenSize.width > screenSize.height ? screenSize.width : screenSize.height);
+          Size screenSizeAux = Size(
+              screenSize.width > screenSize.height
+                  ? screenSize.height
+                  : screenSize.width,
+              screenSize.width > screenSize.height
+                  ? screenSize.width
+                  : screenSize.height);
           //endregion
 
           //region ## 2. Calculate the rectangle of the oval
-          final ovalCenterY = screenSizeAux.height / 2 - screenSizeAux.height * 0.05;
+          final ovalCenterY =
+              screenSizeAux.height / 2 - screenSizeAux.height * 0.05;
           final ovalHeight = screenSizeAux.height * 0.55;
           final ovalWidth = ovalHeight * 0.75;
           final ovalRect = Rect.fromCenter(
@@ -277,12 +295,14 @@ class LivenessController extends ChangeNotifier {
           bool isCentered = false;
 
           try {
-            isCentered = _faceDetectionService.checkFaceCentering(face, screenSize);
+            isCentered =
+                _faceDetectionService.checkFaceCentering(face, screenSize);
             _updateFaceCenteringGuidance(face, screenSize);
           } catch (e) {
-            if(!_session.isComplete) {
+            if (!_session.isComplete) {
               debugPrint('Error checking face centering: $e');
-              _faceCenteringMessage = _config.messages.errorCheckingFacePosition;
+              _faceCenteringMessage =
+                  _config.messages.errorCheckingFacePosition;
             }
           }
 
@@ -295,23 +315,27 @@ class LivenessController extends ChangeNotifier {
           //endregion
 
           // Notify via callback
-          _onFaceDetected?.call(_session.currentChallenge!.type, _firstChallengePassed, image, faces, camera);
+          _onFaceDetected?.call(_session.currentChallenge!.type,
+              _firstChallengePassed, image, faces, camera);
         } else {
           // WARNING: It will be called only after onFaceDetected is called! It will trigger the first face non-detection event after any face detection
-          if(_isFaceDetected) {
+          if (_isFaceDetected) {
             // Identify challenges where losing the face is acceptable/expected
-            final bool isMovementChallenge = _session.currentChallenge?.type == ChallengeType.turnLeft ||
+            final bool isMovementChallenge = _session.currentChallenge?.type ==
+                    ChallengeType.turnLeft ||
                 _session.currentChallenge?.type == ChallengeType.turnRight ||
                 _session.currentChallenge?.type == ChallengeType.tiltUp ||
                 _session.currentChallenge?.type == ChallengeType.tiltDown ||
                 _session.currentChallenge?.type == ChallengeType.nod;
 
             // Reset session if face is lost during a non-movement challenge
-            if (_session.state == LivenessState.performingChallenges && !isMovementChallenge) {
-              debugPrint('Face lost during non-movement challenge, resetting session.');
+            if (_session.state == LivenessState.performingChallenges &&
+                !isMovementChallenge) {
+              debugPrint(
+                  'Face lost during non-movement challenge, resetting session.');
               _statusMessage = _config.messages.noFaceDetected;
               resetSession();
-              return; 
+              return;
             }
 
             // Notify via callback
@@ -325,7 +349,7 @@ class LivenessController extends ChangeNotifier {
         if (!_isDisposed) notifyListeners();
       }
     } catch (e) {
-      if(!session.isComplete) {
+      if (!session.isComplete) {
         debugPrint('Error in _processCameraImage: $e');
         _statusMessage = _config.messages.errorProcessing;
       }
@@ -337,9 +361,14 @@ class LivenessController extends ChangeNotifier {
 
   /// Update face centering guidance message
   void _updateFaceCenteringGuidance(Face face, Size screenSize) {
-
     // Adjust screenSize because the camera may have rotated the image
-    Size screenSizeAux = Size(screenSize.width > screenSize.height ? screenSize.height : screenSize.width, screenSize.width > screenSize.height ? screenSize.width : screenSize.height);
+    Size screenSizeAux = Size(
+        screenSize.width > screenSize.height
+            ? screenSize.height
+            : screenSize.width,
+        screenSize.width > screenSize.height
+            ? screenSize.width
+            : screenSize.height);
 
     // Oval center (adjusted 5% upwards from screen center)
     final ovalCenterX = screenSizeAux.width / 2;
@@ -365,11 +394,12 @@ class LivenessController extends ChangeNotifier {
     debugPrint('Face center: ($faceCenterX, $faceCenterY)');
     debugPrint('Screen center: ($ovalCenterX, $ovalCenterY)');
 
-
     // Calculate size ratios
     final faceWidthRatio = faceBox.width / ovalWidth;
-    final isHorizontallyOff = (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
-    final isVerticallyOff = (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
+    final isHorizontallyOff =
+        (faceCenterX - ovalCenterX).abs() > screenSize.width * 0.1;
+    final isVerticallyOff =
+        (faceCenterY - ovalCenterY).abs() > screenSize.height * 0.1;
 
     // Updated thresholds to be consistent with initialization and challenge requirements
     // Challenges require 0.70 minimum, so we guide users to stay above 0.60
@@ -413,9 +443,12 @@ class LivenessController extends ChangeNotifier {
 
     //region !! Anti-spoofing detection: Additional contour check for specific challenges
     final currentChallenge = _session.currentChallenge;
-    if (currentChallenge != null && _config.contourChallengeTypes?.contains(currentChallenge.type) == true) {
+    if (currentChallenge != null &&
+        _config.contourChallengeTypes?.contains(currentChallenge.type) ==
+            true) {
       if (!_faceDetectionService.isContourComplete(face)) {
-        debugPrint('Detected potential lack of facial contours on challenge ${currentChallenge.type}, possible spoofing attempt');
+        debugPrint(
+            'Detected potential lack of facial contours on challenge ${currentChallenge.type}, possible spoofing attempt');
         _lackOfFacialContoursDetected = true;
       }
     }
@@ -463,7 +496,8 @@ class LivenessController extends ChangeNotifier {
 
         final currentChallenge = _session.currentChallenge!;
 
-        if (currentChallenge.type == ChallengeType.zoom && _zoomChallengeController.state == ZoomChallengeState.initial) {
+        if (currentChallenge.type == ChallengeType.zoom &&
+            _zoomChallengeController.state == ZoomChallengeState.initial) {
           _zoomChallengeController.startChallenge();
         }
 
@@ -479,7 +513,8 @@ class LivenessController extends ChangeNotifier {
         if (currentChallenge.type == ChallengeType.zoom) {
           // The zoom animation is "complete" when the zoomFactor is 1.0.
           // We use a small tolerance to avoid precision issues with doubles.
-          challengePassed = challengePassed && (_zoomChallengeController.zoomFactor > 0.99);
+          challengePassed =
+              challengePassed && (_zoomChallengeController.zoomFactor > 0.99);
         }
 
         if (challengePassed) {
@@ -510,11 +545,11 @@ class LivenessController extends ChangeNotifier {
           final nextChallenge = _session.currentChallenge;
           if (nextChallenge?.type == ChallengeType.zoom &&
               _zoomChallengeController.state == ZoomChallengeState.initial) {
-
             // A small delay so that the user notices the transition of challenges.
             Future.delayed(const Duration(milliseconds: 500), () {
               // Check again as the state may have changed.
-              if (_zoomChallengeController.state == ZoomChallengeState.initial) {
+              if (_zoomChallengeController.state ==
+                  ZoomChallengeState.initial) {
                 _zoomChallengeController.startChallenge();
               }
             });
@@ -534,15 +569,18 @@ class LivenessController extends ChangeNotifier {
 
     bool motionCorrelationFailed = false;
     if (_config.enableMotionCorrelationCheck) {
-      if (!_motionService.verifyMotionCorrelation(_faceDetectionService.headAngleReadings)) {
-        debugPrint('Potential spoofing detected: Motion correlation check failed.');
+      if (!_motionService
+          .verifyMotionCorrelation(_faceDetectionService.headAngleReadings)) {
+        debugPrint(
+            'Potential spoofing detected: Motion correlation check failed.');
         motionCorrelationFailed = true;
       }
     }
 
     // Determine overall success based on configuration
     _isVerificationSuccessful = true;
-    if (_config.failOnMotionCorrelationFailedAtTheEnd && motionCorrelationFailed) {
+    if (_config.failOnMotionCorrelationFailedAtTheEnd &&
+        motionCorrelationFailed) {
       _isVerificationSuccessful = false;
     }
 
@@ -558,7 +596,7 @@ class LivenessController extends ChangeNotifier {
       'lackOfFacialContoursDetected': _lackOfFacialContoursDetected,
       'motionCorrelationCheckFailed': motionCorrelationFailed,
     };
-    
+
     final metadata = {
       'antiSpoofingDetection': antiSpoofingResults,
     };
@@ -573,8 +611,10 @@ class LivenessController extends ChangeNotifier {
           final fullMetadata = {
             'timestamp': DateTime.now().millisecondsSinceEpoch,
             'verificationResult': _isVerificationSuccessful,
-            'challenges': _session.challenges.map((c) => c.type.toString()).toList(),
-            'sessionDuration': DateTime.now().difference(_session.startTime).inMilliseconds,
+            'challenges':
+                _session.challenges.map((c) => c.type.toString()).toList(),
+            'sessionDuration':
+                DateTime.now().difference(_session.startTime).inMilliseconds,
             'lightingValue': _cameraService.lightingValue,
             'antiSpoofingDetection': antiSpoofingResults,
           };
@@ -588,7 +628,8 @@ class LivenessController extends ChangeNotifier {
     }
 
     // Notify via callback
-    _onLivenessCompleted?.call(_session.sessionId, _isVerificationSuccessful, metadata);
+    _onLivenessCompleted?.call(
+        _session.sessionId, _isVerificationSuccessful, metadata);
   }
 
   /// Update the current status message
@@ -603,13 +644,15 @@ class LivenessController extends ChangeNotifier {
   /// Speaks [text] via the voice guidance service, respecting the per-category
   /// enable flags on [VoiceGuidanceConfig]. Does nothing when voice guidance
   /// is disabled or not configured.
-  void _speak(String text, {bool isPositioning = false, bool isCompletion = false}) {
+  void _speak(String text,
+      {bool isPositioning = false, bool isCompletion = false}) {
     final voice = _config.voiceGuidance;
     if (voice == null || !voice.enabled) return;
     if (isPositioning && !voice.speakPositioningFeedback) return;
     if (isCompletion && !voice.speakCompletion) return;
     // Challenge instructions: only spoken when neither flag is set
-    if (!isPositioning && !isCompletion && !voice.speakChallengeInstructions) return;
+    if (!isPositioning && !isCompletion && !voice.speakChallengeInstructions)
+      return;
     _voiceGuidanceService?.speak(text);
   }
 
@@ -636,6 +679,7 @@ class LivenessController extends ChangeNotifier {
   }
 
   /// Update configuration
+  @visibleForTesting
   void updateConfig(LivenessConfig config) {
     _config = config;
     _cameraService.updateConfig(config);
