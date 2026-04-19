@@ -1,4 +1,4 @@
-library smart_liveliness_detection;
+library;
 
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
