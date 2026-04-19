@@ -1,0 +1,19 @@
+name: smart_liveliness_detection_example
+description: Demonstrates how to use the smart_liveliness_detection package.
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  smart_liveliness_detection:
+    path: ../
+  camera: ^0.11.2
+  camera_android: ^0.10.10+1
+  google_mlkit_face_detection: ^0.13.1
+
+flutter:
+  uses-material-design: true
