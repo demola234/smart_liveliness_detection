@@ -54,6 +54,9 @@ class HomeScreen extends StatelessWidget {
     required this.cameras,
   });
 
+  // Holds the template enrolled by the "Enroll" example across navigations.
+  static BiometricTemplate? _enrolledTemplate;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -294,6 +297,36 @@ class HomeScreen extends StatelessWidget {
               'Voice Guidance',
               'Spoken instructions and positioning feedback via device TTS',
               () => _navigateToLivenessWithVoiceGuidance(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Face Quality Scoring',
+              'Real-time quality score with issues and recommendations',
+              () => _navigateToLivenessWithQualityScoring(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Screen Flash Anti-Spoofing',
+              'Flashes RGB colors to detect printed photos and video replays',
+              () => _navigateToLivenessWithScreenFlash(context),
+            ),
+            _buildExampleButton(
+              context,
+              '3D Depth Detection (iOS)',
+              'ARKit TrueDepth anti-spoofing — detects flat photos vs real faces',
+              () => _navigateToLivenessWithDepthDetection(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Biometric Template — Enroll',
+              'Generate a privacy-preserving face template for future matching',
+              () => _navigateToLivenessWithBiometricTemplate(context),
+            ),
+            _buildExampleButton(
+              context,
+              'Biometric Template — Verify',
+              'Match a live face against the enrolled template (run Enroll first)',
+              () => _navigateToLivenessWithBiometricVerify(context),
             ),
           ],
         ),
@@ -848,6 +881,118 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  void _navigateToLivenessWithScreenFlash(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            screenFlash: ScreenFlashConfig(
+              enabled: true,
+              framesPerColor: 5,
+              baselineFrames: 3,
+              warmupFramesPerColor: 2,
+              reflectionThreshold: 4.0,
+              failSessionOnSpoofing: false,
+            ),
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            log('Anti-spoofing: ${metadata['antiSpoofingDetection']}');
+            final antiSpoof = metadata['antiSpoofingDetection'] as Map<String, dynamic>?;
+            final spoofDetected = antiSpoof == null ? false : antiSpoof['screenFlashSpoofDetected'] ?? false;
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(isSuccessful ? 'Verified!' : 'Failed'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Session: $sessionId'),
+                      const SizedBox(height: 8),
+                      Text('Screen flash spoof detected: $spoofDetected'),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithQualityScoring(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            enableFaceQualityScoring: true,
+            minFaceQualityScore: 60.0,
+            blockChallengesOnLowQuality: false,
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onFaceQualityCheck: (result) {
+            log('Quality score: ${result.score.toStringAsFixed(1)}');
+            log('Issues: ${result.issues}');
+            log('Recommendations: ${result.recommendations}');
+            log('Metrics: ${result.metrics.map((k, v) => MapEntry(k, v.toStringAsFixed(1)))}');
+          },
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(isSuccessful ? 'Verified!' : 'Failed'),
+                  content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   void _navigateToLivenessWithCustomHints(BuildContext context) {
     Navigator.push(
       context,
@@ -927,6 +1072,188 @@ class HomeScreen extends StatelessWidget {
                       const Text('Liveness verification passed!'),
                       const SizedBox(height: 8),
                       Text('Session ID: $sessionId'),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithDepthDetection(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            depthDetection: DepthDetectionConfig(
+              enabled: true,
+              depthThreshold: 0.004,
+              requireTrueDepth: false,
+              failSessionOnSpoofing: false,
+              minFramesRequired: 5,
+            ),
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            final antiSpoof =
+                metadata['antiSpoofingDetection'] as Map<String, dynamic>?;
+            final depthSpoof = antiSpoof?['depthSpoofDetected'] ?? false;
+            log('Depth spoof detected: $depthSpoof');
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(isSuccessful ? 'Verified!' : 'Failed'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Session: $sessionId'),
+                      const SizedBox(height: 8),
+                      Text('Depth spoof detected: $depthSpoof'),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithBiometricTemplate(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            generateBiometricTemplate: true,
+            templateConfig: TemplateConfig(
+              algorithm: BiometricAlgorithm.geometricRatios,
+            ),
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onBiometricTemplateGenerated: (template) {
+            HomeScreen._enrolledTemplate = template;
+            log('Biometric template enrolled:');
+            log('  Session: ${template.sessionId}');
+            log('  Features: ${template.featureCount}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(isSuccessful ? 'Enrolled!' : 'Failed'),
+                  content: const Text('Template saved. Run "Verify" to match against it.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithBiometricVerify(BuildContext context) {
+    final enrolled = HomeScreen._enrolledTemplate;
+    if (enrolled == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No enrolled template — run "Enroll" first.')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: LivenessConfig(
+            challengeTypes: const [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            generateBiometricTemplate: true,
+            templateConfig: const TemplateConfig(
+              algorithm: BiometricAlgorithm.geometricRatios,
+            ),
+            referenceTemplate: enrolled,
+            biometricMatchThreshold: 0.80,
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onBiometricTemplateGenerated: (template) {
+            log('Live template features: ${template.featureCount}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            final score = (metadata['biometricMatchScore'] as num?)?.toDouble();
+            final matched = metadata['biometricMatchPassed'] as bool?;
+            log('Match score: $score  passed: $matched');
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(matched == true ? 'Same person ✓' : 'Different person ✗'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Liveness: ${isSuccessful ? "passed" : "failed"}'),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Match score: ${score != null ? (score * 100).toStringAsFixed(1) : "—"}%',
+                      ),
+                      Text('Threshold: 80.0%'),
+                      Text('Result: ${matched == true ? "MATCH" : "NO MATCH"}'),
                     ],
                   ),
                   actions: [

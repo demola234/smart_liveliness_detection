@@ -7,6 +7,10 @@ import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/motion_service.dart';
+import 'package:smart_liveliness_detection/src/services/biometric_template_service.dart';
+import 'package:smart_liveliness_detection/src/services/depth_detection_service.dart';
+import 'package:smart_liveliness_detection/src/services/face_quality_service.dart';
+import 'package:smart_liveliness_detection/src/services/screen_flash_service.dart';
 import 'package:smart_liveliness_detection/src/services/voice_guidance_service.dart';
 
 /// Controller for liveness detection session
@@ -84,6 +88,42 @@ class LivenessController extends ChangeNotifier {
   /// Voice guidance service (null when voice guidance is disabled)
   VoiceGuidanceService? _voiceGuidanceService;
 
+  /// Face quality analysis service
+  final FaceQualityService _faceQualityService = FaceQualityService();
+
+  /// Screen-flash anti-spoofing service (lazy-initialised when config present)
+  ScreenFlashService? _screenFlashService;
+
+  /// Whether the screen-flash test detected a spoofing attempt
+  bool _screenFlashSpoofDetected = false;
+
+  /// Last computed face quality result
+  FaceQualityResult? _lastQualityResult;
+
+  /// Frame counter for throttling quality checks (every 10 face-detected frames)
+  int _qualityFrameCounter = 0;
+
+  /// Callback fired each time quality is re-evaluated
+  final FaceQualityCallback? _onFaceQualityCheck;
+
+  /// Callback fired when a biometric template is generated at session completion
+  final BiometricTemplateCallback? _onBiometricTemplateGenerated;
+
+  /// Biometric template service
+  final BiometricTemplateService _biometricTemplateService = BiometricTemplateService();
+
+  /// Last face detected — held so template can be generated at completion
+  Face? _lastDetectedFace;
+
+  /// Depth detection service (iOS TrueDepth / ARKit)
+  final DepthDetectionService _depthDetectionService = DepthDetectionService();
+
+  /// Recent depth results accumulated during the session
+  final List<DepthDetectionResult> _depthResults = [];
+
+  /// Whether depth spoofing was detected at session completion
+  bool _depthSpoofDetected = false;
+
   /// Constructor
   LivenessController({
     required List<CameraDescription> cameras,
@@ -99,9 +139,12 @@ class LivenessController extends ChangeNotifier {
     FaceDetectedCallback? onFaceDetected,
     FaceNotDetectedCallback? onFaceNotDetected,
     FinalImageCapturedCallback? onFinalImageCaptured,
+    FaceQualityCallback? onFaceQualityCheck,
+    BiometricTemplateCallback? onBiometricTemplateGenerated,
     bool captureFinalImage = true,
     this.onReset,
-  })  : _cameras = cameras,
+  })  : _onBiometricTemplateGenerated = onBiometricTemplateGenerated,
+        _cameras = cameras,
         _config = config ?? const LivenessConfig(),
         _currentZoomFactor = config?.initialZoomFactor ?? 1.0,
         _theme = theme ?? const LivenessTheme(),
@@ -114,6 +157,7 @@ class LivenessController extends ChangeNotifier {
         _onFaceDetected = onFaceDetected,
         _onFaceNotDetected = onFaceNotDetected,
         _onFinalImageCaptured = onFinalImageCaptured,
+        _onFaceQualityCheck = onFaceQualityCheck,
         _captureFinalImage = captureFinalImage,
         _session = LivenessSession(
           challenges: LivenessSession.generateRandomChallenges(
@@ -178,6 +222,25 @@ class LivenessController extends ChangeNotifier {
 
       _statusMessage = _config.messages.initialInstruction;
       if (!_isDisposed) notifyListeners();
+
+      // Initialise depth detection if configured (iOS TrueDepth only)
+      if (_config.depthDetection?.enabled == true) {
+        final available = await _depthDetectionService.checkAvailability();
+        if (available) {
+          await _depthDetectionService.startSession();
+          _depthDetectionService.results.listen((result) {
+            if (!_isDisposed && !_session.isComplete) {
+              _depthResults.add(result);
+              // Keep only the last 30 readings
+              if (_depthResults.length > 30) _depthResults.removeAt(0);
+            }
+          });
+        } else if (_config.depthDetection!.requireTrueDepth) {
+          _statusMessage = _config.messages.errorInitializingCamera;
+          if (!_isDisposed) notifyListeners();
+          return;
+        }
+      }
 
       // Initialise voice guidance if configured
       if (_config.voiceGuidance?.enabled == true) {
@@ -253,6 +316,21 @@ class LivenessController extends ChangeNotifier {
         if (faces.isNotEmpty) {
           final face = faces.first;
           _isFaceDetected = true;
+          _lastDetectedFace = face;
+
+          // Face quality scoring
+          if (_config.enableFaceQualityScoring && !_session.isComplete) {
+            _qualityFrameCounter++;
+            if (_qualityFrameCounter >= 10) {
+              _qualityFrameCounter = 0;
+              try {
+                _lastQualityResult = _faceQualityService.analyze(face, image);
+                _onFaceQualityCheck?.call(_lastQualityResult!);
+              } catch (e) {
+                debugPrint('Error in face quality scoring: $e');
+              }
+            }
+          }
 
           // Contour analysis on centering phase
           if (_config.enableContourAnalysisOnCentering &&
@@ -308,9 +386,9 @@ class LivenessController extends ChangeNotifier {
 
           //region ## 3. Pass the calculated ovalRect to the processing method
           if (_session.state == LivenessState.centeringFace && isCentered) {
-            _processLivenessDetection(face, ovalRect);
+            _processLivenessDetection(face, ovalRect, image);
           } else if (_session.state != LivenessState.centeringFace) {
-            _processLivenessDetection(face, ovalRect);
+            _processLivenessDetection(face, ovalRect, image);
           }
           //endregion
 
@@ -435,7 +513,7 @@ class LivenessController extends ChangeNotifier {
   }
 
   /// Process liveness detection for the current state
-  void _processLivenessDetection(Face face, Rect ovalRect) {
+  void _processLivenessDetection(Face face, Rect ovalRect, CameraImage image) {
     if (!_cameraService.isLightingGood) {
       _statusMessage = _config.messages.poorLighting;
       return;
@@ -462,29 +540,65 @@ class LivenessController extends ChangeNotifier {
 
       case LivenessState.centeringFace:
         if (_faceDetectionService.isFaceCentered) {
+          // Block challenge start if quality is below threshold
+          if (_config.blockChallengesOnLowQuality &&
+              _config.enableFaceQualityScoring &&
+              _lastQualityResult != null &&
+              _lastQualityResult!.score < _config.minFaceQualityScore) {
+            _statusMessage = _config.messages.lowFaceQuality;
+            break;
+          }
           _faceDetectionService.resetTracking();
           _motionService.resetTracking();
 
-          _session.state = LivenessState.performingChallenges;
-          _updateStatusMessage();
+          // Route through flash test if configured
+          if (_config.screenFlash?.enabled == true) {
+            _screenFlashService = ScreenFlashService(config: _config.screenFlash!);
+            _screenFlashService!.start();
+            _cameraService.lockExposure(); // prevent AEC fighting the flash
+            _session.state = LivenessState.screenFlashTest;
+            _statusMessage = _config.messages.screenFlashInstruction;
+          } else {
+            _session.state = LivenessState.performingChallenges;
+            _updateStatusMessage();
+          }
           _speak(_statusMessage);
           if (!_isDisposed) notifyListeners();
 
-          // Schedule the ACTUAL start of the challenge animation for the next event cycle.
-          // This gives the UI time to render the initial state of the challenge.
           Future.delayed(Duration.zero, () {
             if (_session.currentChallenge?.type == ChallengeType.zoom &&
                 _zoomChallengeController.state == ZoomChallengeState.initial) {
               _zoomChallengeController.startChallenge();
             }
           });
-
-          // WARNING: Do not continue to the 'performingChallenges' case in this same cycle.
-          // Challenge validation will begin on the next camera frame.
           return;
         } else {
           _statusMessage = _faceCenteringMessage;
           _speak(_faceCenteringMessage, isPositioning: true);
+        }
+        break;
+
+      case LivenessState.screenFlashTest:
+        if (_screenFlashService == null) break;
+        final flashResult = _screenFlashService!.processFrame(face, image);
+        if (flashResult != null) {
+          _cameraService.unlockExposure();
+          if (!flashResult.passed && _config.screenFlash?.failSessionOnSpoofing == true) {
+            _screenFlashSpoofDetected = true;
+            _statusMessage = _config.messages.screenFlashSpoofingDetected;
+            _completeSession();
+          } else {
+            _screenFlashSpoofDetected = !flashResult.passed;
+            _session.state = LivenessState.performingChallenges;
+            _updateStatusMessage();
+            _speak(_statusMessage);
+            Future.delayed(Duration.zero, () {
+              if (_session.currentChallenge?.type == ChallengeType.zoom &&
+                  _zoomChallengeController.state == ZoomChallengeState.initial) {
+                _zoomChallengeController.startChallenge();
+              }
+            });
+          }
         }
         break;
 
@@ -591,13 +705,29 @@ class LivenessController extends ChangeNotifier {
     }
     _speak(_statusMessage, isCompletion: true);
 
+    // Evaluate depth detection results
+    if (_config.depthDetection?.enabled == true && _depthResults.isNotEmpty) {
+      final cfg = _config.depthDetection!;
+      if (_depthResults.length >= cfg.minFramesRequired) {
+        final flatCount =
+            _depthResults.where((r) => r.depthStdDev < cfg.depthThreshold).length;
+        _depthSpoofDetected = flatCount > _depthResults.length ~/ 2;
+        if (_depthSpoofDetected && cfg.failSessionOnSpoofing) {
+          _isVerificationSuccessful = false;
+          _statusMessage = _config.messages.spoofingDetected;
+        }
+      }
+    }
+
     final antiSpoofingResults = {
       'screenGlareDetected': _screenGlareDetected,
       'lackOfFacialContoursDetected': _lackOfFacialContoursDetected,
       'motionCorrelationCheckFailed': motionCorrelationFailed,
+      'screenFlashSpoofDetected': _screenFlashSpoofDetected,
+      'depthSpoofDetected': _depthSpoofDetected,
     };
 
-    final metadata = {
+    final metadata = <String, dynamic>{
       'antiSpoofingDetection': antiSpoofingResults,
     };
 
@@ -627,6 +757,34 @@ class LivenessController extends ChangeNotifier {
       }
     }
 
+    // Generate biometric template and/or match against reference
+    if ((_config.generateBiometricTemplate || _config.referenceTemplate != null) &&
+        _lastDetectedFace != null) {
+      try {
+        final template = _biometricTemplateService.generate(
+          _lastDetectedFace!,
+          _session.sessionId,
+          _config.templateConfig,
+        );
+        if (template != null) {
+          _onBiometricTemplateGenerated?.call(template);
+
+          // Match against enrolled reference if provided
+          if (_config.referenceTemplate != null) {
+            final score = BiometricMatcher.compare(
+              _config.referenceTemplate!,
+              template,
+            );
+            final passed = score >= _config.biometricMatchThreshold;
+            metadata['biometricMatchScore'] = score;
+            metadata['biometricMatchPassed'] = passed;
+          }
+        }
+      } catch (e) {
+        debugPrint('Error generating biometric template: $e');
+      }
+    }
+
     // Notify via callback
     _onLivenessCompleted?.call(
         _session.sessionId, _isVerificationSuccessful, metadata);
@@ -651,8 +809,9 @@ class LivenessController extends ChangeNotifier {
     if (isPositioning && !voice.speakPositioningFeedback) return;
     if (isCompletion && !voice.speakCompletion) return;
     // Challenge instructions: only spoken when neither flag is set
-    if (!isPositioning && !isCompletion && !voice.speakChallengeInstructions)
+    if (!isPositioning && !isCompletion && !voice.speakChallengeInstructions) {
       return;
+    }
     _voiceGuidanceService?.speak(text);
   }
 
@@ -667,6 +826,14 @@ class LivenessController extends ChangeNotifier {
     _screenGlareDetected = false;
     _lackOfFacialContoursDetected = false;
     _firstChallengePassed = false;
+    _lastQualityResult = null;
+    _qualityFrameCounter = 0;
+    _screenFlashSpoofDetected = false;
+    _screenFlashService?.reset();
+    _cameraService.unlockExposure();
+    _depthResults.clear();
+    _depthSpoofDetected = false;
+    _lastDetectedFace = null;
 
     _currentZoomFactor = _config.initialZoomFactor;
     _zoomChallengeController.reset();
@@ -736,6 +903,18 @@ class LivenessController extends ChangeNotifier {
   /// Current lighting value (0.0-1.0)
   double get lightingValue => _cameraService.lightingValue;
 
+  /// Most recent face quality result (null if scoring disabled or no face yet)
+  FaceQualityResult? get lastQualityResult => _lastQualityResult;
+
+  /// Most recent depth detection result, or null if depth detection is disabled
+  /// or no frames have been collected yet.
+  DepthDetectionResult? get lastDepthResult =>
+      _depthResults.isNotEmpty ? _depthResults.last : null;
+
+  /// Active screen-flash overlay color, or null when no flash is in progress.
+  /// The UI should show a full-screen colored overlay of this color.
+  Color? get activeFlashColor => _screenFlashService?.activeFlashColor;
+
   double _currentZoomFactor = 0.0;
 
   /// Factor for oval zoom animation (0.0 to 1.0)
@@ -788,6 +967,7 @@ class LivenessController extends ChangeNotifier {
       _faceDetectionService.dispose();
       _motionService.dispose();
       _voiceGuidanceService?.dispose();
+      _depthDetectionService.dispose();
     } catch (e) {
       debugPrint('Error during disposal: $e');
     }

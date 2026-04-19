@@ -27,6 +27,9 @@ typedef FaceDetectedCallback = void Function(ChallengeType challengeType, bool f
 /// Callback type for when face is NOT detected (It will trigger the first face non-detection event after any face detection)
 typedef FaceNotDetectedCallback = void Function(ChallengeType challengeType, LivenessController controller);
 
+/// Callback type for face quality scoring results
+typedef FaceQualityCallback = void Function(FaceQualityResult result);
+
 /// Main widget for liveness detection
 class LivenessDetectionScreen extends StatefulWidget {
   /// Available cameras
@@ -49,6 +52,12 @@ class LivenessDetectionScreen extends StatefulWidget {
 
   /// Callback for when face is NOT detected
   final FaceNotDetectedCallback? onFaceNotDetected;
+
+  /// Callback fired each time a face quality score is computed.
+  final FaceQualityCallback? onFaceQualityCheck;
+
+  /// Callback fired when a biometric template is generated at session completion.
+  final BiometricTemplateCallback? onBiometricTemplateGenerated;
 
   /// Whether to show app bar
   final bool showAppBar;
@@ -115,6 +124,8 @@ class LivenessDetectionScreen extends StatefulWidget {
     this.onFinalImageCaptured,
     this.onFaceDetected,
     this.onFaceNotDetected,
+    this.onFaceQualityCheck,
+    this.onBiometricTemplateGenerated,
     this.painterStyle,
     this.allowStyleChange = false,
     this.futuristicBarHeight = 64,
@@ -166,6 +177,8 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
       captureFinalImage: widget.captureFinalImage,
       onFaceDetected: widget.onFaceDetected,
       onFaceNotDetected: widget.onFaceNotDetected,
+      onFaceQualityCheck: widget.onFaceQualityCheck,
+      onBiometricTemplateGenerated: widget.onBiometricTemplateGenerated,
       onReset: _resetZoomFactor,
     );
     WidgetsBinding.instance.addObserver(this);
@@ -210,7 +223,9 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
             : null,
         onFinalImageCaptured: _handleFinalImageCaptured,
         captureFinalImage: widget.captureFinalImage,
-        onReset: _resetZoomFactor
+        onFaceQualityCheck: widget.onFaceQualityCheck,
+        onBiometricTemplateGenerated: widget.onBiometricTemplateGenerated,
+        onReset: _resetZoomFactor,
       );
       _controller.addListener(_syncZoomFactor);
       setState(() {
@@ -233,20 +248,32 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
           successOverlay = _buildSuccessWithImage(context);
         }
 
-        // Use the LivenessDetectionView as a widget, not a method
-        return LivenessDetectionView(
-          initializingMessage: widget.config?.messages.initializingCamera,
-          showAppBar: widget.showAppBar,
-          customAppBar: widget.customAppBar,
-          customSuccessOverlay: successOverlay,
-          showStatusIndicators: widget.showStatusIndicators,
-          showCaptureImageButton: widget.showCaptureImageButton,
-          onImageCaptured: _handleManualCapture,
-          captureButtonText: widget.captureButtonText,
-          useColorProgress: widget.useColorProgress,
-          painterStyle: widget.painterStyle,
-          allowStyleChange: widget.allowStyleChange,
-          futuristicBarHeight: widget.futuristicBarHeight,
+        final flashColor =
+            context.watch<LivenessController>().activeFlashColor;
+
+        return Stack(
+          children: [
+            LivenessDetectionView(
+              initializingMessage: widget.config?.messages.initializingCamera,
+              showAppBar: widget.showAppBar,
+              customAppBar: widget.customAppBar,
+              customSuccessOverlay: successOverlay,
+              showStatusIndicators: widget.showStatusIndicators,
+              showCaptureImageButton: widget.showCaptureImageButton,
+              onImageCaptured: _handleManualCapture,
+              captureButtonText: widget.captureButtonText,
+              useColorProgress: widget.useColorProgress,
+              painterStyle: widget.painterStyle,
+              allowStyleChange: widget.allowStyleChange,
+              futuristicBarHeight: widget.futuristicBarHeight,
+            ),
+            if (flashColor != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ColoredBox(color: flashColor.withValues(alpha: 0.85)),
+                ),
+              ),
+          ],
         );
       }),
     );

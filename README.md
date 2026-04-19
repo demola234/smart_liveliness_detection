@@ -8,6 +8,10 @@ A highly customizable Flutter package for face liveness detection with multiple 
 - 🔄 Random challenge sequence generation for enhanced security
 - 🎯 Face centering guidance with visual feedback
 - 🔍 Anti-spoofing measures (screen glare detection, motion correlation with gyroscope support)
+- 📊 Face Quality Scoring — real-time brightness, sharpness, pose, size and eye-openness score with actionable recommendations
+- 💡 Screen Flash Anti-Spoofing — RGB flash test that detects printed photos and video replays
+- 📐 3D Depth Detection (iOS) — ARKit TrueDepth anti-spoofing that measures the 3-D structure of the face mesh
+- 🔐 Biometric Template Generation — privacy-preserving face feature vector with cosine-similarity matching (no images stored)
 - 🎨 Fully customizable UI with theming support
 - 🌈 13 animated futuristic UI painter styles (quantum, hologram, cosmos, synapse, and more)
 - 🖼️ Futuristic oval overlay with animated progress ring and scan line
@@ -25,7 +29,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_liveliness_detection: ^0.3.2
+  smart_liveliness_detection: ^0.3.5
 ```
 
 Then run:
@@ -44,6 +48,8 @@ Add the camera permission to your `Info.plist`:
 <key>NSCameraUsageDescription</key>
 <string>This app needs camera access for face liveness verification</string>
 ```
+
+If you use **3D Depth Detection**, add the camera usage description (already required) and ensure the device has a TrueDepth camera (iPhone X or later). No additional permissions are needed — ARKit is a system framework.
 
 If you use **Voice Guidance**, add the following to `ios/Runner/AppDelegate.swift` so TTS audio plays even when the ring/silent switch is off:
 
@@ -370,6 +376,203 @@ When `voiceGuidance` is `null` or `enabled: false`, zero TTS overhead is incurre
 
 ---
 
+### Face Quality Scoring
+
+Analyse the camera frame in real time and receive a 0–100 quality score with specific issues and recommendations before challenges begin.
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: const LivenessConfig(
+    enableFaceQualityScoring: true,
+    minFaceQualityScore: 60.0,        // minimum score to allow challenges
+    blockChallengesOnLowQuality: true, // hold centering phase until score is met
+  ),
+  onFaceQualityCheck: (FaceQualityResult result) {
+    print('Score: ${result.score}');               // e.g. 74.3
+    print('Issues: ${result.issues}');             // e.g. ["Poor lighting"]
+    print('Recommendations: ${result.recommendations}'); // e.g. ["Move to a brighter area"]
+    print('Metrics: ${result.metrics}');           // brightness, sharpness, headPose, faceSize, eyeOpenness
+  },
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {},
+);
+```
+
+**`FaceQualityResult` fields:**
+
+| Field | Type | Description |
+|---|---|---|
+| `score` | `double` | Overall quality score (0–100) |
+| `isAcceptable` | `bool` | `true` when score ≥ 60 |
+| `issues` | `List<String>` | Human-readable issues found |
+| `recommendations` | `List<String>` | Actionable suggestions |
+| `metrics` | `Map<String, double>` | Per-metric scores: `brightness`, `sharpness`, `headPose`, `faceSize`, `eyeOpenness` |
+
+**`LivenessConfig` options:**
+
+| Option | Default | Description |
+|---|---|---|
+| `enableFaceQualityScoring` | `false` | Enable quality analysis |
+| `minFaceQualityScore` | `60.0` | Threshold used when blocking is on |
+| `blockChallengesOnLowQuality` | `false` | Hold centering phase until score ≥ threshold |
+
+Quality is evaluated every 10 face-detected frames to avoid performance impact. The check runs on-device with no network calls.
+
+---
+
+### Screen Flash Anti-Spoofing
+
+After the face is centred, the screen briefly flashes red, green, and blue. The camera measures the luminance response in the face region — a real face reflects the light; a printed photo or video replay on another screen does not produce the expected response.
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: const LivenessConfig(
+    screenFlash: ScreenFlashConfig(
+      enabled: true,
+      framesPerColor: 5,          // frames sampled per color
+      baselineFrames: 3,          // frames captured before first flash
+      warmupFramesPerColor: 2,    // frames skipped per color while camera settles
+      reflectionThreshold: 4.0,  // minimum luminance delta (0–255) to pass
+      failSessionOnSpoofing: false, // true = end session on failure
+    ),
+  ),
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+    final anti = metadata?['antiSpoofingDetection'] as Map<String, dynamic>?;
+    final spoofDetected = anti?['screenFlashSpoofDetected'] ?? false;
+    print('Screen flash spoof detected: $spoofDetected');
+  },
+);
+```
+
+**How it works:**
+1. Face is centred → camera exposure is locked to prevent auto-exposure fighting the flash signal
+2. Baseline luminance is sampled from the face region (3 frames)
+3. Red, green, then blue full-screen overlays are shown in sequence
+4. For each color, 2 warmup frames are skipped then 5 frames are sampled
+5. Test passes if ≥ 2 colors show a positive luminance delta above `reflectionThreshold`
+6. Camera exposure is restored; session advances to challenges
+
+**`ScreenFlashResult` in metadata:**
+
+| Key | Type | Description |
+|---|---|---|
+| `screenFlashSpoofDetected` | `bool` | `true` if the test determined a spoofing attempt |
+
+The result is always included in the `antiSpoofingDetection` map when `screenFlash` is configured, regardless of `failSessionOnSpoofing`.
+
+---
+
+### 3D Depth Detection (iOS TrueDepth)
+
+Uses ARKit `ARFaceTrackingConfiguration` to measure the Z-axis variance of the ~1 220-vertex face mesh. A real 3-D face shows high variance (nose protrudes, eye sockets recede); a flat photo or screen replay shows near-zero variance.
+
+> **Requires** TrueDepth camera — iPhone X / iPad Pro and later. Falls back gracefully on unsupported devices when `requireTrueDepth: false`.
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: const LivenessConfig(
+    depthDetection: DepthDetectionConfig(
+      enabled: true,
+      depthThreshold: 0.004,      // Z-axis stdDev in metres — below this = flat
+      requireTrueDepth: false,    // silently skip on unsupported devices
+      failSessionOnSpoofing: false,
+      minFramesRequired: 5,       // frames before result is trusted
+    ),
+  ),
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+    final anti = metadata['antiSpoofingDetection'] as Map<String, dynamic>;
+    print('Depth spoof detected: ${anti['depthSpoofDetected']}');
+  },
+);
+```
+
+**`DepthDetectionConfig` options:**
+
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Activate the ARKit session |
+| `depthThreshold` | `0.004` | Minimum Z-axis stdDev (metres) for a real face |
+| `requireTrueDepth` | `false` | Fail session if TrueDepth unavailable |
+| `failSessionOnSpoofing` | `false` | End session on a failing depth test |
+| `minFramesRequired` | `5` | Minimum frames before evaluating result |
+
+The depth session runs in parallel with the challenge flow — it does not add an extra phase. The result appears in `antiSpoofingDetection` as `depthSpoofDetected: bool`.
+
+---
+
+### Biometric Template Generation
+
+Generate a compact, privacy-preserving feature vector from the detected face. The vector encodes normalised geometric ratios from ML Kit face landmarks — no pixel data is stored and the template cannot be reversed into an image.
+
+#### Enroll
+
+```dart
+BiometricTemplate? _enrolled;
+
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: const LivenessConfig(
+    generateBiometricTemplate: true,
+    templateConfig: TemplateConfig(
+      algorithm: BiometricAlgorithm.geometricRatios,
+      // obfuscationKey: Uint8List.fromList([0x1A, 0x2B, ...]), // optional XOR key
+    ),
+  ),
+  onBiometricTemplateGenerated: (template) {
+    _enrolled = template; // persist this between sessions
+  },
+  onLivenessCompleted: (_, __, ___) {},
+);
+```
+
+#### Verify against an enrolled template
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: LivenessConfig(
+    generateBiometricTemplate: true,
+    referenceTemplate: _enrolled,        // template from enrollment session
+    biometricMatchThreshold: 0.80,       // cosine similarity 0.0–1.0
+  ),
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+    final score   = metadata['biometricMatchScore']  as double?; // 0.0–1.0
+    final matched = metadata['biometricMatchPassed'] as bool?;
+    print('Match: $matched  Score: ${(score! * 100).toStringAsFixed(1)}%');
+  },
+);
+```
+
+#### Manual comparison
+
+```dart
+final similarity = BiometricMatcher.compare(enrolledTemplate, liveTemplate);
+final isMatch    = BiometricMatcher.isMatch(enrolledTemplate, liveTemplate, threshold: 0.80);
+```
+
+**`BiometricTemplate` fields:**
+
+| Field | Type | Description |
+|---|---|---|
+| `encodedVector` | `String` | Base64-encoded feature bytes |
+| `rawVector` | `Float32List?` | Raw floats (only when no obfuscation key) |
+| `algorithm` | `BiometricAlgorithm` | Algorithm used |
+| `sessionId` | `String` | Session that produced this template |
+| `featureCount` | `int` | Number of float features (~27) |
+
+**`LivenessConfig` options:**
+
+| Option | Default | Description |
+|---|---|---|
+| `generateBiometricTemplate` | `false` | Enable template generation |
+| `templateConfig` | `TemplateConfig()` | Algorithm and optional obfuscation |
+| `referenceTemplate` | `null` | Template to match against |
+| `biometricMatchThreshold` | `0.80` | Cosine similarity pass threshold |
+
+---
+
 ### Futuristic UI Painter Styles
 
 Choose from 13 animated canvas overlay styles via `LivenessStyle`:
@@ -454,14 +657,24 @@ LivenessDetectionScreen(
     log('Overall Success: $isSuccessful');
 
     if (metadata != null && metadata.containsKey('antiSpoofingDetection')) {
-      final antiSpoofingResult = metadata['antiSpoofingDetection'];
+      final antiSpoofingResult = metadata['antiSpoofingDetection'] as Map<String, dynamic>;
       final didPassMotionCheck = !antiSpoofingResult['motionCorrelationCheckFailed'];
       final didPassGlareCheck = !antiSpoofingResult['screenGlareDetected'];
       final didPassContourCheck = !antiSpoofingResult['lackOfFacialContoursDetected'];
+      final screenFlashSpoofDetected = antiSpoofingResult['screenFlashSpoofDetected'] ?? false;
 
       log('Motion Check Passed: $didPassMotionCheck');
       log('Glare Check Passed: $didPassGlareCheck');
       log('Contour Check Passed: $didPassContourCheck');
+      log('Screen Flash Spoof Detected: $screenFlashSpoofDetected');
+      final depthSpoofDetected = antiSpoofingResult['depthSpoofDetected'] ?? false;
+      log('Depth Spoof Detected: $depthSpoofDetected');
+    }
+
+    // Biometric match result (present when referenceTemplate is configured)
+    if (metadata != null && metadata.containsKey('biometricMatchScore')) {
+      log('Biometric Match Score: ${metadata['biometricMatchScore']}');
+      log('Biometric Match Passed: ${metadata['biometricMatchPassed']}');
     }
 
     // You can now send this session ID and the detailed results to your backend
@@ -642,6 +855,12 @@ Both callbacks provide a `metadata` map which may contain an `antiSpoofingDetect
 - `motionCorrelationCheckFailed`: The only blocking check by default. If `true`, the overall `isSuccessful` result of the liveness check will be `false`. This occurs if the head moves significantly but the device does not.
 - `screenGlareDetected`: A non-blocking flag. `true` if potential screen glare was detected on the user's face.
 - `lackOfFacialContoursDetected`: A non-blocking flag. `true` if the system failed to detect a sufficient number of facial contours, which could indicate a mask.
+- `screenFlashSpoofDetected`: Present when `screenFlash` is configured. `true` if the face region did not produce the expected luminance response during the RGB flash test. Blocking only when `ScreenFlashConfig.failSessionOnSpoofing` is `true`.
+- `depthSpoofDetected`: Present when `depthDetection` is configured. `true` if the majority of ARKit depth frames classified the face as flat. Blocking only when `DepthDetectionConfig.failSessionOnSpoofing` is `true`.
+
+The `onLivenessCompleted` metadata may also contain:
+- `biometricMatchScore` (`double`, 0.0–1.0): Cosine similarity between the live template and `referenceTemplate`. Present only when `referenceTemplate` is configured.
+- `biometricMatchPassed` (`bool`): `true` when `biometricMatchScore ≥ biometricMatchThreshold`.
 
 ### 1. Screen Glare Detection
 
