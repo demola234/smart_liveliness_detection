@@ -242,20 +242,32 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
           successOverlay = _buildSuccessWithImage(context);
         }
 
-        // Use the LivenessDetectionView as a widget, not a method
-        return LivenessDetectionView(
-          initializingMessage: widget.config?.messages.initializingCamera,
-          showAppBar: widget.showAppBar,
-          customAppBar: widget.customAppBar,
-          customSuccessOverlay: successOverlay,
-          showStatusIndicators: widget.showStatusIndicators,
-          showCaptureImageButton: widget.showCaptureImageButton,
-          onImageCaptured: _handleManualCapture,
-          captureButtonText: widget.captureButtonText,
-          useColorProgress: widget.useColorProgress,
-          painterStyle: widget.painterStyle,
-          allowStyleChange: widget.allowStyleChange,
-          futuristicBarHeight: widget.futuristicBarHeight,
+        final flashColor =
+            context.watch<LivenessController>().activeFlashColor;
+
+        return Stack(
+          children: [
+            LivenessDetectionView(
+              initializingMessage: widget.config?.messages.initializingCamera,
+              showAppBar: widget.showAppBar,
+              customAppBar: widget.customAppBar,
+              customSuccessOverlay: successOverlay,
+              showStatusIndicators: widget.showStatusIndicators,
+              showCaptureImageButton: widget.showCaptureImageButton,
+              onImageCaptured: _handleManualCapture,
+              captureButtonText: widget.captureButtonText,
+              useColorProgress: widget.useColorProgress,
+              painterStyle: widget.painterStyle,
+              allowStyleChange: widget.allowStyleChange,
+              futuristicBarHeight: widget.futuristicBarHeight,
+            ),
+            if (flashColor != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ColoredBox(color: flashColor.withValues(alpha: 0.85)),
+                ),
+              ),
+          ],
         );
       }),
     );

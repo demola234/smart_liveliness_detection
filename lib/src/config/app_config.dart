@@ -1,5 +1,6 @@
 import 'package:smart_liveliness_detection/src/config/messages_config.dart';
 import 'package:smart_liveliness_detection/src/config/challenge_hint_config.dart';
+import 'package:smart_liveliness_detection/src/config/screen_flash_config.dart';
 import 'package:smart_liveliness_detection/src/config/voice_guidance_config.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
@@ -166,6 +167,13 @@ class LivenessConfig {
   /// If a challenge type is not in this map, defaultChallengeHintConfig will be used
   final Map<ChallengeType, ChallengeHintConfig>? challengeHints;
 
+  /// Optional screen-flash anti-spoofing test configuration.
+  ///
+  /// When provided and [ScreenFlashConfig.enabled] is `true`, the package
+  /// flashes red/green/blue overlays after face centering and measures the
+  /// luminance response to detect printed photos or video replays.
+  final ScreenFlashConfig? screenFlash;
+
   /// Whether to enable face quality scoring on each detected frame.
   final bool enableFaceQualityScoring;
 
@@ -240,6 +248,7 @@ class LivenessConfig {
     this.defaultChallengeHintConfig,
     this.challengeHints,
     this.voiceGuidance,
+    this.screenFlash,
     this.enableFaceQualityScoring = false,
     this.minFaceQualityScore = 60.0,
     this.blockChallengesOnLowQuality = false,
@@ -299,6 +308,7 @@ class LivenessConfig {
     ChallengeHintConfig? defaultChallengeHintConfig,
     Map<ChallengeType, ChallengeHintConfig>? challengeHints,
     VoiceGuidanceConfig? voiceGuidance,
+    ScreenFlashConfig? screenFlash,
     bool? enableFaceQualityScoring,
     double? minFaceQualityScore,
     bool? blockChallengesOnLowQuality,
@@ -356,6 +366,7 @@ class LivenessConfig {
       defaultChallengeHintConfig: defaultChallengeHintConfig ?? this.defaultChallengeHintConfig,
       challengeHints: challengeHints ?? this.challengeHints,
       voiceGuidance: voiceGuidance ?? this.voiceGuidance,
+      screenFlash: screenFlash ?? this.screenFlash,
       enableFaceQualityScoring: enableFaceQualityScoring ?? this.enableFaceQualityScoring,
       minFaceQualityScore: minFaceQualityScore ?? this.minFaceQualityScore,
       blockChallengesOnLowQuality: blockChallengesOnLowQuality ?? this.blockChallengesOnLowQuality,

@@ -1,4 +1,32 @@
 # Changelog
+## Version 0.3.4 - April 19, 2026
+
+### New Features
+
+#### Face Quality Scoring
+* Added `FaceQualityResult` model with an overall score (0–100) and per-metric breakdown: `brightness`, `sharpness`, `headPose`, `faceSize`, `eyeOpenness`
+* Added `FaceQualityService` — lightweight pixel-sampling analysis that runs on every 10th face-detected frame to avoid jank
+* New `onFaceQualityCheck` callback on `LivenessDetectionScreen` — fires with each quality result so apps can surface feedback to the user
+* New `LivenessConfig` fields:
+  * `enableFaceQualityScoring` (default `false`) — opt-in flag
+  * `minFaceQualityScore` (default `60.0`) — score threshold used when blocking is enabled
+  * `blockChallengesOnLowQuality` (default `false`) — when `true`, session stays in centering phase until quality score meets the threshold
+* New `LivenessMessages.lowFaceQuality` — customisable message shown when score is too low
+* `LivenessController.lastQualityResult` getter exposes the most recent `FaceQualityResult`
+
+#### Screen Flash Anti-Spoofing
+* Added `ScreenFlashConfig` — configurable RGB flash test that runs between face centering and the first challenge
+* Added `ScreenFlashResult` model with `passed`, `colorDeltas` (per-color luminance response vs baseline), `baselineLuminance`, and `confidence`
+* Added `ScreenFlashService` — internal state machine: baseline → flashRed → flashGreen → flashBlue → done
+* Full-screen colored overlay rendered automatically during the test via `LivenessController.activeFlashColor` getter
+* Camera exposure is locked (`ExposureMode.locked`) for the duration of the flash test to prevent AEC from cancelling the signal, then restored automatically
+* Configurable warmup frames per color (`warmupFramesPerColor`, default `2`) — skips early frames while screen and camera settle
+* New `LivenessConfig.screenFlash: ScreenFlashConfig?` — null by default (opt-in)
+* New `LivenessState.screenFlashTest` — inserted between `centeringFace` and `performingChallenges`
+* Flash result included in `antiSpoofingDetection` metadata as `screenFlashSpoofDetected: bool`
+* New `LivenessMessages` fields: `screenFlashInstruction`, `screenFlashSpoofingDetected`
+* `failSessionOnSpoofing` flag controls whether a failed flash test ends the session or just sets the metadata flag
+
 ## Version 0.3.2 - February 21, 2026
 * Patch: Version bump and minor stability improvements
 

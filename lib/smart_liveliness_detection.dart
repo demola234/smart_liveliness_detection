@@ -8,8 +8,10 @@ import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 // Configuration
 export 'src/config/app_config.dart';
+export 'src/config/screen_flash_config.dart';
 // Models
 export 'src/models/face_quality_result.dart';
+export 'src/models/screen_flash_result.dart';
 export 'src/config/messages_config.dart';
 export 'src/config/theme_config.dart';
 export 'src/config/challenge_hint_config.dart';

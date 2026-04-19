@@ -8,6 +8,7 @@ import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/motion_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_quality_service.dart';
+import 'package:smart_liveliness_detection/src/services/screen_flash_service.dart';
 import 'package:smart_liveliness_detection/src/services/voice_guidance_service.dart';
 
 /// Controller for liveness detection session
@@ -87,6 +88,12 @@ class LivenessController extends ChangeNotifier {
 
   /// Face quality analysis service
   final FaceQualityService _faceQualityService = FaceQualityService();
+
+  /// Screen-flash anti-spoofing service (lazy-initialised when config present)
+  ScreenFlashService? _screenFlashService;
+
+  /// Whether the screen-flash test detected a spoofing attempt
+  bool _screenFlashSpoofDetected = false;
 
   /// Last computed face quality result
   FaceQualityResult? _lastQualityResult;
@@ -337,9 +344,9 @@ class LivenessController extends ChangeNotifier {
 
           //region ## 3. Pass the calculated ovalRect to the processing method
           if (_session.state == LivenessState.centeringFace && isCentered) {
-            _processLivenessDetection(face, ovalRect);
+            _processLivenessDetection(face, ovalRect, image);
           } else if (_session.state != LivenessState.centeringFace) {
-            _processLivenessDetection(face, ovalRect);
+            _processLivenessDetection(face, ovalRect, image);
           }
           //endregion
 
@@ -464,7 +471,7 @@ class LivenessController extends ChangeNotifier {
   }
 
   /// Process liveness detection for the current state
-  void _processLivenessDetection(Face face, Rect ovalRect) {
+  void _processLivenessDetection(Face face, Rect ovalRect, CameraImage image) {
     if (!_cameraService.isLightingGood) {
       _statusMessage = _config.messages.poorLighting;
       return;
@@ -502,26 +509,54 @@ class LivenessController extends ChangeNotifier {
           _faceDetectionService.resetTracking();
           _motionService.resetTracking();
 
-          _session.state = LivenessState.performingChallenges;
-          _updateStatusMessage();
+          // Route through flash test if configured
+          if (_config.screenFlash?.enabled == true) {
+            _screenFlashService = ScreenFlashService(config: _config.screenFlash!);
+            _screenFlashService!.start();
+            _cameraService.lockExposure(); // prevent AEC fighting the flash
+            _session.state = LivenessState.screenFlashTest;
+            _statusMessage = _config.messages.screenFlashInstruction;
+          } else {
+            _session.state = LivenessState.performingChallenges;
+            _updateStatusMessage();
+          }
           _speak(_statusMessage);
           if (!_isDisposed) notifyListeners();
 
-          // Schedule the ACTUAL start of the challenge animation for the next event cycle.
-          // This gives the UI time to render the initial state of the challenge.
           Future.delayed(Duration.zero, () {
             if (_session.currentChallenge?.type == ChallengeType.zoom &&
                 _zoomChallengeController.state == ZoomChallengeState.initial) {
               _zoomChallengeController.startChallenge();
             }
           });
-
-          // WARNING: Do not continue to the 'performingChallenges' case in this same cycle.
-          // Challenge validation will begin on the next camera frame.
           return;
         } else {
           _statusMessage = _faceCenteringMessage;
           _speak(_faceCenteringMessage, isPositioning: true);
+        }
+        break;
+
+      case LivenessState.screenFlashTest:
+        if (_screenFlashService == null) break;
+        final flashResult = _screenFlashService!.processFrame(face, image);
+        if (flashResult != null) {
+          _cameraService.unlockExposure();
+          if (!flashResult.passed && _config.screenFlash?.failSessionOnSpoofing == true) {
+            _screenFlashSpoofDetected = true;
+            _statusMessage = _config.messages.screenFlashSpoofingDetected;
+            _completeSession();
+          } else {
+            _screenFlashSpoofDetected = !flashResult.passed;
+            _session.state = LivenessState.performingChallenges;
+            _updateStatusMessage();
+            _speak(_statusMessage);
+            Future.delayed(Duration.zero, () {
+              if (_session.currentChallenge?.type == ChallengeType.zoom &&
+                  _zoomChallengeController.state == ZoomChallengeState.initial) {
+                _zoomChallengeController.startChallenge();
+              }
+            });
+          }
         }
         break;
 
@@ -632,6 +667,7 @@ class LivenessController extends ChangeNotifier {
       'screenGlareDetected': _screenGlareDetected,
       'lackOfFacialContoursDetected': _lackOfFacialContoursDetected,
       'motionCorrelationCheckFailed': motionCorrelationFailed,
+      'screenFlashSpoofDetected': _screenFlashSpoofDetected,
     };
 
     final metadata = {
@@ -688,8 +724,9 @@ class LivenessController extends ChangeNotifier {
     if (isPositioning && !voice.speakPositioningFeedback) return;
     if (isCompletion && !voice.speakCompletion) return;
     // Challenge instructions: only spoken when neither flag is set
-    if (!isPositioning && !isCompletion && !voice.speakChallengeInstructions)
+    if (!isPositioning && !isCompletion && !voice.speakChallengeInstructions) {
       return;
+    }
     _voiceGuidanceService?.speak(text);
   }
 
@@ -706,6 +743,9 @@ class LivenessController extends ChangeNotifier {
     _firstChallengePassed = false;
     _lastQualityResult = null;
     _qualityFrameCounter = 0;
+    _screenFlashSpoofDetected = false;
+    _screenFlashService?.reset();
+    _cameraService.unlockExposure();
 
     _currentZoomFactor = _config.initialZoomFactor;
     _zoomChallengeController.reset();
@@ -777,6 +817,10 @@ class LivenessController extends ChangeNotifier {
 
   /// Most recent face quality result (null if scoring disabled or no face yet)
   FaceQualityResult? get lastQualityResult => _lastQualityResult;
+
+  /// Active screen-flash overlay color, or null when no flash is in progress.
+  /// The UI should show a full-screen colored overlay of this color.
+  Color? get activeFlashColor => _screenFlashService?.activeFlashColor;
 
   double _currentZoomFactor = 0.0;
 

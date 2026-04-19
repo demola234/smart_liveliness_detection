@@ -65,6 +65,8 @@ class LivenessSession {
             (challengeProgress * currentChallengeIndex / challenges.length);
       case LivenessState.completed:
         return 1.0;
+      case LivenessState.screenFlashTest:
+        return 0.8;
     }
   }
 

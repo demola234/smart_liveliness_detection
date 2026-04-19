@@ -220,6 +220,26 @@ class CameraService {
     }
   }
 
+  /// Lock exposure so AEC doesn't compensate during screen-flash test.
+  Future<void> lockExposure() async {
+    if (!isInitialized) return;
+    try {
+      await _controller!.setExposureMode(ExposureMode.locked);
+    } catch (e) {
+      debugPrint('lockExposure not supported: $e');
+    }
+  }
+
+  /// Restore automatic exposure after screen-flash test.
+  Future<void> unlockExposure() async {
+    if (!isInitialized) return;
+    try {
+      await _controller!.setExposureMode(ExposureMode.auto);
+    } catch (e) {
+      debugPrint('unlockExposure not supported: $e');
+    }
+  }
+
   /// Whether the camera is initialized
   bool get isInitialized => _isInitialized && _controller != null && !_isDisposing;
 

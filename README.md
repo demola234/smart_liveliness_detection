@@ -8,6 +8,8 @@ A highly customizable Flutter package for face liveness detection with multiple 
 - 🔄 Random challenge sequence generation for enhanced security
 - 🎯 Face centering guidance with visual feedback
 - 🔍 Anti-spoofing measures (screen glare detection, motion correlation with gyroscope support)
+- 📊 Face Quality Scoring — real-time brightness, sharpness, pose, size and eye-openness score with actionable recommendations
+- 💡 Screen Flash Anti-Spoofing — RGB flash test that detects printed photos and video replays
 - 🎨 Fully customizable UI with theming support
 - 🌈 13 animated futuristic UI painter styles (quantum, hologram, cosmos, synapse, and more)
 - 🖼️ Futuristic oval overlay with animated progress ring and scan line
@@ -25,7 +27,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_liveliness_detection: ^0.3.2
+  smart_liveliness_detection: ^0.3.4
 ```
 
 Then run:
@@ -370,6 +372,93 @@ When `voiceGuidance` is `null` or `enabled: false`, zero TTS overhead is incurre
 
 ---
 
+### Face Quality Scoring
+
+Analyse the camera frame in real time and receive a 0–100 quality score with specific issues and recommendations before challenges begin.
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: const LivenessConfig(
+    enableFaceQualityScoring: true,
+    minFaceQualityScore: 60.0,        // minimum score to allow challenges
+    blockChallengesOnLowQuality: true, // hold centering phase until score is met
+  ),
+  onFaceQualityCheck: (FaceQualityResult result) {
+    print('Score: ${result.score}');               // e.g. 74.3
+    print('Issues: ${result.issues}');             // e.g. ["Poor lighting"]
+    print('Recommendations: ${result.recommendations}'); // e.g. ["Move to a brighter area"]
+    print('Metrics: ${result.metrics}');           // brightness, sharpness, headPose, faceSize, eyeOpenness
+  },
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {},
+);
+```
+
+**`FaceQualityResult` fields:**
+
+| Field | Type | Description |
+|---|---|---|
+| `score` | `double` | Overall quality score (0–100) |
+| `isAcceptable` | `bool` | `true` when score ≥ 60 |
+| `issues` | `List<String>` | Human-readable issues found |
+| `recommendations` | `List<String>` | Actionable suggestions |
+| `metrics` | `Map<String, double>` | Per-metric scores: `brightness`, `sharpness`, `headPose`, `faceSize`, `eyeOpenness` |
+
+**`LivenessConfig` options:**
+
+| Option | Default | Description |
+|---|---|---|
+| `enableFaceQualityScoring` | `false` | Enable quality analysis |
+| `minFaceQualityScore` | `60.0` | Threshold used when blocking is on |
+| `blockChallengesOnLowQuality` | `false` | Hold centering phase until score ≥ threshold |
+
+Quality is evaluated every 10 face-detected frames to avoid performance impact. The check runs on-device with no network calls.
+
+---
+
+### Screen Flash Anti-Spoofing
+
+After the face is centred, the screen briefly flashes red, green, and blue. The camera measures the luminance response in the face region — a real face reflects the light; a printed photo or video replay on another screen does not produce the expected response.
+
+```dart
+LivenessDetectionScreen(
+  cameras: cameras,
+  config: const LivenessConfig(
+    screenFlash: ScreenFlashConfig(
+      enabled: true,
+      framesPerColor: 5,          // frames sampled per color
+      baselineFrames: 3,          // frames captured before first flash
+      warmupFramesPerColor: 2,    // frames skipped per color while camera settles
+      reflectionThreshold: 4.0,  // minimum luminance delta (0–255) to pass
+      failSessionOnSpoofing: false, // true = end session on failure
+    ),
+  ),
+  onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+    final anti = metadata?['antiSpoofingDetection'] as Map<String, dynamic>?;
+    final spoofDetected = anti?['screenFlashSpoofDetected'] ?? false;
+    print('Screen flash spoof detected: $spoofDetected');
+  },
+);
+```
+
+**How it works:**
+1. Face is centred → camera exposure is locked to prevent auto-exposure fighting the flash signal
+2. Baseline luminance is sampled from the face region (3 frames)
+3. Red, green, then blue full-screen overlays are shown in sequence
+4. For each color, 2 warmup frames are skipped then 5 frames are sampled
+5. Test passes if ≥ 2 colors show a positive luminance delta above `reflectionThreshold`
+6. Camera exposure is restored; session advances to challenges
+
+**`ScreenFlashResult` in metadata:**
+
+| Key | Type | Description |
+|---|---|---|
+| `screenFlashSpoofDetected` | `bool` | `true` if the test determined a spoofing attempt |
+
+The result is always included in the `antiSpoofingDetection` map when `screenFlash` is configured, regardless of `failSessionOnSpoofing`.
+
+---
+
 ### Futuristic UI Painter Styles
 
 Choose from 13 animated canvas overlay styles via `LivenessStyle`:
@@ -454,14 +543,16 @@ LivenessDetectionScreen(
     log('Overall Success: $isSuccessful');
 
     if (metadata != null && metadata.containsKey('antiSpoofingDetection')) {
-      final antiSpoofingResult = metadata['antiSpoofingDetection'];
+      final antiSpoofingResult = metadata['antiSpoofingDetection'] as Map<String, dynamic>;
       final didPassMotionCheck = !antiSpoofingResult['motionCorrelationCheckFailed'];
       final didPassGlareCheck = !antiSpoofingResult['screenGlareDetected'];
       final didPassContourCheck = !antiSpoofingResult['lackOfFacialContoursDetected'];
+      final screenFlashSpoofDetected = antiSpoofingResult['screenFlashSpoofDetected'] ?? false;
 
       log('Motion Check Passed: $didPassMotionCheck');
       log('Glare Check Passed: $didPassGlareCheck');
       log('Contour Check Passed: $didPassContourCheck');
+      log('Screen Flash Spoof Detected: $screenFlashSpoofDetected');
     }
 
     // You can now send this session ID and the detailed results to your backend
@@ -642,6 +733,7 @@ Both callbacks provide a `metadata` map which may contain an `antiSpoofingDetect
 - `motionCorrelationCheckFailed`: The only blocking check by default. If `true`, the overall `isSuccessful` result of the liveness check will be `false`. This occurs if the head moves significantly but the device does not.
 - `screenGlareDetected`: A non-blocking flag. `true` if potential screen glare was detected on the user's face.
 - `lackOfFacialContoursDetected`: A non-blocking flag. `true` if the system failed to detect a sufficient number of facial contours, which could indicate a mask.
+- `screenFlashSpoofDetected`: Present when `screenFlash` is configured. `true` if the face region did not produce the expected luminance response during the RGB flash test. Blocking only when `ScreenFlashConfig.failSessionOnSpoofing` is `true`.
 
 ### 1. Screen Glare Detection
 

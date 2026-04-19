@@ -33,8 +33,6 @@ void main() {
   late MockCameraService mockCameraService;
   late MockFaceDetectionService mockFaceDetectionService;
   late MockMotionService mockMotionService;
-  late MockVoiceGuidanceService mockVoiceGuidanceService;
-  late MockLivenessSession mockLivenessSession;
   late LivenessController controller;
   late FakeTickerProvider vsync;
   bool disposed = false;
@@ -50,8 +48,6 @@ void main() {
     mockCameraService = MockCameraService();
     mockMotionService = MockMotionService();
     mockFaceDetectionService = MockFaceDetectionService();
-    mockVoiceGuidanceService = MockVoiceGuidanceService();
-    mockLivenessSession = MockLivenessSession();
     vsync = FakeTickerProvider();
 
     when(mockCameraService.initialize(any))

@@ -6,7 +6,7 @@ This document outlines planned features and enhancements to make this package th
 
 ## 🎯 Top Priority Features (Biggest Differentiators)
 
-### 1. Voice Guidance & Accessibility 🔊
+### 1. Voice Guidance & Accessibility 🔊 (Done)
 **Status:** Planned
 **Priority:** HIGH
 **Effort:** Medium
@@ -36,7 +36,7 @@ LivenessConfig(
 
 ---
 
-### 2. Face Quality Scoring & Recommendations 📊
+### 2. Face Quality Scoring & Recommendations 📊 (Done)
 **Status:** Planned
 **Priority:** HIGH
 **Effort:** Medium
@@ -97,7 +97,7 @@ LivenessConfig(
 
 ---
 
-### 4. Advanced Anti-Spoofing with Screen Flash 💡
+### 4. Advanced Anti-Spoofing with Screen Flash 💡 (Done)
 **Status:** Planned
 **Priority:** HIGH
 **Effort:** Medium

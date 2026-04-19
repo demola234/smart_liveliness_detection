@@ -301,6 +301,12 @@ class HomeScreen extends StatelessWidget {
               'Real-time quality score with issues and recommendations',
               () => _navigateToLivenessWithQualityScoring(context),
             ),
+            _buildExampleButton(
+              context,
+              'Screen Flash Anti-Spoofing',
+              'Flashes RGB colors to detect printed photos and video replays',
+              () => _navigateToLivenessWithScreenFlash(context),
+            ),
           ],
         ),
       ),
@@ -836,6 +842,65 @@ class HomeScreen extends StatelessWidget {
                 builder: (dialogContext) => AlertDialog(
                   title: Text(isSuccessful ? 'Verified!' : 'Failed'),
                   content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithScreenFlash(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            screenFlash: ScreenFlashConfig(
+              enabled: true,
+              framesPerColor: 5,
+              baselineFrames: 3,
+              warmupFramesPerColor: 2,
+              reflectionThreshold: 4.0,
+              failSessionOnSpoofing: false,
+            ),
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            log('Anti-spoofing: ${metadata['antiSpoofingDetection']}');
+            final antiSpoof = metadata['antiSpoofingDetection'] as Map<String, dynamic>?;
+            final spoofDetected = antiSpoof == null ? false : antiSpoof['screenFlashSpoofDetected'] ?? false;
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(isSuccessful ? 'Verified!' : 'Failed'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Session: $sessionId'),
+                      const SizedBox(height: 8),
+                      Text('Screen flash spoof detected: $spoofDetected'),
+                    ],
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () {
