@@ -7,6 +7,7 @@ import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/motion_service.dart';
+import 'package:smart_liveliness_detection/src/services/face_quality_service.dart';
 import 'package:smart_liveliness_detection/src/services/voice_guidance_service.dart';
 
 /// Controller for liveness detection session
@@ -84,6 +85,18 @@ class LivenessController extends ChangeNotifier {
   /// Voice guidance service (null when voice guidance is disabled)
   VoiceGuidanceService? _voiceGuidanceService;
 
+  /// Face quality analysis service
+  final FaceQualityService _faceQualityService = FaceQualityService();
+
+  /// Last computed face quality result
+  FaceQualityResult? _lastQualityResult;
+
+  /// Frame counter for throttling quality checks (every 10 face-detected frames)
+  int _qualityFrameCounter = 0;
+
+  /// Callback fired each time quality is re-evaluated
+  final FaceQualityCallback? _onFaceQualityCheck;
+
   /// Constructor
   LivenessController({
     required List<CameraDescription> cameras,
@@ -99,6 +112,7 @@ class LivenessController extends ChangeNotifier {
     FaceDetectedCallback? onFaceDetected,
     FaceNotDetectedCallback? onFaceNotDetected,
     FinalImageCapturedCallback? onFinalImageCaptured,
+    FaceQualityCallback? onFaceQualityCheck,
     bool captureFinalImage = true,
     this.onReset,
   })  : _cameras = cameras,
@@ -114,6 +128,7 @@ class LivenessController extends ChangeNotifier {
         _onFaceDetected = onFaceDetected,
         _onFaceNotDetected = onFaceNotDetected,
         _onFinalImageCaptured = onFinalImageCaptured,
+        _onFaceQualityCheck = onFaceQualityCheck,
         _captureFinalImage = captureFinalImage,
         _session = LivenessSession(
           challenges: LivenessSession.generateRandomChallenges(
@@ -253,6 +268,20 @@ class LivenessController extends ChangeNotifier {
         if (faces.isNotEmpty) {
           final face = faces.first;
           _isFaceDetected = true;
+
+          // Face quality scoring
+          if (_config.enableFaceQualityScoring && !_session.isComplete) {
+            _qualityFrameCounter++;
+            if (_qualityFrameCounter >= 10) {
+              _qualityFrameCounter = 0;
+              try {
+                _lastQualityResult = _faceQualityService.analyze(face, image);
+                _onFaceQualityCheck?.call(_lastQualityResult!);
+              } catch (e) {
+                debugPrint('Error in face quality scoring: $e');
+              }
+            }
+          }
 
           // Contour analysis on centering phase
           if (_config.enableContourAnalysisOnCentering &&
@@ -462,6 +491,14 @@ class LivenessController extends ChangeNotifier {
 
       case LivenessState.centeringFace:
         if (_faceDetectionService.isFaceCentered) {
+          // Block challenge start if quality is below threshold
+          if (_config.blockChallengesOnLowQuality &&
+              _config.enableFaceQualityScoring &&
+              _lastQualityResult != null &&
+              _lastQualityResult!.score < _config.minFaceQualityScore) {
+            _statusMessage = _config.messages.lowFaceQuality;
+            break;
+          }
           _faceDetectionService.resetTracking();
           _motionService.resetTracking();
 
@@ -667,6 +704,8 @@ class LivenessController extends ChangeNotifier {
     _screenGlareDetected = false;
     _lackOfFacialContoursDetected = false;
     _firstChallengePassed = false;
+    _lastQualityResult = null;
+    _qualityFrameCounter = 0;
 
     _currentZoomFactor = _config.initialZoomFactor;
     _zoomChallengeController.reset();
@@ -735,6 +774,9 @@ class LivenessController extends ChangeNotifier {
 
   /// Current lighting value (0.0-1.0)
   double get lightingValue => _cameraService.lightingValue;
+
+  /// Most recent face quality result (null if scoring disabled or no face yet)
+  FaceQualityResult? get lastQualityResult => _lastQualityResult;
 
   double _currentZoomFactor = 0.0;
 

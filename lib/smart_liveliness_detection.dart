@@ -3,17 +3,20 @@ library smart_liveliness_detection;
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/src/controllers/liveness_controller.dart';
+import 'package:smart_liveliness_detection/src/models/face_quality_result.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 // Configuration
 export 'src/config/app_config.dart';
+// Models
+export 'src/models/face_quality_result.dart';
 export 'src/config/messages_config.dart';
 export 'src/config/theme_config.dart';
 export 'src/config/challenge_hint_config.dart';
 export 'src/config/voice_guidance_config.dart';
 // Controllers
 export 'src/controllers/liveness_controller.dart';
-// Models
+// Models (continued)
 export 'src/models/challenge.dart';
 export 'src/models/liveness_session.dart';
 // Utilities
@@ -54,3 +57,4 @@ typedef FinalImageCapturedCallback = void Function(String sessionId, XFile image
 
 typedef FaceDetectedCallback = void Function(ChallengeType challengeType, bool firstChallengePassed, CameraImage image, List<Face> faces, CameraDescription camera);
 typedef FaceNotDetectedCallback = void Function(ChallengeType challengeType, LivenessController controller);
+typedef FaceQualityCallback = void Function(FaceQualityResult result);

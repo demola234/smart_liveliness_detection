@@ -27,6 +27,9 @@ typedef FaceDetectedCallback = void Function(ChallengeType challengeType, bool f
 /// Callback type for when face is NOT detected (It will trigger the first face non-detection event after any face detection)
 typedef FaceNotDetectedCallback = void Function(ChallengeType challengeType, LivenessController controller);
 
+/// Callback type for face quality scoring results
+typedef FaceQualityCallback = void Function(FaceQualityResult result);
+
 /// Main widget for liveness detection
 class LivenessDetectionScreen extends StatefulWidget {
   /// Available cameras
@@ -49,6 +52,9 @@ class LivenessDetectionScreen extends StatefulWidget {
 
   /// Callback for when face is NOT detected
   final FaceNotDetectedCallback? onFaceNotDetected;
+
+  /// Callback fired each time a face quality score is computed.
+  final FaceQualityCallback? onFaceQualityCheck;
 
   /// Whether to show app bar
   final bool showAppBar;
@@ -115,6 +121,7 @@ class LivenessDetectionScreen extends StatefulWidget {
     this.onFinalImageCaptured,
     this.onFaceDetected,
     this.onFaceNotDetected,
+    this.onFaceQualityCheck,
     this.painterStyle,
     this.allowStyleChange = false,
     this.futuristicBarHeight = 64,
@@ -166,6 +173,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
       captureFinalImage: widget.captureFinalImage,
       onFaceDetected: widget.onFaceDetected,
       onFaceNotDetected: widget.onFaceNotDetected,
+      onFaceQualityCheck: widget.onFaceQualityCheck,
       onReset: _resetZoomFactor,
     );
     WidgetsBinding.instance.addObserver(this);
@@ -210,7 +218,8 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
             : null,
         onFinalImageCaptured: _handleFinalImageCaptured,
         captureFinalImage: widget.captureFinalImage,
-        onReset: _resetZoomFactor
+        onFaceQualityCheck: widget.onFaceQualityCheck,
+        onReset: _resetZoomFactor,
       );
       _controller.addListener(_syncZoomFactor);
       setState(() {

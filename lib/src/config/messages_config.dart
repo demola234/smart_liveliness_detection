@@ -56,6 +56,9 @@ class LivenessMessages {
 
   ///Message displayed when there is a processing error.
   final String errorProcessing;
+
+  /// Message displayed when face quality score is below the required threshold.
+  final String lowFaceQuality;
   //endregion
 
   /// Constructs a [LivenessMessages] object.
@@ -81,5 +84,6 @@ class LivenessMessages {
     this.verificationComplete = 'Liveness verification complete!',
     this.spoofingDetected = "Potential spoofing detected.",
     this.errorProcessing = 'Processing error occurred',
+    this.lowFaceQuality = 'Improve image quality to continue',
   });
 }

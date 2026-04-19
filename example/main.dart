@@ -295,6 +295,12 @@ class HomeScreen extends StatelessWidget {
               'Spoken instructions and positioning feedback via device TTS',
               () => _navigateToLivenessWithVoiceGuidance(context),
             ),
+            _buildExampleButton(
+              context,
+              'Face Quality Scoring',
+              'Real-time quality score with issues and recommendations',
+              () => _navigateToLivenessWithQualityScoring(context),
+            ),
           ],
         ),
       ),
@@ -819,6 +825,59 @@ class HomeScreen extends StatelessWidget {
           ),
           theme: const LivenessTheme(),
           showAppBar: true,
+          onChallengeCompleted: (challengeType) {
+            log('Challenge completed: ${challengeType.name}');
+          },
+          onLivenessCompleted: (sessionId, isSuccessful, metadata) {
+            log('Liveness completed — success: $isSuccessful');
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(isSuccessful ? 'Verified!' : 'Failed'),
+                  content: Text('Session: $sessionId'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLivenessWithQualityScoring(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LivenessDetectionScreen(
+          cameras: cameras,
+          config: const LivenessConfig(
+            challengeTypes: [
+              ChallengeType.blink,
+              ChallengeType.turnLeft,
+              ChallengeType.smile,
+            ],
+            enableFaceQualityScoring: true,
+            minFaceQualityScore: 60.0,
+            blockChallengesOnLowQuality: false,
+          ),
+          theme: const LivenessTheme(),
+          showAppBar: true,
+          onFaceQualityCheck: (result) {
+            log('Quality score: ${result.score.toStringAsFixed(1)}');
+            log('Issues: ${result.issues}');
+            log('Recommendations: ${result.recommendations}');
+            log('Metrics: ${result.metrics.map((k, v) => MapEntry(k, v.toStringAsFixed(1)))}');
+          },
           onChallengeCompleted: (challengeType) {
             log('Challenge completed: ${challengeType.name}');
           },

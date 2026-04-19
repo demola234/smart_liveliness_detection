@@ -166,6 +166,17 @@ class LivenessConfig {
   /// If a challenge type is not in this map, defaultChallengeHintConfig will be used
   final Map<ChallengeType, ChallengeHintConfig>? challengeHints;
 
+  /// Whether to enable face quality scoring on each detected frame.
+  final bool enableFaceQualityScoring;
+
+  /// Minimum quality score (0–100) required before challenges begin.
+  /// Only enforced when [blockChallengesOnLowQuality] is `true`.
+  final double minFaceQualityScore;
+
+  /// When `true`, the session will not progress to challenges until the face
+  /// quality score is at least [minFaceQualityScore].
+  final bool blockChallengesOnLowQuality;
+
   /// Optional voice guidance configuration.
   ///
   /// When provided and [VoiceGuidanceConfig.enabled] is `true`, the package
@@ -229,6 +240,9 @@ class LivenessConfig {
     this.defaultChallengeHintConfig,
     this.challengeHints,
     this.voiceGuidance,
+    this.enableFaceQualityScoring = false,
+    this.minFaceQualityScore = 60.0,
+    this.blockChallengesOnLowQuality = false,
   });
 
   /// Create a copy of this configuration with some values replaced
@@ -285,6 +299,9 @@ class LivenessConfig {
     ChallengeHintConfig? defaultChallengeHintConfig,
     Map<ChallengeType, ChallengeHintConfig>? challengeHints,
     VoiceGuidanceConfig? voiceGuidance,
+    bool? enableFaceQualityScoring,
+    double? minFaceQualityScore,
+    bool? blockChallengesOnLowQuality,
   }) {
     return LivenessConfig(
       maxSessionDuration: maxSessionDuration ?? this.maxSessionDuration,
@@ -339,6 +356,9 @@ class LivenessConfig {
       defaultChallengeHintConfig: defaultChallengeHintConfig ?? this.defaultChallengeHintConfig,
       challengeHints: challengeHints ?? this.challengeHints,
       voiceGuidance: voiceGuidance ?? this.voiceGuidance,
+      enableFaceQualityScoring: enableFaceQualityScoring ?? this.enableFaceQualityScoring,
+      minFaceQualityScore: minFaceQualityScore ?? this.minFaceQualityScore,
+      blockChallengesOnLowQuality: blockChallengesOnLowQuality ?? this.blockChallengesOnLowQuality,
     );
   }
 
