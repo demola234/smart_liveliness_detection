@@ -1,3 +1,6 @@
+import 'package:smart_liveliness_detection/src/config/depth_detection_config.dart';
+import 'package:smart_liveliness_detection/src/config/template_config.dart';
+import 'package:smart_liveliness_detection/src/models/biometric_template.dart';
 import 'package:smart_liveliness_detection/src/config/messages_config.dart';
 import 'package:smart_liveliness_detection/src/config/challenge_hint_config.dart';
 import 'package:smart_liveliness_detection/src/config/screen_flash_config.dart';
@@ -185,6 +188,37 @@ class LivenessConfig {
   /// quality score is at least [minFaceQualityScore].
   final bool blockChallengesOnLowQuality;
 
+  /// When `true`, a [BiometricTemplate] is generated from the face detected at
+  /// session completion and returned via `onBiometricTemplateGenerated`.
+  final bool generateBiometricTemplate;
+
+  /// Controls how the biometric template is produced.
+  /// Ignored when [generateBiometricTemplate] is `false`.
+  final TemplateConfig templateConfig;
+
+  /// Optional previously enrolled template to match against.
+  ///
+  /// When provided, the controller generates a fresh template at session
+  /// completion and compares it to this reference using cosine similarity.
+  /// The result is returned in `onLivenessCompleted` metadata under the
+  /// keys `biometricMatchScore` (0.0–1.0) and `biometricMatchPassed` (bool).
+  final BiometricTemplate? referenceTemplate;
+
+  /// Cosine-similarity threshold for [referenceTemplate] matching.
+  /// Scores at or above this value are considered a match. Default: `0.80`.
+  final double biometricMatchThreshold;
+
+  /// Optional 3-D depth detection configuration (iOS TrueDepth camera only).
+  ///
+  /// When provided and [DepthDetectionConfig.enabled] is `true`, the package
+  /// runs an ARKit face-tracking session in parallel with the camera stream
+  /// and records whether the face appears three-dimensional. The result is
+  /// included in the anti-spoofing metadata as `depthSpoofDetected`.
+  ///
+  /// When `null`, depth detection is completely disabled and no ARKit session
+  /// is started.
+  final DepthDetectionConfig? depthDetection;
+
   /// Optional voice guidance configuration.
   ///
   /// When provided and [VoiceGuidanceConfig.enabled] is `true`, the package
@@ -249,6 +283,11 @@ class LivenessConfig {
     this.challengeHints,
     this.voiceGuidance,
     this.screenFlash,
+    this.depthDetection,
+    this.generateBiometricTemplate = false,
+    this.templateConfig = const TemplateConfig(),
+    this.referenceTemplate,
+    this.biometricMatchThreshold = 0.80,
     this.enableFaceQualityScoring = false,
     this.minFaceQualityScore = 60.0,
     this.blockChallengesOnLowQuality = false,
@@ -309,6 +348,11 @@ class LivenessConfig {
     Map<ChallengeType, ChallengeHintConfig>? challengeHints,
     VoiceGuidanceConfig? voiceGuidance,
     ScreenFlashConfig? screenFlash,
+    DepthDetectionConfig? depthDetection,
+    bool? generateBiometricTemplate,
+    TemplateConfig? templateConfig,
+    BiometricTemplate? referenceTemplate,
+    double? biometricMatchThreshold,
     bool? enableFaceQualityScoring,
     double? minFaceQualityScore,
     bool? blockChallengesOnLowQuality,
@@ -367,6 +411,11 @@ class LivenessConfig {
       challengeHints: challengeHints ?? this.challengeHints,
       voiceGuidance: voiceGuidance ?? this.voiceGuidance,
       screenFlash: screenFlash ?? this.screenFlash,
+      depthDetection: depthDetection ?? this.depthDetection,
+      generateBiometricTemplate: generateBiometricTemplate ?? this.generateBiometricTemplate,
+      templateConfig: templateConfig ?? this.templateConfig,
+      referenceTemplate: referenceTemplate ?? this.referenceTemplate,
+      biometricMatchThreshold: biometricMatchThreshold ?? this.biometricMatchThreshold,
       enableFaceQualityScoring: enableFaceQualityScoring ?? this.enableFaceQualityScoring,
       minFaceQualityScore: minFaceQualityScore ?? this.minFaceQualityScore,
       blockChallengesOnLowQuality: blockChallengesOnLowQuality ?? this.blockChallengesOnLowQuality,

@@ -157,7 +157,7 @@ LivenessConfig(
 
 ## 🚀 Medium Priority (Strong Value)
 
-### 6. 3D Depth Detection (iOS LiDAR/Face ID) 📱
+### 6. 3D Depth Detection (iOS LiDAR/Face ID) 📱 (Done)
 **Status:** Planned
 **Priority:** MEDIUM
 **Effort:** High

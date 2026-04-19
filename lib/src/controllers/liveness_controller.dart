@@ -7,6 +7,8 @@ import 'package:smart_liveliness_detection/src/services/camera_service.dart';
 import 'package:smart_liveliness_detection/src/services/capture_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/motion_service.dart';
+import 'package:smart_liveliness_detection/src/services/biometric_template_service.dart';
+import 'package:smart_liveliness_detection/src/services/depth_detection_service.dart';
 import 'package:smart_liveliness_detection/src/services/face_quality_service.dart';
 import 'package:smart_liveliness_detection/src/services/screen_flash_service.dart';
 import 'package:smart_liveliness_detection/src/services/voice_guidance_service.dart';
@@ -104,6 +106,24 @@ class LivenessController extends ChangeNotifier {
   /// Callback fired each time quality is re-evaluated
   final FaceQualityCallback? _onFaceQualityCheck;
 
+  /// Callback fired when a biometric template is generated at session completion
+  final BiometricTemplateCallback? _onBiometricTemplateGenerated;
+
+  /// Biometric template service
+  final BiometricTemplateService _biometricTemplateService = BiometricTemplateService();
+
+  /// Last face detected — held so template can be generated at completion
+  Face? _lastDetectedFace;
+
+  /// Depth detection service (iOS TrueDepth / ARKit)
+  final DepthDetectionService _depthDetectionService = DepthDetectionService();
+
+  /// Recent depth results accumulated during the session
+  final List<DepthDetectionResult> _depthResults = [];
+
+  /// Whether depth spoofing was detected at session completion
+  bool _depthSpoofDetected = false;
+
   /// Constructor
   LivenessController({
     required List<CameraDescription> cameras,
@@ -120,9 +140,11 @@ class LivenessController extends ChangeNotifier {
     FaceNotDetectedCallback? onFaceNotDetected,
     FinalImageCapturedCallback? onFinalImageCaptured,
     FaceQualityCallback? onFaceQualityCheck,
+    BiometricTemplateCallback? onBiometricTemplateGenerated,
     bool captureFinalImage = true,
     this.onReset,
-  })  : _cameras = cameras,
+  })  : _onBiometricTemplateGenerated = onBiometricTemplateGenerated,
+        _cameras = cameras,
         _config = config ?? const LivenessConfig(),
         _currentZoomFactor = config?.initialZoomFactor ?? 1.0,
         _theme = theme ?? const LivenessTheme(),
@@ -201,6 +223,25 @@ class LivenessController extends ChangeNotifier {
       _statusMessage = _config.messages.initialInstruction;
       if (!_isDisposed) notifyListeners();
 
+      // Initialise depth detection if configured (iOS TrueDepth only)
+      if (_config.depthDetection?.enabled == true) {
+        final available = await _depthDetectionService.checkAvailability();
+        if (available) {
+          await _depthDetectionService.startSession();
+          _depthDetectionService.results.listen((result) {
+            if (!_isDisposed && !_session.isComplete) {
+              _depthResults.add(result);
+              // Keep only the last 30 readings
+              if (_depthResults.length > 30) _depthResults.removeAt(0);
+            }
+          });
+        } else if (_config.depthDetection!.requireTrueDepth) {
+          _statusMessage = _config.messages.errorInitializingCamera;
+          if (!_isDisposed) notifyListeners();
+          return;
+        }
+      }
+
       // Initialise voice guidance if configured
       if (_config.voiceGuidance?.enabled == true) {
         _voiceGuidanceService =
@@ -275,6 +316,7 @@ class LivenessController extends ChangeNotifier {
         if (faces.isNotEmpty) {
           final face = faces.first;
           _isFaceDetected = true;
+          _lastDetectedFace = face;
 
           // Face quality scoring
           if (_config.enableFaceQualityScoring && !_session.isComplete) {
@@ -663,14 +705,29 @@ class LivenessController extends ChangeNotifier {
     }
     _speak(_statusMessage, isCompletion: true);
 
+    // Evaluate depth detection results
+    if (_config.depthDetection?.enabled == true && _depthResults.isNotEmpty) {
+      final cfg = _config.depthDetection!;
+      if (_depthResults.length >= cfg.minFramesRequired) {
+        final flatCount =
+            _depthResults.where((r) => r.depthStdDev < cfg.depthThreshold).length;
+        _depthSpoofDetected = flatCount > _depthResults.length ~/ 2;
+        if (_depthSpoofDetected && cfg.failSessionOnSpoofing) {
+          _isVerificationSuccessful = false;
+          _statusMessage = _config.messages.spoofingDetected;
+        }
+      }
+    }
+
     final antiSpoofingResults = {
       'screenGlareDetected': _screenGlareDetected,
       'lackOfFacialContoursDetected': _lackOfFacialContoursDetected,
       'motionCorrelationCheckFailed': motionCorrelationFailed,
       'screenFlashSpoofDetected': _screenFlashSpoofDetected,
+      'depthSpoofDetected': _depthSpoofDetected,
     };
 
-    final metadata = {
+    final metadata = <String, dynamic>{
       'antiSpoofingDetection': antiSpoofingResults,
     };
 
@@ -697,6 +754,34 @@ class LivenessController extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Error capturing final image: $e');
+      }
+    }
+
+    // Generate biometric template and/or match against reference
+    if ((_config.generateBiometricTemplate || _config.referenceTemplate != null) &&
+        _lastDetectedFace != null) {
+      try {
+        final template = _biometricTemplateService.generate(
+          _lastDetectedFace!,
+          _session.sessionId,
+          _config.templateConfig,
+        );
+        if (template != null) {
+          _onBiometricTemplateGenerated?.call(template);
+
+          // Match against enrolled reference if provided
+          if (_config.referenceTemplate != null) {
+            final score = BiometricMatcher.compare(
+              _config.referenceTemplate!,
+              template,
+            );
+            final passed = score >= _config.biometricMatchThreshold;
+            metadata['biometricMatchScore'] = score;
+            metadata['biometricMatchPassed'] = passed;
+          }
+        }
+      } catch (e) {
+        debugPrint('Error generating biometric template: $e');
       }
     }
 
@@ -746,6 +831,9 @@ class LivenessController extends ChangeNotifier {
     _screenFlashSpoofDetected = false;
     _screenFlashService?.reset();
     _cameraService.unlockExposure();
+    _depthResults.clear();
+    _depthSpoofDetected = false;
+    _lastDetectedFace = null;
 
     _currentZoomFactor = _config.initialZoomFactor;
     _zoomChallengeController.reset();
@@ -818,6 +906,11 @@ class LivenessController extends ChangeNotifier {
   /// Most recent face quality result (null if scoring disabled or no face yet)
   FaceQualityResult? get lastQualityResult => _lastQualityResult;
 
+  /// Most recent depth detection result, or null if depth detection is disabled
+  /// or no frames have been collected yet.
+  DepthDetectionResult? get lastDepthResult =>
+      _depthResults.isNotEmpty ? _depthResults.last : null;
+
   /// Active screen-flash overlay color, or null when no flash is in progress.
   /// The UI should show a full-screen colored overlay of this color.
   Color? get activeFlashColor => _screenFlashService?.activeFlashColor;
@@ -874,6 +967,7 @@ class LivenessController extends ChangeNotifier {
       _faceDetectionService.dispose();
       _motionService.dispose();
       _voiceGuidanceService?.dispose();
+      _depthDetectionService.dispose();
     } catch (e) {
       debugPrint('Error during disposal: $e');
     }

@@ -1,4 +1,55 @@
 # Changelog
+
+## Version 0.3.5 - April 19, 2026
+
+### New Features
+
+#### 3D Depth Detection (iOS TrueDepth / ARKit)
+* Added `DepthDetectionConfig` — opt-in configuration with `depthThreshold` (metres), `requireTrueDepth`, `failSessionOnSpoofing`, and `minFramesRequired`
+* Added `DepthDetectionResult` model with `depthStdDev`, `depthVariance`, `confidence`, `vertexCount`, and `isTrueDepthAvailable`
+* Added `DepthDetectionService` — Dart platform-channel wrapper; no-ops gracefully on Android and unsupported iOS devices
+* Added iOS native plugin (`DepthDetectionPlugin.swift`) using `ARFaceTrackingConfiguration` — measures Z-axis standard deviation across the ARKit face mesh (~1 220 vertices) to distinguish real 3-D faces from flat photos and screen replays
+* Added `SmartLivelinessDetectionPlugin.swift` root registrar and `ios/smart_liveliness_detection.podspec`
+* Depth session runs in parallel with challenges — no extra liveness phase
+* Result added to `antiSpoofingDetection` metadata as `depthSpoofDetected: bool`
+* `LivenessController.lastDepthResult` getter exposes the most recent result
+* Package converted to Flutter plugin (`flutter.plugin` section in `pubspec.yaml`)
+
+#### Biometric Template Generation
+* Added `TemplateConfig` — selects `BiometricAlgorithm` (currently `geometricRatios`) and optional XOR obfuscation key
+* Added `BiometricTemplate` model with `encodedVector` (base64), `rawVector`, `algorithm`, `sessionId`, `createdAt`, `featureCount`
+* Added `BiometricTemplateService` — extracts ~27 normalised geometric features from ML Kit face landmarks (positions + inter-landmark ratios), serialises to `Float32List` → bytes → base64 with optional XOR obfuscation
+* Added `BiometricMatcher` utility — `compare()` returns cosine similarity 0.0–1.0; `isMatch()` applies a threshold
+* New `LivenessConfig` fields:
+  * `generateBiometricTemplate` (default `false`) — opt-in flag
+  * `templateConfig` — algorithm and obfuscation settings
+  * `referenceTemplate` — previously enrolled template to match against
+  * `biometricMatchThreshold` (default `0.80`) — cosine similarity pass threshold
+* New `onBiometricTemplateGenerated` callback on `LivenessDetectionScreen` and `LivenessController`
+* When `referenceTemplate` is set, `biometricMatchScore` and `biometricMatchPassed` are injected into `onLivenessCompleted` metadata
+* Template generation is privacy-first: no raw pixel data stored, one-way conversion
+
+### Dependency Updates
+* `camera` → `^0.12.0+1`
+* `camera_android` → `^0.10.10+16`
+* `google_mlkit_face_detection` → `^0.13.2`
+* `sensors_plus` → `^7.0.0`
+* `flutter_tts` → `^4.2.5`
+* `uuid` → `^4.5.3`
+* `cupertino_icons` → `^1.0.9`
+* `flutter_lints` → `^6.0.0`
+* `mockito` → `^5.6.4`
+* `build_runner` → `^2.13.1`
+* Removed `dartdoc` dev dependency (conflicts with `mockito ≥5.6.4` analyzer constraint; pub.dev generates docs server-side)
+
+### Other
+* Fixed stale example code that had leaked into `lib/main.dart` and removed it
+* Example app: added "3D Depth Detection", "Biometric Template — Enroll", and "Biometric Template — Verify" demo screens
+* Added dartdoc comments to all `Assets` constants for pub.dev documentation scoring
+* Moved example entry point to `example/lib/main.dart` (pub.dev canonical location)
+
+---
+
 ## Version 0.3.4 - April 19, 2026
 
 ### New Features

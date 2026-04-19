@@ -56,6 +56,9 @@ class LivenessDetectionScreen extends StatefulWidget {
   /// Callback fired each time a face quality score is computed.
   final FaceQualityCallback? onFaceQualityCheck;
 
+  /// Callback fired when a biometric template is generated at session completion.
+  final BiometricTemplateCallback? onBiometricTemplateGenerated;
+
   /// Whether to show app bar
   final bool showAppBar;
 
@@ -122,6 +125,7 @@ class LivenessDetectionScreen extends StatefulWidget {
     this.onFaceDetected,
     this.onFaceNotDetected,
     this.onFaceQualityCheck,
+    this.onBiometricTemplateGenerated,
     this.painterStyle,
     this.allowStyleChange = false,
     this.futuristicBarHeight = 64,
@@ -174,6 +178,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
       onFaceDetected: widget.onFaceDetected,
       onFaceNotDetected: widget.onFaceNotDetected,
       onFaceQualityCheck: widget.onFaceQualityCheck,
+      onBiometricTemplateGenerated: widget.onBiometricTemplateGenerated,
       onReset: _resetZoomFactor,
     );
     WidgetsBinding.instance.addObserver(this);
@@ -219,6 +224,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
         onFinalImageCaptured: _handleFinalImageCaptured,
         captureFinalImage: widget.captureFinalImage,
         onFaceQualityCheck: widget.onFaceQualityCheck,
+        onBiometricTemplateGenerated: widget.onBiometricTemplateGenerated,
         onReset: _resetZoomFactor,
       );
       _controller.addListener(_syncZoomFactor);
