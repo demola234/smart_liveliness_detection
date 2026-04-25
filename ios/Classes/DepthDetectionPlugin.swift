@@ -1,10 +1,13 @@
-import ARKit
 import Flutter
+#if !targetEnvironment(simulator)
+import ARKit
+#endif
 
+@objc class DepthDetectionPlugin: NSObject, FlutterPlugin {
 
-@objc class DepthDetectionPlugin: NSObject, FlutterPlugin, ARSessionDelegate {
-
+    #if !targetEnvironment(simulator)
     private var arSession: ARSession?
+    #endif
     private var eventSink: FlutterEventSink?
 
     // MARK: - FlutterPlugin registration
@@ -29,16 +32,29 @@ import Flutter
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "checkAvailability":
+            #if targetEnvironment(simulator)
+            result(["available": false, "reason": "ARKit not available in simulator"])
+            #else
             let available = ARFaceTrackingConfiguration.isSupported
             var response: [String: Any] = ["available": available]
             if !available {
                 response["reason"] = "TrueDepth camera not available on this device"
             }
             result(response)
+            #endif
         case "startSession":
+            #if targetEnvironment(simulator)
+            result(FlutterError(
+                code: "UNAVAILABLE",
+                message: "ARKit not available in simulator",
+                details: nil))
+            #else
             startARSession(result: result)
+            #endif
         case "stopSession":
+            #if !targetEnvironment(simulator)
             stopARSession()
+            #endif
             result(nil)
         default:
             result(FlutterMethodNotImplemented)
@@ -47,6 +63,7 @@ import Flutter
 
     // MARK: - AR session control
 
+    #if !targetEnvironment(simulator)
     private func startARSession(result: @escaping FlutterResult) {
         guard ARFaceTrackingConfiguration.isSupported else {
             result(FlutterError(
@@ -67,50 +84,7 @@ import Flutter
         arSession?.pause()
         arSession = nil
     }
-
-    // MARK: - ARSessionDelegate
-
-    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
-        guard
-            let faceAnchor = anchors.first(where: { $0 is ARFaceAnchor }) as? ARFaceAnchor,
-            let sink = eventSink
-        else { return }
-
-        // ARFaceGeometry.vertices is [simd_float3]; use .count for the vertex count.
-        let vertices = faceAnchor.geometry.vertices
-        let count = vertices.count
-        guard count > 0 else { return }
-
-        // Compute Z-axis standard deviation across the face mesh (metres).
-        // Real face: stdDev ≈ 0.008–0.020 m (nose protrudes, eye sockets recede).
-        // Flat photo: stdDev < 0.003 m.
-        var sum: Float = 0.0
-        for v in vertices { sum += v.z }
-        let mean: Float = sum / Float(count)
-
-        var varianceSum: Float = 0.0
-        for v in vertices {
-            let diff = v.z - mean
-            varianceSum += diff * diff
-        }
-        let variance: Float = varianceSum / Float(count)
-        let stdDev: Float = sqrt(variance)
-
-        let threshold: Float = 0.004 // metres
-        let isFlat = stdDev < threshold
-        // Clamp confidence to 0.0–1.0 using explicit Float arithmetic.
-        let maxExpected: Float = 0.020
-        let rawConfidence: Float = stdDev / maxExpected
-        let confidence: Double = Double(rawConfidence < 1.0 ? rawConfidence : 1.0)
-
-        sink([
-            "depthVariance": Double(variance),
-            "depthStdDev": Double(stdDev),
-            "isFlat": isFlat,
-            "confidence": confidence,
-            "vertexCount": count,
-        ])
-    }
+    #endif
 }
 
 // MARK: - FlutterStreamHandler
@@ -127,3 +101,46 @@ extension DepthDetectionPlugin: FlutterStreamHandler {
         return nil
     }
 }
+
+// MARK: - ARSessionDelegate (device only)
+
+#if !targetEnvironment(simulator)
+extension DepthDetectionPlugin: ARSessionDelegate {
+    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
+        guard
+            let faceAnchor = anchors.first(where: { $0 is ARFaceAnchor }) as? ARFaceAnchor,
+            let sink = eventSink
+        else { return }
+
+        let vertices = faceAnchor.geometry.vertices
+        let count = vertices.count
+        guard count > 0 else { return }
+
+        var sum: Float = 0.0
+        for v in vertices { sum += v.z }
+        let mean: Float = sum / Float(count)
+
+        var varianceSum: Float = 0.0
+        for v in vertices {
+            let diff = v.z - mean
+            varianceSum += diff * diff
+        }
+        let variance: Float = varianceSum / Float(count)
+        let stdDev: Float = sqrt(variance)
+
+        let threshold: Float = 0.004
+        let isFlat = stdDev < threshold
+        let maxExpected: Float = 0.020
+        let rawConfidence: Float = stdDev / maxExpected
+        let confidence: Double = Double(rawConfidence < 1.0 ? rawConfidence : 1.0)
+
+        sink([
+            "depthVariance": Double(variance),
+            "depthStdDev": Double(stdDev),
+            "isFlat": isFlat,
+            "confidence": confidence,
+            "vertexCount": count,
+        ])
+    }
+}
+#endif

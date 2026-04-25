@@ -1,4 +1,6 @@
 # Changelog
+## Version 0.3.6 - April 25, 2026
+* Minor bug fixes and stability improvements
 
 ## Version 0.3.5 - April 19, 2026
 
