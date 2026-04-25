@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 
 // Enum to represent the challenge states
 enum ZoomChallengeState {
-  initial,      // Challenge hasn't started yet
-  inProgress,   // User is approaching
-  completed,    // User has successfully approached
-  failed,       // Time has run out or the face has been lost
+  initial,     
+  inProgress,
+  completed, 
+  failed,
 }
 
 class ZoomChallengeController extends ChangeNotifier {
@@ -22,10 +22,10 @@ class ZoomChallengeController extends ChangeNotifier {
     required double initialValue,
   }) : _animationController = AnimationController(
     vsync: vsync,
-    duration: const Duration(milliseconds: 500), // Duration of the animation
+    duration: const Duration(milliseconds: 500), 
     value: initialValue,
   ), _initialValue = initialValue {
-    _animationController.addListener(notifyListeners); // Notify the UI to rebuild
+    _animationController.addListener(notifyListeners); 
   }
 
   void startChallenge() {
