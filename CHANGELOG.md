@@ -1,4 +1,12 @@
 # Changelog
+## Version 0.3.7 - May 22, 2026
+
+### Bug Fixes
+
+#### Critical: iOS plugin missing from published package
+* Fixed `.pubignore` that incorrectly excluded `ios/` and `android/` directories — users on 0.3.5 saw `Module 'smart_liveliness_detection' not found` at build time because the podspec and Swift source files were absent from the pub.dev tarball
+* Replaced broad platform-folder exclusions with targeted exclusions for build artifacts only (`ios/build/`, `ios/Pods/`, `ios/.symlinks/`, `android/build/`, etc.) so `ios/Classes/`, `ios/smart_liveliness_detection.podspec`, and `android/src/` are now correctly published
+
 ## Version 0.3.6 - April 25, 2026
 * Minor bug fixes and stability improvements
 

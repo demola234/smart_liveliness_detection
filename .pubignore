@@ -6,9 +6,16 @@ build/
 **/.gradle/
 **/.dart_tool/
 
-# Platform folders - not needed for pure Flutter packages
-ios/
-android/
+# Platform-specific build artifacts (keep source dirs for plugin)
+ios/build/
+ios/Pods/
+ios/.symlinks/
+ios/Runner/
+ios/Runner.xcworkspace/
+ios/Flutter/
+android/build/
+android/.gradle/
+android/local.properties
 
 # IDE
 .vscode/
