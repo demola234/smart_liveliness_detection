@@ -1,5 +1,5 @@
 # Changelog
-## Version 0.3.7 - May 22, 2026
+## Version 0.3.9 - May 22, 2026
 
 ### Bug Fixes
 
