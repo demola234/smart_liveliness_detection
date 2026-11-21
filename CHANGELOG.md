@@ -1,4 +1,19 @@
 # Changelog
+## Version 0.4.0 - November 21, 2026
+
+### Breaking Changes
+* Minimum requirements raised to **Flutter 3.47.0** and **Dart 3.13.0**
+* Migrated from the deprecated `package:flutter/material.dart` to `package:material_ui/material_ui.dart` (new dependency: `material_ui: ^1.11.1`)
+* Upgraded `google_mlkit_face_detection` from `^0.13.2` to `^1.0.3`. On iOS it is now distributed only as a Swift package: apps need iOS 15.0+ and Swift Package Manager enabled (Flutter's default)
+* Removed the unused `cupertino_icons` dependency
+
+### Improvements
+* Added Swift Package Manager support on iOS (`ios/smart_liveliness_detection/Package.swift`). The podspec is kept, but CocoaPods-only iOS builds are no longer possible because `google_mlkit_face_detection` 1.x ships without one
+* iOS Swift sources moved from `ios/Classes/` to `ios/smart_liveliness_detection/Sources/smart_liveliness_detection/`
+* The example app is now included in the published package
+* Added API documentation for the library, bundled asset paths and `BackgroundGlowPainter`
+* Resolved all analyzer lints and reformatted code with the Dart 3.13 formatter
+
 ## Version 0.3.9 - May 22, 2026
 
 ### Bug Fixes

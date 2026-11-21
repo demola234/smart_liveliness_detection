@@ -1,12 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class LivenessProgressBar extends StatelessWidget {
   final double progress;
 
-  const LivenessProgressBar({
-    super.key,
-    required this.progress,
-  });
+  const LivenessProgressBar({super.key, required this.progress});
 
   @override
   Widget build(BuildContext context) {

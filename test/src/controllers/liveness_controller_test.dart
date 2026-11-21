@@ -22,7 +22,7 @@ class FakeTickerProvider implements TickerProvider {
   FaceDetectionService,
   MotionService,
   VoiceGuidanceService,
-  LivenessSession
+  LivenessSession,
 ])
 class MockCameraController extends Mock implements CameraController {}
 
@@ -40,9 +40,10 @@ void main() {
   setUp(() async {
     final fakeCamera = [
       FakeCameraDescription(
-          name: '0',
-          lensDirection: CameraLensDirection.front,
-          sensorOrientation: 0)
+        name: '0',
+        lensDirection: CameraLensDirection.front,
+        sensorOrientation: 0,
+      ),
     ];
     // Create Mocks
     mockCameraService = MockCameraService();
@@ -85,7 +86,9 @@ void main() {
       await Future.delayed(Duration.zero);
 
       expect(
-          controller.statusMessage, equals('Position your face in the oval'));
+        controller.statusMessage,
+        equals('Position your face in the oval'),
+      );
     });
 
     test('currentState starts as LivenessState.initial', () async {
@@ -102,35 +105,42 @@ void main() {
       expect(controller.progress, equals(0.0));
     });
 
-    test('given voice guidance is enabled, voiceGuidanceConfig is not null',
-        () {
-      // Arrange & Act
-      const voiceGuidanceConfig =
-          LivenessConfig(voiceGuidance: VoiceGuidanceConfig(enabled: true));
+    test(
+      'given voice guidance is enabled, voiceGuidanceConfig is not null',
+      () {
+        // Arrange & Act
+        const voiceGuidanceConfig = LivenessConfig(
+          voiceGuidance: VoiceGuidanceConfig(enabled: true),
+        );
 
-      // Assert
-      expect(voiceGuidanceConfig.voiceGuidance, isNotNull);
-    });
+        // Assert
+        expect(voiceGuidanceConfig.voiceGuidance, isNotNull);
+      },
+    );
 
     test('given voice guidance is disabled, voiceGuidanceConfig is null', () {
       // Arrange & Act
-      const voiceGuidanceConfig =
-          LivenessConfig(voiceGuidance: VoiceGuidanceConfig(enabled: false));
+      const voiceGuidanceConfig = LivenessConfig(
+        voiceGuidance: VoiceGuidanceConfig(enabled: false),
+      );
 
       // Assert
       expect(voiceGuidanceConfig.voiceGuidance?.enabled, isFalse);
     });
 
-    test('given voice guidance is enabled, the service is initialized',
-        () async {
-      // Arrange & Act
-      const voiceGuidanceConfig =
-          LivenessConfig(voiceGuidance: VoiceGuidanceConfig(enabled: true));
-      controller.updateConfig(voiceGuidanceConfig);
+    test(
+      'given voice guidance is enabled, the service is initialized',
+      () async {
+        // Arrange & Act
+        const voiceGuidanceConfig = LivenessConfig(
+          voiceGuidance: VoiceGuidanceConfig(enabled: true),
+        );
+        controller.updateConfig(voiceGuidanceConfig);
 
-      // Assert
-      expect(controller.config.voiceGuidance?.enabled, isTrue);
-    });
+        // Assert
+        expect(controller.config.voiceGuidance?.enabled, isTrue);
+      },
+    );
 
     test('initialization calls camera and motion service methods', () async {
       // Wait for async initialization to complete
@@ -147,9 +157,7 @@ void main() {
 
   group('LivenessController - updateConfig', () {
     test('updateConfig updates the config', () {
-      const newConfig = LivenessConfig(
-        alwaysIncludeBlink: false,
-      );
+      const newConfig = LivenessConfig(alwaysIncludeBlink: false);
 
       controller.updateConfig(newConfig);
 

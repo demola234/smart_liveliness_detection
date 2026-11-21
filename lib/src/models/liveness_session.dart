@@ -5,7 +5,6 @@ import 'package:smart_liveliness_detection/src/models/challenge.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 import 'package:uuid/uuid.dart';
 
-
 /// Represents a liveness detection session
 class LivenessSession {
   /// Unique identifier for this session
@@ -33,8 +32,8 @@ class LivenessSession {
     String? sessionId,
     DateTime? startTime,
     this.metadata,
-  })  : sessionId = sessionId ?? const Uuid().v4(),
-        startTime = startTime ?? DateTime.now();
+  }) : sessionId = sessionId ?? const Uuid().v4(),
+       startTime = startTime ?? DateTime.now();
 
   /// Get the current challenge, if any
   Challenge? get currentChallenge {
@@ -90,7 +89,7 @@ class LivenessSession {
       ChallengeType.nod,
       ChallengeType.tiltDown,
       ChallengeType.tiltUp,
-      ChallengeType.normal
+      ChallengeType.normal,
     ];
 
     final List<Challenge> challenges = [];
@@ -100,7 +99,8 @@ class LivenessSession {
       String? customInstruction =
           config.challengeInstructions?[ChallengeType.blink];
       challenges.add(
-          Challenge(ChallengeType.blink, customInstruction: customInstruction));
+        Challenge(ChallengeType.blink, customInstruction: customInstruction),
+      );
       allChallenges.remove(ChallengeType.blink);
     }
 
@@ -110,10 +110,12 @@ class LivenessSession {
         ? config.numberOfRandomChallenges - 1
         : config.numberOfRandomChallenges;
 
-    challenges.addAll(allChallenges.take(remainingChallenges).map((type) {
-      String? customInstruction = config.challengeInstructions?[type];
-      return Challenge(type, customInstruction: customInstruction);
-    }));
+    challenges.addAll(
+      allChallenges.take(remainingChallenges).map((type) {
+        String? customInstruction = config.challengeInstructions?[type];
+        return Challenge(type, customInstruction: customInstruction);
+      }),
+    );
 
     // Shuffle the challenges if blink isn't first
     if (!config.alwaysIncludeBlink ||

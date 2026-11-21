@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../config/app_config.dart';
 import '../config/theme_config.dart';
@@ -102,7 +102,7 @@ class _FuturisticOvalOverlayState extends State<FuturisticOvalOverlay>
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: Listenable.merge([_pulse, _scan, _idle]),
-        builder: (_, __) => CustomPaint(
+        builder: (_, _) => CustomPaint(
           size: Size.infinite,
           painter: _FuturisticOvalPainter(
             isFaceDetected: widget.isFaceDetected,
@@ -131,9 +131,9 @@ class _FuturisticOvalPainter extends CustomPainter {
   final LivenessUiStyle style;
   final Color accentColor;
   final Color backgroundColor;
-  final double pulse;       // 0.0 – 1.0, smooth oscillation
-  final double scanValue;   // 0.0 – 1.0, linear sweep
-  final double idleTime;    // 0.0 – 60.0, for style painter loops
+  final double pulse; // 0.0 – 1.0, smooth oscillation
+  final double scanValue; // 0.0 – 1.0, linear sweep
+  final double idleTime; // 0.0 – 60.0, for style painter loops
   final double zoomFactor;
 
   _FuturisticOvalPainter({
@@ -156,7 +156,8 @@ class _FuturisticOvalPainter extends CustomPainter {
     final ovalHeight = size.height * config.ovalHeightRatio;
     final ovalWidth = ovalHeight * config.ovalWidthRatio;
     const double initialScale = 0.7;
-    final double currentScale = initialScale + (1.0 - initialScale) * zoomFactor;
+    final double currentScale =
+        initialScale + (1.0 - initialScale) * zoomFactor;
     return Rect.fromCenter(
       center: center,
       width: ovalWidth * currentScale,
@@ -166,9 +167,9 @@ class _FuturisticOvalPainter extends CustomPainter {
 
   /// Point on an ellipse at [angle].
   Offset _ovalPoint(Rect oval, double angle) => Offset(
-        oval.center.dx + (oval.width / 2) * math.cos(angle),
-        oval.center.dy + (oval.height / 2) * math.sin(angle),
-      );
+    oval.center.dx + (oval.width / 2) * math.cos(angle),
+    oval.center.dy + (oval.height / 2) * math.sin(angle),
+  );
 
   // ── Paint ─────────────────────────────────────────────────────────────────
 
@@ -207,9 +208,9 @@ class _FuturisticOvalPainter extends CustomPainter {
     final blurRadius = switch (style) {
       LivenessUiStyle.singularity => 22.0,
       LivenessUiStyle.liquidMetal => 6.0,
-      LivenessUiStyle.monolith    => 4.0,
-      LivenessUiStyle.cosmos      => 18.0,
-      _                           => 14.0,
+      LivenessUiStyle.monolith => 4.0,
+      LivenessUiStyle.cosmos => 18.0,
+      _ => 14.0,
     };
     canvas.drawOval(
       oval,
@@ -285,9 +286,14 @@ class _FuturisticOvalPainter extends CustomPainter {
       final size = 1.8 + twinkle * 2.8;
       final alpha = 0.35 + twinkle * 0.65;
 
-      _drawStar4(canvas, pt, size, Paint()
-        ..color = accentColor.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill);
+      _drawStar4(
+        canvas,
+        pt,
+        size,
+        Paint()
+          ..color = accentColor.withValues(alpha: alpha)
+          ..style = PaintingStyle.fill,
+      );
     }
   }
 
@@ -297,7 +303,8 @@ class _FuturisticOvalPainter extends CustomPainter {
       final outerA = i * math.pi / 2 - math.pi / 4;
       final innerA = outerA + math.pi / 4;
       final op = c + Offset(math.cos(outerA) * r, math.sin(outerA) * r);
-      final ip = c + Offset(math.cos(innerA) * r * 0.38, math.sin(innerA) * r * 0.38);
+      final ip =
+          c + Offset(math.cos(innerA) * r * 0.38, math.sin(innerA) * r * 0.38);
       if (i == 0) {
         path.moveTo(op.dx, op.dy);
       } else {
@@ -329,7 +336,9 @@ class _FuturisticOvalPainter extends CustomPainter {
         drawAngle,
         false,
         Paint()
-          ..color = accentColor.withValues(alpha: brightness * (0.65 + 0.3 * pulse))
+          ..color = accentColor.withValues(
+            alpha: brightness * (0.65 + 0.3 * pulse),
+          )
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0
           ..strokeCap = StrokeCap.butt,
@@ -360,9 +369,12 @@ class _FuturisticOvalPainter extends CustomPainter {
         ..lineTo(pt.dx, pt.dy + size)
         ..lineTo(pt.dx - size * 0.6, pt.dy)
         ..close();
-      canvas.drawPath(diamond, Paint()
-        ..color = accentColor.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill);
+      canvas.drawPath(
+        diamond,
+        Paint()
+          ..color = accentColor.withValues(alpha: alpha)
+          ..style = PaintingStyle.fill,
+      );
     }
   }
 
@@ -434,7 +446,10 @@ class _FuturisticOvalPainter extends CustomPainter {
 
     for (var i = 0; i < nodeCount; i++) {
       final dist = ((i - wavePos) % nodeCount + nodeCount) % nodeCount;
-      final wave = math.max(0.0, 1.0 - (dist < nodeCount / 2 ? dist : nodeCount - dist) / 3.0);
+      final wave = math.max(
+        0.0,
+        1.0 - (dist < nodeCount / 2 ? dist : nodeCount - dist) / 3.0,
+      );
       final alpha = 0.25 + 0.75 * wave;
       final radius = 2.5 + 3.0 * wave;
 
@@ -465,9 +480,9 @@ class _FuturisticOvalPainter extends CustomPainter {
     // Each point on the oval is nudged radially by two overlapping sine waves
     // whose phases advance with idleTime, making the border continuously ripple.
     const int steps = 200;
-    const double ampA = 4.5;    // primary ripple amplitude (px)
-    const double ampB = 2.0;    // secondary ripple amplitude
-    const double wavesA = 6.0;  // primary cycles around the oval
+    const double ampA = 4.5; // primary ripple amplitude (px)
+    const double ampB = 2.0; // secondary ripple amplitude
+    const double wavesA = 6.0; // primary cycles around the oval
     const double wavesB = 13.0; // secondary cycles
 
     final double phaseA = idleTime * 2.2;
@@ -480,9 +495,15 @@ class _FuturisticOvalPainter extends CustomPainter {
       final double ripple =
           math.sin(angle * wavesA + phaseA) * ampA * breathe +
           math.sin(angle * wavesB + phaseB) * ampB;
-      final double x = oval.center.dx + (oval.width / 2 + ripple) * math.cos(angle);
-      final double y = oval.center.dy + (oval.height / 2 + ripple) * math.sin(angle);
-      if (i == 0) { fluidPath.moveTo(x, y); } else { fluidPath.lineTo(x, y); }
+      final double x =
+          oval.center.dx + (oval.width / 2 + ripple) * math.cos(angle);
+      final double y =
+          oval.center.dy + (oval.height / 2 + ripple) * math.sin(angle);
+      if (i == 0) {
+        fluidPath.moveTo(x, y);
+      } else {
+        fluidPath.lineTo(x, y);
+      }
     }
     fluidPath.close();
 
@@ -561,17 +582,29 @@ class _FuturisticOvalPainter extends CustomPainter {
       final innerScale = isCardinal
           ? innerScales[2]
           : isMajor
-              ? innerScales[1]
-              : innerScales[0];
+          ? innerScales[1]
+          : innerScales[0];
 
       final outerPt = _ovalPoint(oval, angle);
       final innerPt = _ovalPoint(
-        Rect.fromCenter(center: oval.center, width: oval.width * innerScale, height: oval.height * innerScale),
+        Rect.fromCenter(
+          center: oval.center,
+          width: oval.width * innerScale,
+          height: oval.height * innerScale,
+        ),
         angle,
       );
 
-      final alpha = isCardinal ? 1.0 : isMajor ? 0.72 : 0.32;
-      final strokeW = isCardinal ? 2.2 : isMajor ? 1.5 : 0.8;
+      final alpha = isCardinal
+          ? 1.0
+          : isMajor
+          ? 0.72
+          : 0.32;
+      final strokeW = isCardinal
+          ? 2.2
+          : isMajor
+          ? 1.5
+          : 0.8;
 
       canvas.drawLine(
         outerPt,
@@ -689,8 +722,18 @@ class _FuturisticOvalPainter extends CustomPainter {
       final perpAngle = angle + math.pi / 2;
       const notchHalfW = 4.5;
 
-      final leftPt = outerPt + Offset(math.cos(perpAngle) * notchHalfW, math.sin(perpAngle) * notchHalfW);
-      final rightPt = outerPt - Offset(math.cos(perpAngle) * notchHalfW, math.sin(perpAngle) * notchHalfW);
+      final leftPt =
+          outerPt +
+          Offset(
+            math.cos(perpAngle) * notchHalfW,
+            math.sin(perpAngle) * notchHalfW,
+          );
+      final rightPt =
+          outerPt -
+          Offset(
+            math.cos(perpAngle) * notchHalfW,
+            math.sin(perpAngle) * notchHalfW,
+          );
 
       final notchPath = Path()
         ..moveTo(leftPt.dx, leftPt.dy)
@@ -809,14 +852,16 @@ class _FuturisticOvalPainter extends CustomPainter {
 
       // Bubble fill (very transparent)
       canvas.drawCircle(
-        pt, bubbleR,
+        pt,
+        bubbleR,
         Paint()
           ..color = accentColor.withValues(alpha: alpha * 0.25)
           ..style = PaintingStyle.fill,
       );
       // Bubble rim
       canvas.drawCircle(
-        pt, bubbleR,
+        pt,
+        bubbleR,
         Paint()
           ..color = accentColor.withValues(alpha: alpha)
           ..style = PaintingStyle.stroke
@@ -844,7 +889,11 @@ class _FuturisticOvalPainter extends CustomPainter {
       // Stroke width simulates brush pressure variation
       final width = 1.2 + rng.nextDouble() * 4.5;
       // Ink color shifts slightly toward black (sumi-e ink)
-      final inkColor = Color.lerp(accentColor, Colors.black87, rng.nextDouble() * 0.4)!;
+      final inkColor = Color.lerp(
+        accentColor,
+        Colors.black87,
+        rng.nextDouble() * 0.4,
+      )!;
 
       canvas.drawArc(
         oval,
@@ -875,14 +924,20 @@ class _FuturisticOvalPainter extends CustomPainter {
 
   void _drawCornerBrackets(Canvas canvas, Rect oval) {
     // Organic styles get small dot markers instead of hard L-brackets
-    final isOrganic = style == LivenessUiStyle.cosmos ||
+    final isOrganic =
+        style == LivenessUiStyle.cosmos ||
         style == LivenessUiStyle.sumi ||
         style == LivenessUiStyle.floating;
 
     if (isOrganic) {
       // Four soft corner dots
       const alpha = 0.65;
-      final corners = [oval.topLeft, oval.topRight, oval.bottomLeft, oval.bottomRight];
+      final corners = [
+        oval.topLeft,
+        oval.topRight,
+        oval.bottomLeft,
+        oval.bottomRight,
+      ];
       for (final c in corners) {
         canvas.drawCircle(
           c,
@@ -969,8 +1024,10 @@ class _FuturisticOvalPainter extends CustomPainter {
     // Glowing leading-tip dot
     if (sweepAngle > 0.05) {
       final tipAngle = startAngle + sweepAngle;
-      final tipX = outerRect.center.dx + (outerRect.width / 2) * math.cos(tipAngle);
-      final tipY = outerRect.center.dy + (outerRect.height / 2) * math.sin(tipAngle);
+      final tipX =
+          outerRect.center.dx + (outerRect.width / 2) * math.cos(tipAngle);
+      final tipY =
+          outerRect.center.dy + (outerRect.height / 2) * math.sin(tipAngle);
       canvas.drawCircle(
         Offset(tipX, tipY),
         6,
@@ -978,11 +1035,7 @@ class _FuturisticOvalPainter extends CustomPainter {
           ..color = accentColor.withValues(alpha: 0.8)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
       );
-      canvas.drawCircle(
-        Offset(tipX, tipY),
-        2.8,
-        Paint()..color = accentColor,
-      );
+      canvas.drawCircle(Offset(tipX, tipY), 2.8, Paint()..color = accentColor);
     }
   }
 

@@ -35,10 +35,10 @@ class BiometricTemplate {
   });
 
   Map<String, dynamic> toMap() => {
-        'encodedVector': encodedVector,
-        'algorithm': algorithm.name,
-        'sessionId': sessionId,
-        'createdAt': createdAt.toIso8601String(),
-        'featureCount': featureCount,
-      };
+    'encodedVector': encodedVector,
+    'algorithm': algorithm.name,
+    'sessionId': sessionId,
+    'createdAt': createdAt.toIso8601String(),
+    'featureCount': featureCount,
+  };
 }

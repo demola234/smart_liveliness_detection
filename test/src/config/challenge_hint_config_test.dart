@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
 
@@ -46,7 +46,9 @@ void main() {
       expect(updatedConfig.isLottie, equals(false));
       expect(updatedConfig.hintStyle, equals(ChallengeHintStyle.neon));
       expect(
-          updatedConfig.hintAnimation, equals(ChallengeHintAnimation.scaleIn));
+        updatedConfig.hintAnimation,
+        equals(ChallengeHintAnimation.scaleIn),
+      );
       expect(updatedConfig.accentColor, equals(Colors.cyanAccent));
     });
   });
@@ -66,7 +68,9 @@ void main() {
       expect(defaultConfig.isLottie, equals(false));
       expect(defaultConfig.hintStyle, equals(ChallengeHintStyle.plain));
       expect(
-          defaultConfig.hintAnimation, equals(ChallengeHintAnimation.scaleIn));
+        defaultConfig.hintAnimation,
+        equals(ChallengeHintAnimation.scaleIn),
+      );
       expect(defaultConfig.accentColor, isNull);
     });
   });

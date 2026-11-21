@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
@@ -16,16 +16,33 @@ import 'package:smart_liveliness_detection/src/widgets/challenge_hint_widget.dar
 typedef ChallengeCompletedCallback = void Function(ChallengeType challengeType);
 
 /// Callback type for when liveness verification is completed
-typedef LivenessCompletedCallback = void Function(String sessionId, bool isSuccessful, Map<String, dynamic> data);
+typedef LivenessCompletedCallback = void Function(
+  String sessionId,
+  bool isSuccessful,
+  Map<String, dynamic> data,
+);
 
 /// Callback type for when final image is captured with metadata
-typedef FinalImageCapturedCallback = void Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata);
+typedef FinalImageCapturedCallback = void Function(
+  String sessionId,
+  XFile imageFile,
+  Map<String, dynamic> metadata,
+);
 
 /// Callback type for when face is detected
-typedef FaceDetectedCallback = void Function(ChallengeType challengeType, bool firstChallengePassed, CameraImage image, List<Face> faces, CameraDescription camera);
+typedef FaceDetectedCallback = void Function(
+  ChallengeType challengeType,
+  bool firstChallengePassed,
+  CameraImage image,
+  List<Face> faces,
+  CameraDescription camera,
+);
 
 /// Callback type for when face is NOT detected (It will trigger the first face non-detection event after any face detection)
-typedef FaceNotDetectedCallback = void Function(ChallengeType challengeType, LivenessController controller);
+typedef FaceNotDetectedCallback = void Function(
+  ChallengeType challengeType,
+  LivenessController controller,
+);
 
 /// Callback type for face quality scoring results
 typedef FaceQualityCallback = void Function(FaceQualityResult result);
@@ -132,7 +149,8 @@ class LivenessDetectionScreen extends StatefulWidget {
   });
 
   @override
-  State<LivenessDetectionScreen> createState() => _LivenessDetectionScreenState();
+  State<LivenessDetectionScreen> createState() =>
+      _LivenessDetectionScreenState();
 }
 
 class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
@@ -170,9 +188,11 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
       theme: widget.theme,
       onChallengeCompleted: widget.onChallengeCompleted,
       // Make sure this is using the same type
-      onLivenessCompleted: widget.onLivenessCompleted != null ? (sessionId, isSuccessful, data) {
-        widget.onLivenessCompleted!(sessionId, isSuccessful, data!);
-      } : null,
+      onLivenessCompleted: widget.onLivenessCompleted != null
+          ? (sessionId, isSuccessful, data) {
+              widget.onLivenessCompleted!(sessionId, isSuccessful, data!);
+            }
+          : null,
       onFinalImageCaptured: _handleFinalImageCaptured,
       captureFinalImage: widget.captureFinalImage,
       onFaceDetected: widget.onFaceDetected,
@@ -184,7 +204,11 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  void _handleFinalImageCaptured(String sessionId, XFile imageFile, Map<String, dynamic> metadata) {
+  void _handleFinalImageCaptured(
+    String sessionId,
+    XFile imageFile,
+    Map<String, dynamic> metadata,
+  ) {
     setState(() {
       _finalImage = imageFile;
     });
@@ -238,44 +262,49 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _controller,
-      child: Builder(builder: (context) {
-        // If we have a final image and custom success overlay isn't provided,
-        // use our own success overlay with the captured image
-        Widget? successOverlay = widget.customSuccessOverlay;
-        if (successOverlay == null &&
-            _finalImage != null &&
-            widget.captureFinalImage) {
-          successOverlay = _buildSuccessWithImage(context);
-        }
+      child: Builder(
+        builder: (context) {
+          // If we have a final image and custom success overlay isn't provided,
+          // use our own success overlay with the captured image
+          Widget? successOverlay = widget.customSuccessOverlay;
+          if (successOverlay == null &&
+              _finalImage != null &&
+              widget.captureFinalImage) {
+            successOverlay = _buildSuccessWithImage(context);
+          }
 
-        final flashColor =
-            context.watch<LivenessController>().activeFlashColor;
+          final flashColor = context
+              .watch<LivenessController>()
+              .activeFlashColor;
 
-        return Stack(
-          children: [
-            LivenessDetectionView(
-              initializingMessage: widget.config?.messages.initializingCamera,
-              showAppBar: widget.showAppBar,
-              customAppBar: widget.customAppBar,
-              customSuccessOverlay: successOverlay,
-              showStatusIndicators: widget.showStatusIndicators,
-              showCaptureImageButton: widget.showCaptureImageButton,
-              onImageCaptured: _handleManualCapture,
-              captureButtonText: widget.captureButtonText,
-              useColorProgress: widget.useColorProgress,
-              painterStyle: widget.painterStyle,
-              allowStyleChange: widget.allowStyleChange,
-              futuristicBarHeight: widget.futuristicBarHeight,
-            ),
-            if (flashColor != null)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: ColoredBox(color: flashColor.withValues(alpha: 0.85)),
-                ),
+          return Stack(
+            children: [
+              LivenessDetectionView(
+                initializingMessage: widget.config?.messages.initializingCamera,
+                showAppBar: widget.showAppBar,
+                customAppBar: widget.customAppBar,
+                customSuccessOverlay: successOverlay,
+                showStatusIndicators: widget.showStatusIndicators,
+                showCaptureImageButton: widget.showCaptureImageButton,
+                onImageCaptured: _handleManualCapture,
+                captureButtonText: widget.captureButtonText,
+                useColorProgress: widget.useColorProgress,
+                painterStyle: widget.painterStyle,
+                allowStyleChange: widget.allowStyleChange,
+                futuristicBarHeight: widget.futuristicBarHeight,
               ),
-          ],
-        );
-      }),
+              if (flashColor != null)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: ColoredBox(
+                      color: flashColor.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -301,8 +330,9 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
           isSuccessful: controller.isVerificationSuccessful,
           showCaptureImageButton: widget.showCaptureImageButton,
           captureButtonText: widget.captureButtonText,
-          onCaptureImage:
-              widget.showCaptureImageButton ? _handleManualCapture : null,
+          onCaptureImage: widget.showCaptureImageButton
+              ? _handleManualCapture
+              : null,
         ),
         Positioned(
           bottom: 120,
@@ -323,10 +353,7 @@ class _LivenessDetectionScreenState extends State<LivenessDetectionScreen>
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(
-                      color: theme.successColor,
-                      width: 2,
-                    ),
+                    border: Border.all(color: theme.successColor, width: 2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Image.file(
@@ -457,18 +484,18 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
     // Build app bar if enabled
     final appBar = widget.showAppBar
         ? widget.customAppBar ??
-            AppBar(
-              title: const Text('Face Liveness Detection'),
-              backgroundColor: theme.appBarBackgroundColor,
-              foregroundColor: theme.appBarTextColor,
-              elevation: 0,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: controller.resetSession,
-                ),
-              ],
-            )
+              AppBar(
+                title: const Text('Face Liveness Detection'),
+                backgroundColor: theme.appBarBackgroundColor,
+                foregroundColor: theme.appBarTextColor,
+                elevation: 0,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: controller.resetSession,
+                  ),
+                ],
+              )
         : null;
 
     // When a futuristic style is active, tint the whole screen with its
@@ -498,7 +525,9 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
                     isFaceDetected: controller.isFaceDetected,
                     config: controller.config,
                     theme: controller.theme,
-                    progress: widget.useColorProgress ? controller.progress : 0.0,
+                    progress: widget.useColorProgress
+                        ? controller.progress
+                        : 0.0,
                     style: _currentStyle!,
                     zoomFactor: controller.zoomFactor,
                   )
@@ -508,7 +537,9 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
                     isFaceDetected: controller.isFaceDetected,
                     config: controller.config,
                     theme: controller.theme,
-                    progress: widget.useColorProgress ? controller.progress : 0.0,
+                    progress: widget.useColorProgress
+                        ? controller.progress
+                        : 0.0,
                     startColor: theme.primaryColor,
                     endColor: theme.successColor,
                   ),
@@ -535,7 +566,8 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
 
                 // Status message
                 Positioned(
-                  top: (widget.showAppBar ? kToolbarHeight : 0) +
+                  top:
+                      (widget.showAppBar ? kToolbarHeight : 0) +
                       mediaQuery.padding.top +
                       20,
                   left: 20,
@@ -564,7 +596,8 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
                   ),
 
                 // Challenge hint widget
-                if (controller.currentState == LivenessState.performingChallenges &&
+                if (controller.currentState ==
+                        LivenessState.performingChallenges &&
                     controller.session.currentChallenge != null)
                   _buildChallengeHint(
                     controller,
@@ -578,11 +611,8 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
                     bottom: 40 + mediaQuery.padding.bottom,
                     left: 20,
                     right: 20,
-                    child: LivenessProgressBar(
-                      progress: controller.progress,
-                    ),
+                    child: LivenessProgressBar(progress: controller.progress),
                   ),
-
 
                 // ── Style-picker floating button ──────────────────────────
                 if (_currentStyle != null && widget.allowStyleChange)
@@ -595,8 +625,9 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: _currentStyle!.theme.accentColor
-                              .withValues(alpha: 0.15),
+                          color: _currentStyle!.theme.accentColor.withValues(
+                            alpha: 0.15,
+                          ),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: _currentStyle!.theme.accentColor,
@@ -659,7 +690,8 @@ class _LivenessDetectionViewState extends State<LivenessDetectionView> {
     final config = controller.config;
     final currentChallenge = controller.session.currentChallenge!;
 
-    final hintConfig = config.challengeHints?[currentChallenge.type] ??
+    final hintConfig =
+        config.challengeHints?[currentChallenge.type] ??
         config.defaultChallengeHintConfig;
 
     if (hintConfig == null || !hintConfig.enabled) {

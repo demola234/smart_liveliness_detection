@@ -8,11 +8,12 @@ void main() {
     test('copyWith creates a new instance with updated values', () {
       // Arrange & Act
       final updatedConfig = voiceGuidanceConfig.copyWith(
-          enabled: false,
-          language: 'es',
-          volume: 0.8,
-          pitch: 1.2,
-          speakPositioningFeedback: true);
+        enabled: false,
+        language: 'es',
+        volume: 0.8,
+        pitch: 1.2,
+        speakPositioningFeedback: true,
+      );
 
       // Assert
       expect(updatedConfig, isNot(same(voiceGuidanceConfig)));
@@ -32,8 +33,10 @@ void main() {
       expect(updatedConfig.language, equals(voiceGuidanceConfig.language));
       expect(updatedConfig.volume, equals(voiceGuidanceConfig.volume));
       expect(updatedConfig.pitch, equals(voiceGuidanceConfig.pitch));
-      expect(updatedConfig.speakChallengeInstructions,
-          equals(voiceGuidanceConfig.speakChallengeInstructions));
+      expect(
+        updatedConfig.speakChallengeInstructions,
+        equals(voiceGuidanceConfig.speakChallengeInstructions),
+      );
     });
   });
 
@@ -54,8 +57,10 @@ void main() {
 
       // Assert
       expect(accessibilityConfig.speechRate, equals(0.4));
-      expect(accessibilityConfig.repeatInterval,
-          equals(const Duration(seconds: 2)));
+      expect(
+        accessibilityConfig.repeatInterval,
+        equals(const Duration(seconds: 2)),
+      );
     });
   });
 }

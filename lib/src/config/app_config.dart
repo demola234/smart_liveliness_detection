@@ -160,6 +160,7 @@ class LivenessConfig {
 
   /// Interval for automatic memory cleanup
   final Duration memoryCleanupInterval;
+
   /// A collection of customizable messages for the liveness UI.
   final LivenessMessages messages;
 
@@ -233,28 +234,38 @@ class LivenessConfig {
     this.maxSessionDuration = LivenessConstants.defaultMaxSessionDuration,
     this.minFaceSize = LivenessConstants.defaultMinFaceSize,
     this.eyeBlinkThresholdOpen = LivenessConstants.defaultEyeBlinkThresholdOpen,
-    this.eyeBlinkThresholdClosed = LivenessConstants.defaultEyeBlinkThresholdClosed,
+    this.eyeBlinkThresholdClosed =
+        LivenessConstants.defaultEyeBlinkThresholdClosed,
     this.smileThresholdNeutral = LivenessConstants.defaultSmileThresholdNeutral,
     this.smileThresholdSmiling = LivenessConstants.defaultSmileThresholdSmiling,
     this.headTurnThreshold = LivenessConstants.defaultHeadTurnThreshold,
     this.minLightingThreshold = LivenessConstants.defaultMinLightingThreshold,
-    this.enableScreenGlareDetection = LivenessConstants.defaultEnableScreenGlareDetection,
+    this.enableScreenGlareDetection =
+        LivenessConstants.defaultEnableScreenGlareDetection,
     this.glareBrightnessFactor = LivenessConstants.defaultGlareBrightnessFactor,
     this.minBrightPercentage = LivenessConstants.defaultMinBrightPercentage,
     this.maxBrightPercentage = LivenessConstants.defaultMaxBrightPercentage,
-    this.enableMotionCorrelationCheck = LivenessConstants.defaultEnableMotionCorrelationCheck,
-    this.enableContourAnalysisOnCentering = LivenessConstants.defaultEnableContourAnalysisOnCentering,
+    this.enableMotionCorrelationCheck =
+        LivenessConstants.defaultEnableMotionCorrelationCheck,
+    this.enableContourAnalysisOnCentering =
+        LivenessConstants.defaultEnableContourAnalysisOnCentering,
     this.contourChallengeTypes,
-    this.minRequiredSecondaryContours = LivenessConstants.defaultMinRequiredSecondaryContours,
-    this.sandwichNormalChallenge = LivenessConstants.defaultSandwichNormalChallenge,
-    this.failOnMotionCorrelationFailedAtTheEnd = LivenessConstants.defaultFailOnMotionCorrelationFailedAtTheEnd,
+    this.minRequiredSecondaryContours =
+        LivenessConstants.defaultMinRequiredSecondaryContours,
+    this.sandwichNormalChallenge =
+        LivenessConstants.defaultSandwichNormalChallenge,
+    this.failOnMotionCorrelationFailedAtTheEnd =
+        LivenessConstants.defaultFailOnMotionCorrelationFailedAtTheEnd,
     this.cameraZoomLevel = LivenessConstants.defaultCameraZoomLevel,
     this.maxMotionReadings = LivenessConstants.defaultMaxMotionReadings,
     this.maxHeadAngleReadings = LivenessConstants.defaultMaxHeadAngleReadings,
-    this.significantHeadMovementStdDev = LivenessConstants.defaultSignificantHeadMovementStdDev,
-    this.minDeviceMovementThreshold = LivenessConstants.defaultMinDeviceMovementThreshold,
+    this.significantHeadMovementStdDev =
+        LivenessConstants.defaultSignificantHeadMovementStdDev,
+    this.minDeviceMovementThreshold =
+        LivenessConstants.defaultMinDeviceMovementThreshold,
     this.enableGyroscopeCheck = LivenessConstants.defaultEnableGyroscopeCheck,
-    this.minGyroscopeMovementThreshold = LivenessConstants.defaultMinGyroscopeMovementThreshold,
+    this.minGyroscopeMovementThreshold =
+        LivenessConstants.defaultMinGyroscopeMovementThreshold,
     this.ovalHeightRatio = LivenessConstants.defaultOvalHeightRatio,
     this.ovalWidthRatio = LivenessConstants.defaultOvalWidthRatio,
     this.strokeWidth = LivenessConstants.defaultStrokeWidth,
@@ -360,65 +371,99 @@ class LivenessConfig {
     return LivenessConfig(
       maxSessionDuration: maxSessionDuration ?? this.maxSessionDuration,
       minFaceSize: minFaceSize ?? this.minFaceSize,
-      eyeBlinkThresholdOpen: eyeBlinkThresholdOpen ?? this.eyeBlinkThresholdOpen,
-      eyeBlinkThresholdClosed: eyeBlinkThresholdClosed ?? this.eyeBlinkThresholdClosed,
-      smileThresholdNeutral: smileThresholdNeutral ?? this.smileThresholdNeutral,
-      smileThresholdSmiling: smileThresholdSmiling ?? this.smileThresholdSmiling,
+      eyeBlinkThresholdOpen:
+          eyeBlinkThresholdOpen ?? this.eyeBlinkThresholdOpen,
+      eyeBlinkThresholdClosed:
+          eyeBlinkThresholdClosed ?? this.eyeBlinkThresholdClosed,
+      smileThresholdNeutral:
+          smileThresholdNeutral ?? this.smileThresholdNeutral,
+      smileThresholdSmiling:
+          smileThresholdSmiling ?? this.smileThresholdSmiling,
       headTurnThreshold: headTurnThreshold ?? this.headTurnThreshold,
       minLightingThreshold: minLightingThreshold ?? this.minLightingThreshold,
-      enableScreenGlareDetection: enableScreenGlareDetection ?? this.enableScreenGlareDetection,
-      glareBrightnessFactor: glareBrightnessFactor ?? this.glareBrightnessFactor,
+      enableScreenGlareDetection:
+          enableScreenGlareDetection ?? this.enableScreenGlareDetection,
+      glareBrightnessFactor:
+          glareBrightnessFactor ?? this.glareBrightnessFactor,
       minBrightPercentage: minBrightPercentage ?? this.minBrightPercentage,
       maxBrightPercentage: maxBrightPercentage ?? this.maxBrightPercentage,
-      enableMotionCorrelationCheck: enableMotionCorrelationCheck ?? this.enableMotionCorrelationCheck,
-      enableContourAnalysisOnCentering: enableContourAnalysisOnCentering ?? this.enableContourAnalysisOnCentering,
-      contourChallengeTypes: contourChallengeTypes ?? this.contourChallengeTypes,
-      minRequiredSecondaryContours: minRequiredSecondaryContours ?? this.minRequiredSecondaryContours,
-      sandwichNormalChallenge: sandwichNormalChallenge ?? this.sandwichNormalChallenge,
-      failOnMotionCorrelationFailedAtTheEnd: failOnMotionCorrelationFailedAtTheEnd ?? this.failOnMotionCorrelationFailedAtTheEnd,
+      enableMotionCorrelationCheck:
+          enableMotionCorrelationCheck ?? this.enableMotionCorrelationCheck,
+      enableContourAnalysisOnCentering:
+          enableContourAnalysisOnCentering ??
+          this.enableContourAnalysisOnCentering,
+      contourChallengeTypes:
+          contourChallengeTypes ?? this.contourChallengeTypes,
+      minRequiredSecondaryContours:
+          minRequiredSecondaryContours ?? this.minRequiredSecondaryContours,
+      sandwichNormalChallenge:
+          sandwichNormalChallenge ?? this.sandwichNormalChallenge,
+      failOnMotionCorrelationFailedAtTheEnd:
+          failOnMotionCorrelationFailedAtTheEnd ??
+          this.failOnMotionCorrelationFailedAtTheEnd,
       cameraZoomLevel: cameraZoomLevel ?? this.cameraZoomLevel,
       maxMotionReadings: maxMotionReadings ?? this.maxMotionReadings,
       maxHeadAngleReadings: maxHeadAngleReadings ?? this.maxHeadAngleReadings,
-      significantHeadMovementStdDev: significantHeadMovementStdDev ?? this.significantHeadMovementStdDev,
-      minDeviceMovementThreshold: minDeviceMovementThreshold ?? this.minDeviceMovementThreshold,
+      significantHeadMovementStdDev:
+          significantHeadMovementStdDev ?? this.significantHeadMovementStdDev,
+      minDeviceMovementThreshold:
+          minDeviceMovementThreshold ?? this.minDeviceMovementThreshold,
       enableGyroscopeCheck: enableGyroscopeCheck ?? this.enableGyroscopeCheck,
-      minGyroscopeMovementThreshold: minGyroscopeMovementThreshold ?? this.minGyroscopeMovementThreshold,
+      minGyroscopeMovementThreshold:
+          minGyroscopeMovementThreshold ?? this.minGyroscopeMovementThreshold,
       ovalHeightRatio: ovalHeightRatio ?? this.ovalHeightRatio,
       ovalWidthRatio: ovalWidthRatio ?? this.ovalWidthRatio,
       strokeWidth: strokeWidth ?? this.strokeWidth,
       initialZoomFactor: initialZoomFactor ?? this.initialZoomFactor,
       guideMarkerRatio: guideMarkerRatio ?? this.guideMarkerRatio,
-      guideMarkerInnerRatio: guideMarkerInnerRatio ?? this.guideMarkerInnerRatio,
+      guideMarkerInnerRatio:
+          guideMarkerInnerRatio ?? this.guideMarkerInnerRatio,
       challengeTypes: challengeTypes ?? this.challengeTypes,
-      numberOfRandomChallenges: numberOfRandomChallenges ?? this.numberOfRandomChallenges,
+      numberOfRandomChallenges:
+          numberOfRandomChallenges ?? this.numberOfRandomChallenges,
       alwaysIncludeBlink: alwaysIncludeBlink ?? this.alwaysIncludeBlink,
-      challengeInstructions: challengeInstructions ?? this.challengeInstructions,
-      enableRelaxedFacePositioningOnTiltDown: enableRelaxedFacePositioningOnTiltDown ?? this.enableRelaxedFacePositioningOnTiltDown,
+      challengeInstructions:
+          challengeInstructions ?? this.challengeInstructions,
+      enableRelaxedFacePositioningOnTiltDown:
+          enableRelaxedFacePositioningOnTiltDown ??
+          this.enableRelaxedFacePositioningOnTiltDown,
       // New parameters
       maxConsecutiveErrors: maxConsecutiveErrors ?? this.maxConsecutiveErrors,
       frameSkipInterval: frameSkipInterval ?? this.frameSkipInterval,
-      maxCameraRestartAttempts: maxCameraRestartAttempts ?? this.maxCameraRestartAttempts,
+      maxCameraRestartAttempts:
+          maxCameraRestartAttempts ?? this.maxCameraRestartAttempts,
       cameraRestartDelay: cameraRestartDelay ?? this.cameraRestartDelay,
-      enableAggressiveErrorRecovery: enableAggressiveErrorRecovery ?? this.enableAggressiveErrorRecovery,
-      imageProcessingTimeout: imageProcessingTimeout ?? this.imageProcessingTimeout,
-      enablePerformanceMonitoring: enablePerformanceMonitoring ?? this.enablePerformanceMonitoring,
-      performanceMonitoringInterval: performanceMonitoringInterval ?? this.performanceMonitoringInterval,
+      enableAggressiveErrorRecovery:
+          enableAggressiveErrorRecovery ?? this.enableAggressiveErrorRecovery,
+      imageProcessingTimeout:
+          imageProcessingTimeout ?? this.imageProcessingTimeout,
+      enablePerformanceMonitoring:
+          enablePerformanceMonitoring ?? this.enablePerformanceMonitoring,
+      performanceMonitoringInterval:
+          performanceMonitoringInterval ?? this.performanceMonitoringInterval,
       maxFrameDropRate: maxFrameDropRate ?? this.maxFrameDropRate,
-      enableAutomaticMemoryCleanup: enableAutomaticMemoryCleanup ?? this.enableAutomaticMemoryCleanup,
-      memoryCleanupInterval: memoryCleanupInterval ?? this.memoryCleanupInterval,
+      enableAutomaticMemoryCleanup:
+          enableAutomaticMemoryCleanup ?? this.enableAutomaticMemoryCleanup,
+      memoryCleanupInterval:
+          memoryCleanupInterval ?? this.memoryCleanupInterval,
       messages: messages ?? this.messages,
-      defaultChallengeHintConfig: defaultChallengeHintConfig ?? this.defaultChallengeHintConfig,
+      defaultChallengeHintConfig:
+          defaultChallengeHintConfig ?? this.defaultChallengeHintConfig,
       challengeHints: challengeHints ?? this.challengeHints,
       voiceGuidance: voiceGuidance ?? this.voiceGuidance,
       screenFlash: screenFlash ?? this.screenFlash,
       depthDetection: depthDetection ?? this.depthDetection,
-      generateBiometricTemplate: generateBiometricTemplate ?? this.generateBiometricTemplate,
+      generateBiometricTemplate:
+          generateBiometricTemplate ?? this.generateBiometricTemplate,
       templateConfig: templateConfig ?? this.templateConfig,
       referenceTemplate: referenceTemplate ?? this.referenceTemplate,
-      biometricMatchThreshold: biometricMatchThreshold ?? this.biometricMatchThreshold,
-      enableFaceQualityScoring: enableFaceQualityScoring ?? this.enableFaceQualityScoring,
+      biometricMatchThreshold:
+          biometricMatchThreshold ?? this.biometricMatchThreshold,
+      enableFaceQualityScoring:
+          enableFaceQualityScoring ?? this.enableFaceQualityScoring,
       minFaceQualityScore: minFaceQualityScore ?? this.minFaceQualityScore,
-      blockChallengesOnLowQuality: blockChallengesOnLowQuality ?? this.blockChallengesOnLowQuality,
+      blockChallengesOnLowQuality:
+          blockChallengesOnLowQuality ?? this.blockChallengesOnLowQuality,
     );
   }
 

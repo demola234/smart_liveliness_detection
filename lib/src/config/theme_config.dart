@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Theme configuration for the Face Liveness Detection package
 class LivenessTheme {
@@ -77,10 +77,7 @@ class LivenessTheme {
       color: Colors.white,
       fontSize: 16,
     ),
-    this.statusTextStyle = const TextStyle(
-      color: Colors.white,
-      fontSize: 16,
-    ),
+    this.statusTextStyle = const TextStyle(color: Colors.white, fontSize: 16),
     this.guidanceTextStyle = const TextStyle(
       color: Color(0xFF2E38B7),
       fontSize: 18,
@@ -91,10 +88,7 @@ class LivenessTheme {
       fontSize: 22,
       fontWeight: FontWeight.bold,
     ),
-    this.sessionIdStyle = const TextStyle(
-      color: Colors.white70,
-      fontSize: 14,
-    ),
+    this.sessionIdStyle = const TextStyle(color: Colors.white70, fontSize: 14),
     this.resetButtonStyle,
     this.progressIndicatorColor = Colors.blue,
     this.progressIndicatorBackgroundColor = Colors.grey,
@@ -145,7 +139,8 @@ class LivenessTheme {
       resetButtonStyle: resetButtonStyle ?? this.resetButtonStyle,
       progressIndicatorColor:
           progressIndicatorColor ?? this.progressIndicatorColor,
-      progressIndicatorBackgroundColor: progressIndicatorBackgroundColor ??
+      progressIndicatorBackgroundColor:
+          progressIndicatorBackgroundColor ??
           this.progressIndicatorBackgroundColor,
       progressIndicatorHeight:
           progressIndicatorHeight ?? this.progressIndicatorHeight,
@@ -182,10 +177,7 @@ class LivenessTheme {
         color: colorScheme.onSurface,
         fontSize: 16,
       ),
-      statusTextStyle: TextStyle(
-        color: colorScheme.onSurface,
-        fontSize: 16,
-      ),
+      statusTextStyle: TextStyle(color: colorScheme.onSurface, fontSize: 16),
       guidanceTextStyle: TextStyle(
         color: colorScheme.primary,
         fontSize: 18,

@@ -19,7 +19,9 @@ void main() {
       expect(updatedConfig.minFaceSize, equals(0.5));
       expect(updatedConfig.alwaysIncludeBlink, isTrue);
       expect(
-          updatedConfig.cameraRestartDelay, equals(const Duration(seconds: 2)));
+        updatedConfig.cameraRestartDelay,
+        equals(const Duration(seconds: 2)),
+      );
     });
 
     test('copyWith retains existing values when parameters are null', () {
@@ -29,10 +31,14 @@ void main() {
       // Assert
       expect(updatedConfig, isNot(same(livenessConfig)));
       expect(updatedConfig.minFaceSize, equals(livenessConfig.minFaceSize));
-      expect(updatedConfig.alwaysIncludeBlink,
-          equals(livenessConfig.alwaysIncludeBlink));
-      expect(updatedConfig.cameraRestartDelay,
-          equals(livenessConfig.cameraRestartDelay));
+      expect(
+        updatedConfig.alwaysIncludeBlink,
+        equals(livenessConfig.alwaysIncludeBlink),
+      );
+      expect(
+        updatedConfig.cameraRestartDelay,
+        equals(livenessConfig.cameraRestartDelay),
+      );
     });
 
     test('LivenessConfig performance values are correct', () {

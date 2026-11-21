@@ -129,8 +129,9 @@ class ScreenFlashService {
     });
 
     // Pass if ≥ 2 colors show a positive delta above threshold
-    final passingColors =
-        deltas.values.where((d) => d >= config.reflectionThreshold).length;
+    final passingColors = deltas.values
+        .where((d) => d >= config.reflectionThreshold)
+        .length;
     final passed = passingColors >= 2;
 
     // Confidence: average positive delta normalised to an expected max of 50
@@ -173,7 +174,8 @@ class ScreenFlashService {
           if (isBGRA) {
             final idx = y * bpr + x * 4;
             if (idx + 2 < bytes.length) {
-              sum += 0.299 * bytes[idx + 2] +
+              sum +=
+                  0.299 * bytes[idx + 2] +
                   0.587 * bytes[idx + 1] +
                   0.114 * bytes[idx];
               count++;

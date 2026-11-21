@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/liveness_controller.dart';
@@ -24,16 +24,16 @@ import '../utils/enums.dart';
 
 /// Maps a [ChallengeType] to a short display emoji/text.
 String _challengeIcon(ChallengeType type) => switch (type) {
-      ChallengeType.blink => '👁',
-      ChallengeType.turnLeft => '←',
-      ChallengeType.turnRight => '→',
-      ChallengeType.smile => '😊',
-      ChallengeType.nod => '↕',
-      ChallengeType.tiltUp => '↑',
-      ChallengeType.tiltDown => '↓',
-      ChallengeType.normal => '😐',
-      ChallengeType.zoom => '🔍',
-    };
+  ChallengeType.blink => '👁',
+  ChallengeType.turnLeft => '←',
+  ChallengeType.turnRight => '→',
+  ChallengeType.smile => '😊',
+  ChallengeType.nod => '↕',
+  ChallengeType.tiltUp => '↑',
+  ChallengeType.tiltDown => '↓',
+  ChallengeType.normal => '😐',
+  ChallengeType.zoom => '🔍',
+};
 
 /// Builds the correct [CustomPainter] for a given [LivenessUiStyle].
 CustomPainter buildStylePainter({
@@ -49,120 +49,120 @@ CustomPainter buildStylePainter({
   final t = themeOverride ?? style.theme;
   return switch (style) {
     LivenessUiStyle.quantum => QuantumPainter(
-        progress: animationValue,
-        totalItems: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      progress: animationValue,
+      totalItems: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.liquidMetal => LiquidMetalPainter(
-        progress: animationValue,
-        totalItems: count,
-        squash: pressValue,
-        theme: t,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      progress: animationValue,
+      totalItems: count,
+      squash: pressValue,
+      theme: t,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.cosmos => CosmosPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.hologram => HologramPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.singularity => SingularityPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.synapse => SynapsePainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.kinetic => KineticPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.prism => PrismPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.obsidian => ObsidianPainter(
-        animationValue: animationValue,
-        count: count,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.monolith => MonolithPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.chronos => ChronosPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.floating => FloatingPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
     LivenessUiStyle.sumi => SumiPainter(
-        animationValue: animationValue,
-        count: count,
-        idleTime: idleTime,
-        theme: t,
-        pressValue: pressValue,
-        customColors: customColors,
-        effectToggles: effectToggles,
-      ),
+      animationValue: animationValue,
+      count: count,
+      idleTime: idleTime,
+      theme: t,
+      pressValue: pressValue,
+      customColors: customColors,
+      effectToggles: effectToggles,
+    ),
   };
 }
 
@@ -320,7 +320,8 @@ class _FuturisticLivenessBarState extends State<FuturisticLivenessBar>
             _ChallengeLabels(
               challenges: _challenges,
               completedIndex: _completedIdx,
-              accentColor: (widget.themeOverride ?? widget.style.theme).accentColor,
+              accentColor:
+                  (widget.themeOverride ?? widget.style.theme).accentColor,
             ),
 
           const SizedBox(height: 6),
@@ -331,7 +332,7 @@ class _FuturisticLivenessBarState extends State<FuturisticLivenessBar>
           RepaintBoundary(
             child: AnimatedBuilder(
               animation: Listenable.merge([_moveCtrl, _idleCtrl, _pressCtrl]),
-              builder: (_, __) {
+              builder: (_, _) {
                 final press = CurvedAnimation(
                   parent: _pressCtrl,
                   curve: Curves.easeOut,
@@ -391,9 +392,7 @@ class _ChallengeLabels extends StatelessWidget {
             children: [
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 300),
-                style: TextStyle(
-                  fontSize: isActive ? 18 : 14,
-                ),
+                style: TextStyle(fontSize: isActive ? 18 : 14),
                 child: Text(icon),
               ),
               const SizedBox(height: 2),
@@ -406,8 +405,8 @@ class _ChallengeLabels extends StatelessWidget {
                   color: isCompleted
                       ? Colors.green
                       : isActive
-                          ? accentColor
-                          : Colors.grey.shade600,
+                      ? accentColor
+                      : Colors.grey.shade600,
                 ),
               ),
             ],
@@ -464,7 +463,7 @@ class _FuturisticBarPreviewState extends State<FuturisticBarPreview>
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: _idle,
-        builder: (_, __) => CustomPaint(
+        builder: (_, _) => CustomPaint(
           size: Size.infinite,
           painter: buildStylePainter(
             style: widget.style,
@@ -538,9 +537,10 @@ class _FuturisticAmbientGlowState extends State<FuturisticAmbientGlow>
     final idx = _bound!.session.currentChallengeIndex;
     if (idx != _lastIndex) {
       final from = _moveAnim.value;
-      _moveAnim = Tween<double>(begin: from, end: idx.toDouble()).animate(
-        CurvedAnimation(parent: _move, curve: Curves.easeInOut),
-      );
+      _moveAnim = Tween<double>(
+        begin: from,
+        end: idx.toDouble(),
+      ).animate(CurvedAnimation(parent: _move, curve: Curves.easeInOut));
       _move
         ..reset()
         ..forward();
@@ -571,7 +571,7 @@ class _FuturisticAmbientGlowState extends State<FuturisticAmbientGlow>
           final itemWidth = constraints.maxWidth / count;
           return AnimatedBuilder(
             animation: Listenable.merge([_idle, _move]),
-            builder: (_, __) {
+            builder: (_, _) {
               final activeX = (_moveAnim.value + 0.5) * itemWidth;
               return CustomPaint(
                 size: Size.infinite,

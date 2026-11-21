@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smart_liveliness_detection/src/config/app_config.dart';
 import 'package:smart_liveliness_detection/src/config/theme_config.dart';
 
@@ -52,13 +52,14 @@ class OvalColorProgressPainter extends CustomPainter {
     // Sets the initial size of the oval (e.g. 70% of the final size)
     const double initialScale = 0.7;
     // Interpolate the current scale based on the zoomFactor.
-    final double currentScale = initialScale + (1.0 - initialScale) * zoomFactor;
+    final double currentScale =
+        initialScale + (1.0 - initialScale) * zoomFactor;
 
     // Apply animation if enabled and available
     final double strokeWidth =
         theme.useOvalPulseAnimation && animationValue != null
-            ? config.strokeWidth * (1.0 + animationValue! * 0.5)
-            : config.strokeWidth;
+        ? config.strokeWidth * (1.0 + animationValue! * 0.5)
+        : config.strokeWidth;
 
     final ovalRect = Rect.fromCenter(
       center: center,
@@ -186,12 +187,10 @@ class _OvalColorProgressOverlayState extends State<OvalColorProgressOverlay>
         vsync: this,
       )..repeat(reverse: true);
 
-      _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: Curves.easeInOut,
-        ),
-      );
+      _animation = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     }
   }
 

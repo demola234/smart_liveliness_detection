@@ -80,10 +80,10 @@ class LivenessMessages {
     this.errorCheckingFacePosition = 'Error checking face position',
 
     // -------------------------------------------------------------------------
-
     this.initializing = 'Initializing...',
     this.initializingCamera = 'Initializing camera...',
-    this.errorInitializingCamera = 'Error initializing camera. Please restart the app.',
+    this.errorInitializingCamera =
+        'Error initializing camera. Please restart the app.',
     this.initialInstruction = 'Position your face in the oval',
     this.poorLighting = 'Please move to a better lit area',
     this.processingVerification = 'Processing verification...',

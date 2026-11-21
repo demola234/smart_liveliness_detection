@@ -24,14 +24,14 @@ class MotionService {
   LivenessConfig _config;
 
   /// Constructor with optional configuration
-  MotionService({
-    LivenessConfig? config,
-  }) : _config = config ?? const LivenessConfig();
+  MotionService({LivenessConfig? config})
+    : _config = config ?? const LivenessConfig();
 
   /// Start tracking device motion
   void startAccelerometerTracking() {
-    _accelerometerSubscription =
-        accelerometerEventStream().listen((AccelerometerEvent event) {
+    _accelerometerSubscription = accelerometerEventStream().listen((
+      AccelerometerEvent event,
+    ) {
       _accelerometerReadings.add(event);
       if (_accelerometerReadings.length > _config.maxMotionReadings) {
         _accelerometerReadings.removeAt(0);
@@ -39,7 +39,9 @@ class MotionService {
     });
 
     if (_config.enableGyroscopeCheck) {
-      _gyroscopeSubscription = gyroscopeEventStream().listen((GyroscopeEvent event) {
+      _gyroscopeSubscription = gyroscopeEventStream().listen((
+        GyroscopeEvent event,
+      ) {
         _gyroscopeReadings.add(event);
         if (_gyroscopeReadings.length > _config.maxMotionReadings) {
           _gyroscopeReadings.removeAt(0);
@@ -55,11 +57,15 @@ class MotionService {
     // Trim readings if the max count was reduced
     if (_accelerometerReadings.length > _config.maxMotionReadings) {
       _accelerometerReadings.removeRange(
-          0, _accelerometerReadings.length - _config.maxMotionReadings);
+        0,
+        _accelerometerReadings.length - _config.maxMotionReadings,
+      );
     }
     if (_gyroscopeReadings.length > _config.maxMotionReadings) {
       _gyroscopeReadings.removeRange(
-          0, _gyroscopeReadings.length - _config.maxMotionReadings);
+        0,
+        _gyroscopeReadings.length - _config.maxMotionReadings,
+      );
     }
   }
 
@@ -69,7 +75,9 @@ class MotionService {
       return 0.0;
     }
     double mean = values.reduce((a, b) => a + b) / values.length;
-    double variance = values.map((x) => math.pow(x - mean, 2)).reduce((a, b) => a + b) / values.length;
+    double variance =
+        values.map((x) => math.pow(x - mean, 2)).reduce((a, b) => a + b) /
+        values.length;
     return math.sqrt(variance);
   }
 
@@ -79,7 +87,9 @@ class MotionService {
     // Fail-safe: if not enough data is available, we cannot prove it is a spoof.
     // Giving the benefit of the doubt to the user to avoid false positives on fast sessions.
     if (headAngleReadings.length < 10 || _accelerometerReadings.length < 10) {
-      debugPrint('Not enough motion data to verify correlation, passing check (benefit of doubt).');
+      debugPrint(
+        'Not enough motion data to verify correlation, passing check (benefit of doubt).',
+      );
       return true;
     }
 
@@ -100,18 +110,25 @@ class MotionService {
     double deviceStdDevZ = _calculateStandardDeviation(deviceAccZ);
 
     // We consider the "device motion" as the maximum deviation observed in any axis.
-    double maxDeviceMotionStdDev = [deviceStdDevX, deviceStdDevY, deviceStdDevZ].reduce(math.max);
+    double maxDeviceMotionStdDev = [
+      deviceStdDevX,
+      deviceStdDevY,
+      deviceStdDevZ,
+    ].reduce(math.max);
 
     debugPrint(
-        'Head StdDev(X:${headAngleStdDevX.toStringAsFixed(2)}, Y:${headAngleStdDevY.toStringAsFixed(2)}) | Device StdDev(Max:${maxDeviceMotionStdDev.toStringAsFixed(2)})');
+      'Head StdDev(X:${headAngleStdDevX.toStringAsFixed(2)}, Y:${headAngleStdDevY.toStringAsFixed(2)}) | Device StdDev(Max:${maxDeviceMotionStdDev.toStringAsFixed(2)})',
+    );
 
     // A significant head movement is detected if the standard deviation in either axis is above the threshold.
-    bool significantHeadMovement = headAngleStdDevX > _config.significantHeadMovementStdDev ||
+    bool significantHeadMovement =
+        headAngleStdDevX > _config.significantHeadMovementStdDev ||
         headAngleStdDevY > _config.significantHeadMovementStdDev;
 
     // An insignificant device movement is detected if the MAX device deviation is below the threshold.
     // If Gyroscope check is enabled, we also check if the rotational movement is insignificant.
-    bool insignificantDeviceMovement = maxDeviceMotionStdDev < _config.minDeviceMovementThreshold;
+    bool insignificantDeviceMovement =
+        maxDeviceMotionStdDev < _config.minDeviceMovementThreshold;
 
     if (_config.enableGyroscopeCheck && _gyroscopeReadings.length >= 10) {
       final deviceGyroX = _gyroscopeReadings.map((e) => e.x).toList();
@@ -122,21 +139,32 @@ class MotionService {
       double deviceGyroStdDevY = _calculateStandardDeviation(deviceGyroY);
       double deviceGyroStdDevZ = _calculateStandardDeviation(deviceGyroZ);
 
-      double maxDeviceGyroStdDev = [deviceGyroStdDevX, deviceGyroStdDevY, deviceGyroStdDevZ].reduce(math.max);
-      
-      debugPrint('Device Gyro StdDev(Max:${maxDeviceGyroStdDev.toStringAsFixed(2)})');
+      double maxDeviceGyroStdDev = [
+        deviceGyroStdDevX,
+        deviceGyroStdDevY,
+        deviceGyroStdDevZ,
+      ].reduce(math.max);
 
-      bool insignificantGyroMovement = maxDeviceGyroStdDev < _config.minGyroscopeMovementThreshold;
+      debugPrint(
+        'Device Gyro StdDev(Max:${maxDeviceGyroStdDev.toStringAsFixed(2)})',
+      );
+
+      bool insignificantGyroMovement =
+          maxDeviceGyroStdDev < _config.minGyroscopeMovementThreshold;
 
       // To be considered a spoof with gyro enabled, BOTH accelerometer AND gyroscope must show minimal movement.
-      insignificantDeviceMovement = insignificantDeviceMovement && insignificantGyroMovement;
+      insignificantDeviceMovement =
+          insignificantDeviceMovement && insignificantGyroMovement;
     }
 
     // Spoofing is suspected if the head moved significantly, but the device did not.
-    bool isSpoofingAttempt = significantHeadMovement && insignificantDeviceMovement;
+    bool isSpoofingAttempt =
+        significantHeadMovement && insignificantDeviceMovement;
 
     if (isSpoofingAttempt) {
-      debugPrint('Potential spoofing detected: Significant head motion (StdDev) with minimal device motion.');
+      debugPrint(
+        'Potential spoofing detected: Significant head motion (StdDev) with minimal device motion.',
+      );
     }
 
     // The check is valid if no spoofing is detected.
@@ -160,7 +188,7 @@ class MotionService {
   /// Get raw accelerometer readings
   List<AccelerometerEvent> get accelerometerReadings =>
       List<AccelerometerEvent>.unmodifiable(_accelerometerReadings);
-      
+
   /// Get raw gyroscope readings
   List<GyroscopeEvent> get gyroscopeReadings =>
       List<GyroscopeEvent>.unmodifiable(_gyroscopeReadings);
