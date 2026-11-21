@@ -26,9 +26,8 @@ class CameraService {
   bool _isDisposing = false;
 
   /// Constructor with optional configuration
-  CameraService({
-    LivenessConfig? config,
-  }) : _config = config ?? const LivenessConfig();
+  CameraService({LivenessConfig? config})
+    : _config = config ?? const LivenessConfig();
 
   /// Initialize the camera with improved error handling
   Future<CameraController> initialize(List<CameraDescription> cameras) async {
@@ -50,7 +49,9 @@ class CameraService {
       ResolutionPreset.medium,
       enableAudio: false,
       // WARNING: According to google_ml_kit_flutter, It only supports nv21 format for Android and bgra8888 for iOS
-      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888, // Explicitly set format
+      imageFormatGroup: Platform.isAndroid
+          ? ImageFormatGroup.nv21
+          : ImageFormatGroup.bgra8888, // Explicitly set format
     );
 
     try {
@@ -73,7 +74,6 @@ class CameraService {
 
           // Set flash mode to off (for front camera)
           await _controller!.setFlashMode(FlashMode.off);
-
         } catch (e) {
           debugPrint('Camera settings not supported: $e');
           // Continue even if some settings fail
@@ -201,7 +201,8 @@ class CameraService {
       final double avgBrightness = totalBrightness / sampledPixels;
 
       // Dynamic threshold based on average brightness
-      final double glareThreshold = avgBrightness * _config.glareBrightnessFactor;
+      final double glareThreshold =
+          avgBrightness * _config.glareBrightnessFactor;
 
       int brightPixels = 0;
       for (int i = 0; i < totalPixels; i += sampleRate) {
@@ -241,7 +242,8 @@ class CameraService {
   }
 
   /// Whether the camera is initialized
-  bool get isInitialized => _isInitialized && _controller != null && !_isDisposing;
+  bool get isInitialized =>
+      _isInitialized && _controller != null && !_isDisposing;
 
   /// Whether lighting conditions are good
   bool get isLightingGood => _isLightingGood;

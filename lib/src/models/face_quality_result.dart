@@ -3,7 +3,7 @@ class FaceQualityResult {
   final double score;
   final List<String> issues;
   final List<String> recommendations;
-  final Map<String, double> metrics; 
+  final Map<String, double> metrics;
   const FaceQualityResult({
     required this.score,
     required this.issues,

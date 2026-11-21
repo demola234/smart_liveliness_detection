@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
@@ -17,9 +17,7 @@ void main() async {
   ]);
 
   // Optional: Set immersive mode
-  await SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.immersiveSticky,
-  );
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   // Get available cameras
   final cameras = await availableCameras();
@@ -30,10 +28,7 @@ void main() async {
 class FaceLivenessExampleApp extends StatelessWidget {
   final List<CameraDescription> cameras;
 
-  const FaceLivenessExampleApp({
-    super.key,
-    required this.cameras,
-  });
+  const FaceLivenessExampleApp({super.key, required this.cameras});
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +44,7 @@ class FaceLivenessExampleApp extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   final List<CameraDescription> cameras;
 
-  const HomeScreen({
-    super.key,
-    required this.cameras,
-  });
+  const HomeScreen({super.key, required this.cameras});
 
   // Holds the template enrolled by the "Enroll" example across navigations.
   static BiometricTemplate? _enrolledTemplate;
@@ -60,9 +52,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Face Liveness Examples'),
-      ),
+      appBar: AppBar(title: const Text('Face Liveness Examples')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -137,7 +127,9 @@ class HomeScreen extends StatelessWidget {
                   },
                 );
                 _navigateToLivenessScreen(
-                    context, customConfig, const LivenessTheme(
+                  context,
+                  customConfig,
+                  const LivenessTheme(
                     successColor: Colors.green,
                     errorColor: Colors.redAccent,
                     guidanceTextStyle: TextStyle(
@@ -145,14 +137,15 @@ class HomeScreen extends StatelessWidget {
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
-                ));
+                  ),
+                );
               },
             ),
             _buildExampleButton(
               context,
               'Custom Challenges and Status Messages',
               'Specific challenge sequence with custom messages',
-                  () {
+              () {
                 const customConfig = LivenessConfig(
                   initialZoomFactor: 0.1,
                   challengeTypes: [
@@ -169,8 +162,10 @@ class HomeScreen extends StatelessWidget {
                   challengeInstructions: {
                     ChallengeType.blink: 'Pisque os olhos lentamente',
                     ChallengeType.zoom: 'Aproxime o rosto lentamente',
-                    ChallengeType.turnRight: 'Vire a cabeça para o lado direito',
-                    ChallengeType.turnLeft: 'Vire a cabeça para o lado esquerdo',
+                    ChallengeType.turnRight:
+                        'Vire a cabeça para o lado direito',
+                    ChallengeType.turnLeft:
+                        'Vire a cabeça para o lado esquerdo',
                     ChallengeType.tiltUp: 'Incline a cabeça para cima',
                     ChallengeType.tiltDown: 'Incline a cabeça para baixo',
                     ChallengeType.smile: 'Mostre seu melhor sorriso',
@@ -186,35 +181,41 @@ class HomeScreen extends StatelessWidget {
                     moveDown: 'Mova para baixo',
                     perfectHoldStill: 'Perfeito! Fique parado',
                     noFaceDetected: 'Nenhum rosto detectado',
-                    errorCheckingFacePosition: 'Ocorreu um erro no processamento',
+                    errorCheckingFacePosition:
+                        'Ocorreu um erro no processamento',
 
                     initializing: 'Inicializando...',
                     initializingCamera: 'Inicializando a camera...',
-                    errorInitializingCamera: 'Erro ao inicializar a câmera. Reinicie o aplicativo.',
+                    errorInitializingCamera:
+                        'Erro ao inicializar a câmera. Reinicie o aplicativo.',
                     initialInstruction: 'Posicione seu rosto no oval',
                     poorLighting: 'Mova-se para uma área mais iluminada',
                     processingVerification: 'Processando verificação...',
-                    verificationComplete: 'Verificação de vivacidade concluída!',
+                    verificationComplete:
+                        'Verificação de vivacidade concluída!',
                     spoofingDetected: "Possível falsificação detectada.",
                     errorProcessing: 'Ocorreu um erro de processamento',
                   ),
                 );
                 _navigateToLivenessScreen(
-                    context, customConfig, const LivenessTheme(
-                  successColor: Colors.green,
-                  errorColor: Colors.redAccent,
-                  guidanceTextStyle: TextStyle(
-                    //color: Color(0xFF2E38B7),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                  context,
+                  customConfig,
+                  const LivenessTheme(
+                    successColor: Colors.green,
+                    errorColor: Colors.redAccent,
+                    guidanceTextStyle: TextStyle(
+                      //color: Color(0xFF2E38B7),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    //overlayColor: Colors.white,
+                    // overlayOpacity: 0.85,
+                    // primaryColor: Colors.white,
+                    // ovalGuideColor: Colors.white, //.withValues(alpha: 0.87),
+                    // appBarBackgroundColor: Colors.white,
+                    // appBarTextColor: Colors.black87
                   ),
-                  //overlayColor: Colors.white,
-                  // overlayOpacity: 0.85,
-                  // primaryColor: Colors.white,
-                  // ovalGuideColor: Colors.white, //.withValues(alpha: 0.87),
-                  // appBarBackgroundColor: Colors.white,
-                  // appBarTextColor: Colors.black87
-                ));
+                );
               },
             ),
             _buildExampleButton(
@@ -227,7 +228,10 @@ class HomeScreen extends StatelessWidget {
                   brightness: Brightness.dark,
                 );
                 _navigateToLivenessScreen(
-                    context, const LivenessConfig(), materialTheme);
+                  context,
+                  const LivenessConfig(),
+                  materialTheme,
+                );
               },
             ),
             _buildExampleButton(
@@ -253,7 +257,10 @@ class HomeScreen extends StatelessWidget {
                   numberOfRandomChallenges: 2,
                 );
                 _navigateToLivenessScreen(
-                    context, customConfig, const LivenessTheme());
+                  context,
+                  customConfig,
+                  const LivenessTheme(),
+                );
               },
             ),
             _buildExampleButton(
@@ -357,12 +364,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                description,
-                style: TextStyle(
-                  color: Colors.grey[400],
-                ),
-              ),
+              Text(description, style: TextStyle(color: Colors.grey[400])),
             ],
           ),
         ),
@@ -391,17 +393,35 @@ class HomeScreen extends StatelessWidget {
             log('Success: $isSuccessful');
             log('Metadata: $metadata');
           },
-          onFaceDetected: (ChallengeType challengeType, bool firstChallengePassed, CameraImage image, List<Face> faces, CameraDescription camera) {
-            log('onFaceDetected - current Challenge: ${challengeType.name}');
-          },
-          onFaceNotDetected: (ChallengeType challengeType, LivenessController controller) {
-            log('onFaceNotDetected - current Challenge: ${challengeType.name}');
+          onFaceDetected:
+              (
+                ChallengeType challengeType,
+                bool firstChallengePassed,
+                CameraImage image,
+                List<Face> faces,
+                CameraDescription camera,
+              ) {
+                log(
+                  'onFaceDetected - current Challenge: ${challengeType.name}',
+                );
+              },
+          onFaceNotDetected:
+              (ChallengeType challengeType, LivenessController controller) {
+                log(
+                  'onFaceNotDetected - current Challenge: ${challengeType.name}',
+                );
 
-            // Reset session if face is not detected and the head is not turned
-            if(![ChallengeType.tiltDown, ChallengeType.tiltUp, ChallengeType.turnRight, ChallengeType.turnLeft, ChallengeType.nod].contains(challengeType)) {
-              controller.resetSession();
-            }
-          },
+                // Reset session if face is not detected and the head is not turned
+                if (![
+                  ChallengeType.tiltDown,
+                  ChallengeType.tiltUp,
+                  ChallengeType.turnRight,
+                  ChallengeType.turnLeft,
+                  ChallengeType.nod,
+                ].contains(challengeType)) {
+                  controller.resetSession();
+                }
+              },
         ),
       ),
     );
@@ -467,7 +487,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                          'Challenge count: ${(metadata['challenges'] as List).length}'),
+                        'Challenge count: ${(metadata['challenges'] as List).length}',
+                      ),
                       Text('Duration: ${metadata['sessionDuration']} ms'),
                     ],
                   ),
@@ -907,8 +928,11 @@ class HomeScreen extends StatelessWidget {
           onLivenessCompleted: (sessionId, isSuccessful, metadata) {
             log('Liveness completed — success: $isSuccessful');
             log('Anti-spoofing: ${metadata['antiSpoofingDetection']}');
-            final antiSpoof = metadata['antiSpoofingDetection'] as Map<String, dynamic>?;
-            final spoofDetected = antiSpoof == null ? false : antiSpoof['screenFlashSpoofDetected'] ?? false;
+            final antiSpoof =
+                metadata['antiSpoofingDetection'] as Map<String, dynamic>?;
+            final spoofDetected = antiSpoof == null
+                ? false
+                : antiSpoof['screenFlashSpoofDetected'] ?? false;
             if (context.mounted) {
               showDialog(
                 context: context,
@@ -962,7 +986,9 @@ class HomeScreen extends StatelessWidget {
             log('Quality score: ${result.score.toStringAsFixed(1)}');
             log('Issues: ${result.issues}');
             log('Recommendations: ${result.recommendations}');
-            log('Metrics: ${result.metrics.map((k, v) => MapEntry(k, v.toStringAsFixed(1)))}');
+            log(
+              'Metrics: ${result.metrics.map((k, v) => MapEntry(k, v.toStringAsFixed(1)))}',
+            );
           },
           onChallengeCompleted: (challengeType) {
             log('Challenge completed: ${challengeType.name}');
@@ -1038,9 +1064,7 @@ class HomeScreen extends StatelessWidget {
               ),
             },
             // Fallback for challenges not in the map
-            defaultChallengeHintConfig: ChallengeHintConfig(
-              enabled: false,
-            ),
+            defaultChallengeHintConfig: ChallengeHintConfig(enabled: false),
           ),
           theme: LivenessTheme.fromMaterialColor(
             Colors.purple,
@@ -1183,7 +1207,9 @@ class HomeScreen extends StatelessWidget {
                 context: context,
                 builder: (dialogContext) => AlertDialog(
                   title: Text(isSuccessful ? 'Enrolled!' : 'Failed'),
-                  content: const Text('Template saved. Run "Verify" to match against it.'),
+                  content: const Text(
+                    'Template saved. Run "Verify" to match against it.',
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () {
@@ -1206,7 +1232,9 @@ class HomeScreen extends StatelessWidget {
     final enrolled = HomeScreen._enrolledTemplate;
     if (enrolled == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No enrolled template — run "Enroll" first.')),
+        const SnackBar(
+          content: Text('No enrolled template — run "Enroll" first.'),
+        ),
       );
       return;
     }
@@ -1242,7 +1270,9 @@ class HomeScreen extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (dialogContext) => AlertDialog(
-                  title: Text(matched == true ? 'Same person ✓' : 'Different person ✗'),
+                  title: Text(
+                    matched == true ? 'Same person ✓' : 'Different person ✗',
+                  ),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,

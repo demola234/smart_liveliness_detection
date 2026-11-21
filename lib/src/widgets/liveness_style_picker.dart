@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../painters/liveness_ui_style.dart';
 import 'futuristic_liveness_bar.dart';
@@ -112,7 +112,7 @@ class _LivenessStylePickerState extends State<LivenessStylePicker> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: styles.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (context, i) {
                 final style = styles[i];
                 final isSelected = style == _selected;
@@ -180,14 +180,12 @@ class _StyleCard extends StatelessWidget {
           children: [
             // ── Animated preview ────────────────────────────────────────
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(14)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(14),
+              ),
               child: SizedBox(
                 height: 108,
-                child: FuturisticBarPreview(
-                  style: style,
-                  height: 108,
-                ),
+                child: FuturisticBarPreview(style: style, height: 108),
               ),
             ),
 
@@ -201,10 +199,7 @@ class _StyleCard extends StatelessWidget {
                     // Name row
                     Row(
                       children: [
-                        Text(
-                          style.icon,
-                          style: const TextStyle(fontSize: 13),
-                        ),
+                        Text(style.icon, style: const TextStyle(fontSize: 13)),
                         const SizedBox(width: 5),
                         Expanded(
                           child: Text(
@@ -219,8 +214,7 @@ class _StyleCard extends StatelessWidget {
                           ),
                         ),
                         if (isSelected)
-                          Icon(Icons.check_circle,
-                              color: accent, size: 14),
+                          Icon(Icons.check_circle, color: accent, size: 14),
                       ],
                     ),
                     const SizedBox(height: 4),

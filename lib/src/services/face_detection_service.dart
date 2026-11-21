@@ -1,16 +1,16 @@
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/smart_liveliness_detection.dart';
-import 'dart:math' as math;
 
+import 'dart:math' as math;
 
 /// Service for face detection and gesture recognition
 class FaceDetectionService {
-
   /// ML Kit face detector
   late FaceDetector _faceDetector;
 
@@ -44,9 +44,8 @@ class FaceDetectionService {
   final LivenessConfig _config;
 
   /// Constructor with optional configuration
-  FaceDetectionService({
-    LivenessConfig? config,
-  }) : _config = config ?? const LivenessConfig() {
+  FaceDetectionService({LivenessConfig? config})
+    : _config = config ?? const LivenessConfig() {
     _initializeDetector();
   }
 
@@ -99,8 +98,9 @@ class FaceDetectionService {
 
     final faceCenterY = faceBox.top + faceBox.height / 2;
     final bool isAndroid = Platform.isAndroid;
-    final double faceMarginMultiplier =
-        isAndroid ? 1.2 : 1.0; // More margin on Android
+    final double faceMarginMultiplier = isAndroid
+        ? 1.2
+        : 1.0; // More margin on Android
 
     final maxHorizontalOffset = screenSize.width * 0.15 * faceMarginMultiplier;
     final maxVerticalOffset = screenSize.height * 0.1;
@@ -119,26 +119,35 @@ class FaceDetectionService {
     final isVerticallyCentered =
         (faceCenterY - screenCenterY).abs() < maxVerticalOffset;
 
-    final isRightSize = faceWidthRatio >= minFaceWidthRatio &&
+    final isRightSize =
+        faceWidthRatio >= minFaceWidthRatio &&
         faceWidthRatio <= maxFaceWidthRatio;
 
     debugPrint(
-        'Face centering: H=$isHorizontallyCentered, V=$isVerticallyCentered, Size=$isRightSize');
+      'Face centering: H=$isHorizontallyCentered, V=$isVerticallyCentered, Size=$isRightSize',
+    );
     debugPrint('Face width ratio: $faceWidthRatio');
 
     _isFaceCentered =
         isHorizontallyCentered && isVerticallyCentered && isRightSize;
     debugPrint(
-        'Face centered check: H=$isHorizontallyCentered, V=$isVerticallyCentered, Size=$isRightSize, Final=$_isFaceCentered');
+      'Face centered check: H=$isHorizontallyCentered, V=$isVerticallyCentered, Size=$isRightSize, Final=$_isFaceCentered',
+    );
 
     return _isFaceCentered;
   }
 
   /// Check if face is centered in the oval guide
   bool checkFaceCentering(Face face, Size screenSize) {
-
     // Adjust screenSize because the camera may have rotated the image
-    Size screenSizeAux = Size(screenSize.width > screenSize.height ? screenSize.height : screenSize.width, screenSize.width > screenSize.height ? screenSize.width : screenSize.height);
+    Size screenSizeAux = Size(
+      screenSize.width > screenSize.height
+          ? screenSize.height
+          : screenSize.width,
+      screenSize.width > screenSize.height
+          ? screenSize.width
+          : screenSize.height,
+    );
 
     // Oval center (adjusted 5% upwards from screen center)
     final ovalCenterX = screenSizeAux.width / 2;
@@ -165,7 +174,8 @@ class FaceDetectionService {
 
     // Tolerance based on oval size (percentage of oval dimensions)
     // Reduced tolerance to ensure face is well-positioned for challenges
-    final maxHorizontalOffset = ovalWidth * 0.15 * horizontalToleranceMultiplier;
+    final maxHorizontalOffset =
+        ovalWidth * 0.15 * horizontalToleranceMultiplier;
     final maxVerticalOffset = ovalHeight * 0.12 * verticalToleranceMultiplier;
 
     // Platform-specific size ratios
@@ -186,46 +196,68 @@ class FaceDetectionService {
     final ovalTop = ovalCenterY - ovalHeight / 2;
     final ovalBottom = ovalCenterY + ovalHeight / 2;
 
-    final isInsideOvalHorizontally = faceCenterX >= ovalLeft && faceCenterX <= ovalRight;
-    final isInsideOvalVertically = faceCenterY >= ovalTop && faceCenterY <= ovalBottom;
+    final isInsideOvalHorizontally =
+        faceCenterX >= ovalLeft && faceCenterX <= ovalRight;
+    final isInsideOvalVertically =
+        faceCenterY >= ovalTop && faceCenterY <= ovalBottom;
 
     // CORREÇÃO: Verificação de centralização relativa ao centro do oval
     final horizontalDistanceFromCenter = (faceCenterX - ovalCenterX).abs();
     final verticalDistanceFromCenter = (faceCenterY - ovalCenterY).abs();
 
-    final isHorizontallyCentered = horizontalDistanceFromCenter <= maxHorizontalOffset;
-    final isVerticallyCentered = verticalDistanceFromCenter <= maxVerticalOffset;
+    final isHorizontallyCentered =
+        horizontalDistanceFromCenter <= maxHorizontalOffset;
+    final isVerticallyCentered =
+        verticalDistanceFromCenter <= maxVerticalOffset;
 
     // Check size requirements
-    final isRightWidth = faceWidthRatio >= minFaceWidthRatio && faceWidthRatio <= maxFaceWidthRatio;
-    final isRightHeight = faceHeightRatio >= minFaceHeightRatio && faceHeightRatio <= maxFaceHeightRatio;
+    final isRightWidth =
+        faceWidthRatio >= minFaceWidthRatio &&
+        faceWidthRatio <= maxFaceWidthRatio;
+    final isRightHeight =
+        faceHeightRatio >= minFaceHeightRatio &&
+        faceHeightRatio <= maxFaceHeightRatio;
     final isRightSize = isRightWidth && isRightHeight;
 
     // Check face proportion
     final double faceAspectRatio = faceBox.width / faceBox.height;
     const double expectedAspectRatio = 0.75;
     const double aspectTolerance = 0.3;
-    final hasGoodProportion = (faceAspectRatio - expectedAspectRatio).abs() <= aspectTolerance;
+    final hasGoodProportion =
+        (faceAspectRatio - expectedAspectRatio).abs() <= aspectTolerance;
 
-    debugPrint('Face aspect ratio: ${faceAspectRatio.toStringAsFixed(2)}, Expected: $expectedAspectRatio, Good proportion: $hasGoodProportion');
+    debugPrint(
+      'Face aspect ratio: ${faceAspectRatio.toStringAsFixed(2)}, Expected: $expectedAspectRatio, Good proportion: $hasGoodProportion',
+    );
 
     // Debug information
     debugPrint('=== FACE CENTERING DEBUG ===');
-    debugPrint('Oval: Center(${ovalCenterX.toStringAsFixed(1)}, ${ovalCenterY.toStringAsFixed(1)}), '
-        'Size(${ovalWidth.toStringAsFixed(1)}x${ovalHeight.toStringAsFixed(1)})');
-    debugPrint('Face: Center(${faceCenterX.toStringAsFixed(1)}, ${faceCenterY.toStringAsFixed(1)}), '
-        'Size(${faceBox.width.toStringAsFixed(1)}x${faceBox.height.toStringAsFixed(1)})');
-    debugPrint('Distance from center: H=${horizontalDistanceFromCenter.toStringAsFixed(1)}, '
-        'V=${verticalDistanceFromCenter.toStringAsFixed(1)}');
-    debugPrint('Max allowed distance: H=${maxHorizontalOffset.toStringAsFixed(1)}, '
-        'V=${maxVerticalOffset.toStringAsFixed(1)}');
-    debugPrint('Inside oval: H=$isInsideOvalHorizontally, V=$isInsideOvalVertically');
+    debugPrint(
+      'Oval: Center(${ovalCenterX.toStringAsFixed(1)}, ${ovalCenterY.toStringAsFixed(1)}), '
+      'Size(${ovalWidth.toStringAsFixed(1)}x${ovalHeight.toStringAsFixed(1)})',
+    );
+    debugPrint(
+      'Face: Center(${faceCenterX.toStringAsFixed(1)}, ${faceCenterY.toStringAsFixed(1)}), '
+      'Size(${faceBox.width.toStringAsFixed(1)}x${faceBox.height.toStringAsFixed(1)})',
+    );
+    debugPrint(
+      'Distance from center: H=${horizontalDistanceFromCenter.toStringAsFixed(1)}, '
+      'V=${verticalDistanceFromCenter.toStringAsFixed(1)}',
+    );
+    debugPrint(
+      'Max allowed distance: H=${maxHorizontalOffset.toStringAsFixed(1)}, '
+      'V=${maxVerticalOffset.toStringAsFixed(1)}',
+    );
+    debugPrint(
+      'Inside oval: H=$isInsideOvalHorizontally, V=$isInsideOvalVertically',
+    );
     debugPrint('Centered: H=$isHorizontallyCentered, V=$isVerticallyCentered');
     debugPrint('Size ratios: W=$faceWidthRatio, H=$faceHeightRatio');
     debugPrint('Right size: W=$isRightWidth, H=$isRightHeight');
 
     // Final validation
-    _isFaceCentered = isInsideOvalHorizontally &&
+    _isFaceCentered =
+        isInsideOvalHorizontally &&
         isInsideOvalVertically &&
         isHorizontallyCentered &&
         isVerticallyCentered &&
@@ -238,7 +270,10 @@ class FaceDetectionService {
   }
 
   /// Process camera image to detect faces with improved error handling
-  Future<List<Face>?> processImage(CameraImage image, CameraDescription camera) async {
+  Future<List<Face>?> processImage(
+    CameraImage image,
+    CameraDescription camera,
+  ) async {
     _currentCamera = camera;
 
     // Skip processing if already processing or implement frame throttling
@@ -250,7 +285,9 @@ class FaceDetectionService {
     // Frame throttling - process every Nth frame
     _frameSkipCounter++;
     if (_frameSkipCounter % _config.frameSkipInterval != 0) {
-      debugPrint('_frameSkipCounter (N = ${_config.frameSkipInterval}): This frame will be skipped (process every Nth frame to prevent buffer overflow)');
+      debugPrint(
+        '_frameSkipCounter (N = ${_config.frameSkipInterval}): This frame will be skipped (process every Nth frame to prevent buffer overflow)',
+      );
       return null; // WARNING: OK, But return null if it will be skipped
     }
 
@@ -303,15 +340,21 @@ class FaceDetectionService {
   }
 
   /// Create InputImage with maximum robustness
-  InputImage? _createInputImageRobust(CameraImage image, CameraDescription camera) {
+  InputImage? _createInputImageRobust(
+    CameraImage image,
+    CameraDescription camera,
+  ) {
     // Try multiple approaches in order of preference
 
     // Approach 0: Standard method with format detection
-    if(Platform.isAndroid && _getSafeInputImageFormat(image.format) == InputImageFormat.yuv420) {
+    if (Platform.isAndroid &&
+        _getSafeInputImageFormat(image.format) == InputImageFormat.yuv420) {
       try {
         return _createInputImageWithYUV420ToNV21Conversion(image, camera);
       } catch (e) {
-        debugPrint('(Conversion yuv402 to nv21) InputImage creation failed: $e');
+        debugPrint(
+          '(Conversion yuv402 to nv21) InputImage creation failed: $e',
+        );
       }
     }
 
@@ -326,7 +369,9 @@ class FaceDetectionService {
     try {
       return _createInputImageForced(image, camera);
     } catch (e) {
-      debugPrint('Forced nv21 (Android) / bgra8888 (iOS) InputImage creation failed: $e');
+      debugPrint(
+        'Forced nv21 (Android) / bgra8888 (iOS) InputImage creation failed: $e',
+      );
     }
 
     // Approach 3: Minimal metadata approach
@@ -340,7 +385,10 @@ class FaceDetectionService {
   }
 
   /// InputImage creation converting yuv420 to nv21 format
-  InputImage? _createInputImageWithYUV420ToNV21Conversion(CameraImage image, CameraDescription camera) {
+  InputImage? _createInputImageWithYUV420ToNV21Conversion(
+    CameraImage image,
+    CameraDescription camera,
+  ) {
     // WARNING: You set the desired format, but the camera's native implementation may return a different format based on the device's capabilities.
     // Flutter/Android may be normalizing to the most common format (YUV420) which is a superset that includes NV21.
     // The YUV420 and NV21 formats are actually YUV formats, but with different color plane organization.
@@ -375,11 +423,19 @@ class FaceDetectionService {
 
       // Copy Y considering possible padding
       for (int y = 0; y < height; y++) {
-        final bytesToCopy = width < yPlane.bytesPerRow ? width : yPlane.bytesPerRow;
+        final bytesToCopy = width < yPlane.bytesPerRow
+            ? width
+            : yPlane.bytesPerRow;
         final endIndex = srcIndex + bytesToCopy;
 
-        if (endIndex <= yPlane.bytes.length && dstIndex + bytesToCopy <= nv21Buffer.length) {
-          nv21Buffer.setRange(dstIndex, dstIndex + bytesToCopy, yPlane.bytes, srcIndex);
+        if (endIndex <= yPlane.bytes.length &&
+            dstIndex + bytesToCopy <= nv21Buffer.length) {
+          nv21Buffer.setRange(
+            dstIndex,
+            dstIndex + bytesToCopy,
+            yPlane.bytes,
+            srcIndex,
+          );
         }
 
         dstIndex += width;
@@ -398,7 +454,8 @@ class FaceDetectionService {
           final uvIndex = y * uPlane.bytesPerRow ~/ 2 + x;
 
           // Copy V first, then U (NV21 format: Y + interleaved VU)
-          if (uvIndex < vPlane.bytes.length && dstIndex < nv21Buffer.length - 1) {
+          if (uvIndex < vPlane.bytes.length &&
+              dstIndex < nv21Buffer.length - 1) {
             nv21Buffer[dstIndex++] = vPlane.bytes[uvIndex]; // V
           } else {
             nv21Buffer[dstIndex++] = 128; // Default value if out of range
@@ -418,7 +475,8 @@ class FaceDetectionService {
           size: Size(width.toDouble(), height.toDouble()),
           rotation: _getInputImageRotation(camera),
           format: InputImageFormat.nv21,
-          bytesPerRow: yPlane.bytesPerRow, // Use bytesPerRow from the original Y plane
+          bytesPerRow:
+              yPlane.bytesPerRow, // Use bytesPerRow from the original Y plane
         ),
       );
     } catch (e) {
@@ -427,8 +485,10 @@ class FaceDetectionService {
   }
 
   /// Forced nv21 format for Android and bgra8888 for iOS InputImage creation
-  InputImage? _createInputImageForced(CameraImage image, CameraDescription camera) {
-
+  InputImage? _createInputImageForced(
+    CameraImage image,
+    CameraDescription camera,
+  ) {
     final WriteBuffer allBytes = WriteBuffer();
 
     for (final Plane plane in image.planes) {
@@ -437,26 +497,38 @@ class FaceDetectionService {
 
     final bytes = allBytes.done().buffer.asUint8List();
 
-    final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+    final Size imageSize = Size(
+      image.width.toDouble(),
+      image.height.toDouble(),
+    );
 
-    final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw);
+    final inputImageFormat = InputImageFormatValue.fromRawValue(
+      image.format.raw,
+    );
 
     // WARNING: According to google_ml_kit_flutter, It only supports nv21 format for Android and bgra8888 for iOS
-    debugPrint("_createInputImageForced called. Format [${inputImageFormat!.name}], It will be forced to ${Platform.isAndroid ? InputImageFormat.nv21.name : InputImageFormat.bgra8888.name}");
+    debugPrint(
+      "_createInputImageForced called. Format [${inputImageFormat!.name}], It will be forced to ${Platform.isAndroid ? InputImageFormat.nv21.name : InputImageFormat.bgra8888.name}",
+    );
 
     return InputImage.fromBytes(
       bytes: bytes,
       metadata: InputImageMetadata(
         size: imageSize,
         rotation: _getInputImageRotation(camera),
-        format: Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888,
+        format: Platform.isAndroid
+            ? InputImageFormat.nv21
+            : InputImageFormat.bgra8888,
         bytesPerRow: image.planes.first.bytesPerRow,
       ),
     );
   }
 
   /// Minimal InputImage creation with fixed values
-  InputImage? _createInputImageMinimal(CameraImage image, CameraDescription camera) {
+  InputImage? _createInputImageMinimal(
+    CameraImage image,
+    CameraDescription camera,
+  ) {
     final WriteBuffer allBytes = WriteBuffer();
     for (final Plane plane in image.planes) {
       allBytes.putUint8List(plane.bytes);
@@ -468,8 +540,12 @@ class FaceDetectionService {
       metadata: InputImageMetadata(
         size: Size(image.width.toDouble(), image.height.toDouble()),
         rotation: InputImageRotation.rotation0deg, // Fixed rotation
-        format: Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888, // Fixed format
-        bytesPerRow: image.planes.isNotEmpty ? image.planes.first.bytesPerRow : image.width,
+        format: Platform.isAndroid
+            ? InputImageFormat.nv21
+            : InputImageFormat.bgra8888, // Fixed format
+        bytesPerRow: image.planes.isNotEmpty
+            ? image.planes.first.bytesPerRow
+            : image.width,
       ),
     );
   }
@@ -487,11 +563,15 @@ class FaceDetectionService {
       case ImageFormatGroup.jpeg:
       case ImageFormatGroup.unknown:
         // For any unsupported or unknown format, default to nv21 for android and bgra8888 for iOS
-        if(Platform.isAndroid) {
-          debugPrint('Using nv21 (Android) fallback for format: ${format.group}');
+        if (Platform.isAndroid) {
+          debugPrint(
+            'Using nv21 (Android) fallback for format: ${format.group}',
+          );
           return InputImageFormat.nv21;
         } else {
-          debugPrint('Using bgra8888 (iOS) fallback for format: ${format.group}');
+          debugPrint(
+            'Using bgra8888 (iOS) fallback for format: ${format.group}',
+          );
           return InputImageFormat.bgra8888;
         }
     }
@@ -511,7 +591,9 @@ class FaceDetectionService {
         case 270:
           return InputImageRotation.rotation270deg;
         default:
-          debugPrint('Unknown sensor orientation: $sensorOrientation, using 0 degrees');
+          debugPrint(
+            'Unknown sensor orientation: $sensorOrientation, using 0 degrees',
+          );
           return InputImageRotation.rotation0deg;
       }
     } catch (e) {
@@ -522,12 +604,11 @@ class FaceDetectionService {
 
   /// Checks whether the detected face is centered and sized appropriately within a reference oval.
   bool isFaceWellPositioned(
-      Face face, {
-        required Rect ovalRect,
-        double zoomFactor = 1.0, // By default, consider the final oval (100%)
-        ChallengeType? challengeType,
-      }) {
-
+    Face face, {
+    required Rect ovalRect,
+    double zoomFactor = 1.0, // By default, consider the final oval (100%)
+    ChallengeType? challengeType,
+  }) {
     //region 1. Get current values
     // Get the coordinates of the "box" that surrounds the face (bounding box)
     final faceRect = face.boundingBox;
@@ -549,18 +630,24 @@ class FaceDetectionService {
     // Sets a tolerance. Reduced to match initialization requirements for consistency.
     // NOTE: For tiltDown challenge, we increase tolerance because the user's head moves closer to the camera.
     double toleranceMultiplier = 1.0;
-    if (challengeType == ChallengeType.tiltDown && _config.enableRelaxedFacePositioningOnTiltDown) {
+    if (challengeType == ChallengeType.tiltDown &&
+        _config.enableRelaxedFacePositioningOnTiltDown) {
       toleranceMultiplier = 1.5;
     }
 
-    final double horizontalTolerance = ovalRect.width * 0.15 * toleranceMultiplier;
-    final double verticalTolerance = ovalRect.height * 0.12 * toleranceMultiplier;
+    final double horizontalTolerance =
+        ovalRect.width * 0.15 * toleranceMultiplier;
+    final double verticalTolerance =
+        ovalRect.height * 0.12 * toleranceMultiplier;
 
-    final bool isCentered = horizontalDistance < horizontalTolerance
-        && verticalDistance < verticalTolerance;
+    final bool isCentered =
+        horizontalDistance < horizontalTolerance &&
+        verticalDistance < verticalTolerance;
 
     if (!isCentered) {
-      debugPrint("Face is not centered. Distance H: $horizontalDistance > $horizontalTolerance, V: $verticalDistance > $verticalTolerance");
+      debugPrint(
+        "Face is not centered. Distance H: $horizontalDistance > $horizontalTolerance, V: $verticalDistance > $verticalTolerance",
+      );
       return false;
     }
     //endregion
@@ -568,19 +655,22 @@ class FaceDetectionService {
     //region ## 3. Size Validation: Is the face at the correct distance (not too close, not too far)?
     // Defines the MINIMUM and MAXIMUM aspect ratio that the face should occupy in relation to the oval.
     // We use zoomFactor to dynamically increase the minimum required size.
-    final double minFaceWidthRatio = 0.70 * zoomFactor;   // The face must be at least 70% of the height of the oval when zoom is 1.0
-    final double minFaceHeightRatio = 0.70 * zoomFactor;  // The face must be at least 70% of the height of the oval when zoom is 1.0
+    final double minFaceWidthRatio = 0.70 * zoomFactor; // The face must be at least 70% of the height of the oval when zoom is 1.0
+    final double minFaceHeightRatio = 0.70 * zoomFactor; // The face must be at least 70% of the height of the oval when zoom is 1.0
 
     // Calculates the current aspect ratio of the face in relation to the oval
     final double faceWidthToOvalRatio = faceRect.width / ovalRect.width;
     final double faceHeightToOvalRatio = faceRect.height / ovalRect.height;
 
     // Check if the face is the minimum required size
-    final bool hasCorrectSize = faceWidthToOvalRatio > minFaceWidthRatio
-        && faceHeightToOvalRatio > minFaceHeightRatio;
+    final bool hasCorrectSize =
+        faceWidthToOvalRatio > minFaceWidthRatio &&
+        faceHeightToOvalRatio > minFaceHeightRatio;
 
     if (!hasCorrectSize) {
-      debugPrint("Incorrect size. Width: $faceWidthToOvalRatio (minimum: $minFaceWidthRatio), Height: $faceHeightToOvalRatio (minimum: $minFaceHeightRatio)");
+      debugPrint(
+        "Incorrect size. Width: $faceWidthToOvalRatio (minimum: $minFaceWidthRatio), Height: $faceHeightToOvalRatio (minimum: $minFaceHeightRatio)",
+      );
       return false; // If the size is incorrect, we stop.
     }
     //endregion
@@ -606,7 +696,8 @@ class FaceDetectionService {
   Offset transformFacePosition(Offset facePosition, Size imageSize) {
     if (_currentCamera == null) return facePosition;
 
-    final bool isFrontCamera = _currentCamera!.lensDirection == CameraLensDirection.front;
+    final bool isFrontCamera =
+        _currentCamera!.lensDirection == CameraLensDirection.front;
     final int rotation = _currentCamera!.sensorOrientation;
 
     double x = facePosition.dx;
@@ -632,21 +723,30 @@ class FaceDetectionService {
   }
 
   /// Detect if a challenge has been completed
-  bool detectChallengeCompletion(Face face, ChallengeType challengeType,
-      {Rect? ovalRect, double? zoomFactor}) {
-
+  bool detectChallengeCompletion(
+    Face face,
+    ChallengeType challengeType, {
+    Rect? ovalRect,
+    double? zoomFactor,
+  }) {
     // The zoom challenge has its own positioning logic during the animation,
     // so we excluded it from this initial check.
     if (challengeType != ChallengeType.zoom) {
       // For ALL other challenges, we first ensure that the face is
       // correctly positioned within the oval. If it isn't, we fail immediately.
       if (ovalRect == null || zoomFactor == null) {
-        debugPrint("ERROR: Challenge validation was called without ovalRect or zoomFactor.");
+        debugPrint(
+          "ERROR: Challenge validation was called without ovalRect or zoomFactor.",
+        );
         return false;
       }
 
-
-      if (!isFaceWellPositioned(face, ovalRect: ovalRect, zoomFactor: zoomFactor, challengeType: challengeType)) {
+      if (!isFaceWellPositioned(
+        face,
+        ovalRect: ovalRect,
+        zoomFactor: zoomFactor,
+        challengeType: challengeType,
+      )) {
         // We use zoomFactor: 1.0 by default because, for these challenges,
         // we expect the face to be in the final position (large oval).
         return false;
@@ -672,19 +772,19 @@ class FaceDetectionService {
         if (_isLockedFace(face)) {
           return _onNormalDetected(face);
         } else {
-          debugPrint("Unknown face detected after head tilt — skipping capture.",);
+          debugPrint(
+            "Unknown face detected after head tilt — skipping capture.",
+          );
           return false;
         }
       case ChallengeType.zoom:
         if (ovalRect == null || zoomFactor == null) {
-          debugPrint("ERROR: Zoom challenge was called without ovalRect or zoomFactor.");
+          debugPrint(
+            "ERROR: Zoom challenge was called without ovalRect or zoomFactor.",
+          );
           return false;
         }
-        return _detectZoom(
-          face,
-          ovalRect: ovalRect,
-          zoomFactor: zoomFactor,
-        );
+        return _detectZoom(face, ovalRect: ovalRect, zoomFactor: zoomFactor);
     }
   }
 
@@ -699,8 +799,11 @@ class FaceDetectionService {
     ];
 
     for (final contourType in criticalContours) {
-      if (face.contours[contourType] == null || face.contours[contourType]!.points.length < 3) {
-        debugPrint('Contour integrity check failed: Critical contour missing - ${contourType.name}');
+      if (face.contours[contourType] == null ||
+          face.contours[contourType]!.points.length < 3) {
+        debugPrint(
+          'Contour integrity check failed: Critical contour missing - ${contourType.name}',
+        );
         return false;
       }
     }
@@ -724,7 +827,8 @@ class FaceDetectionService {
     List<String> missingSecondaryNames = [];
 
     for (final contourType in secondaryContours) {
-      if (face.contours[contourType] != null && face.contours[contourType]!.points.length >= 3) {
+      if (face.contours[contourType] != null &&
+          face.contours[contourType]!.points.length >= 3) {
         detectedSecondaryContours++;
         detectedSecondaryNames.add(contourType.name);
       } else {
@@ -734,15 +838,23 @@ class FaceDetectionService {
 
     // Check if the number of detected secondary contours meets the minimum requirement.
     if (detectedSecondaryContours < _config.minRequiredSecondaryContours) {
-      debugPrint('Contour integrity check failed: Not enough secondary contours detected ($detectedSecondaryContours/${_config.minRequiredSecondaryContours}). Missing: $missingSecondaryNames');
+      debugPrint(
+        'Contour integrity check failed: Not enough secondary contours detected ($detectedSecondaryContours/${_config.minRequiredSecondaryContours}). Missing: $missingSecondaryNames',
+      );
       return false;
     }
 
-    debugPrint('Contour integrity check passed. Detected secondary: $detectedSecondaryNames');
+    debugPrint(
+      'Contour integrity check passed. Detected secondary: $detectedSecondaryNames',
+    );
     return true;
   }
 
-  bool _detectZoom(Face face, {required Rect ovalRect, required double zoomFactor}) {
+  bool _detectZoom(
+    Face face, {
+    required Rect ovalRect,
+    required double zoomFactor,
+  }) {
     // Validate the face position using the controller's current zoomFactor
     final isPositionedForCurrentZoom = isFaceWellPositioned(
       face,
@@ -756,7 +868,9 @@ class FaceDetectionService {
     final isAnimationComplete = zoomFactor >= 1.0;
 
     if (isAnimationComplete && isPositionedForCurrentZoom) {
-      debugPrint("✅ Zoom Challenge Completed (detected on FaceDetectionService)");
+      debugPrint(
+        "✅ Zoom Challenge Completed (detected on FaceDetectionService)",
+      );
       return true;
     }
 
@@ -785,7 +899,7 @@ class FaceDetectionService {
     if (_isTiltDownChallengeReady) {
       if (rotX < -tiltThreshold) {
         debugPrint('Head tilt down detected successfully.');
-        _isTiltDownChallengeReady = false; 
+        _isTiltDownChallengeReady = false;
         return true;
       }
     }
@@ -803,10 +917,14 @@ class FaceDetectionService {
     final double? rotY = face.headEulerAngleY;
 
     final bool notSmiling = (smileProb ?? 1.0) < 0.25;
-    final bool eyesOpen = (leftEyeOpenProb ?? 0.0) > 0.5 && (rightEyeOpenProb ?? 0.0) > 0.5;
-    final bool facingForward = (rotX?.abs() ?? 0) < 10 && (rotY?.abs() ?? 0) < 10;
+    final bool eyesOpen =
+        (leftEyeOpenProb ?? 0.0) > 0.5 && (rightEyeOpenProb ?? 0.0) > 0.5;
+    final bool facingForward =
+        (rotX?.abs() ?? 0) < 10 && (rotY?.abs() ?? 0) < 10;
 
-    final bool hasContours = face.contours[FaceContourType.leftEyebrowTop] != null && face.contours[FaceContourType.rightEyebrowTop] != null;
+    final bool hasContours =
+        face.contours[FaceContourType.leftEyebrowTop] != null &&
+        face.contours[FaceContourType.rightEyebrowTop] != null;
 
     if (notSmiling && eyesOpen && facingForward && hasContours) {
       // Get the current embedding
@@ -838,7 +956,11 @@ class FaceDetectionService {
     return List.generate(10, (index) => rand.nextDouble());
   }
 
-  bool isSamePerson(List<double> embedding1, List<double> embedding2, {double threshold = 1.0,}) {
+  bool isSamePerson(
+    List<double> embedding1,
+    List<double> embedding2, {
+    double threshold = 1.0,
+  }) {
     return compareEmbeddings(embedding1, embedding2) < threshold;
   }
 
@@ -868,10 +990,17 @@ class FaceDetectionService {
   }
 
   double _calculateOverlap(Rect r1, Rect r2) {
-    final double xOverlap = math.max(0, math.min(r1.right, r2.right) - math.max(r1.left, r2.left),);
-    final double yOverlap = math.max(0, math.min(r1.bottom, r2.bottom) - math.max(r1.top, r2.top),);
+    final double xOverlap = math.max(
+      0,
+      math.min(r1.right, r2.right) - math.max(r1.left, r2.left),
+    );
+    final double yOverlap = math.max(
+      0,
+      math.min(r1.bottom, r2.bottom) - math.max(r1.top, r2.top),
+    );
     final double intersection = xOverlap * yOverlap;
-    final double union = r1.width * r1.height + r2.width * r2.height - intersection;
+    final double union =
+        r1.width * r1.height + r2.width * r2.height - intersection;
     return intersection / union;
   }
 
@@ -884,7 +1013,8 @@ class FaceDetectionService {
 
     if (!up) {
       log(rotX.toString(), name: 'Head Movement');
-      if (rotX < -20) { // Adjust threshold if needed
+      if (rotX < -20) {
+        // Adjust threshold if needed
         return true;
       }
     } else {

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'smart_liveliness_detection'
-  s.version          = '0.3.5'
+  s.version          = '0.4.0'
   s.summary          = 'Flutter face liveness detection package with anti-spoofing.'
   s.description      = <<-DESC
     Verify that a real person is present in front of the camera using ML Kit face
@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.license          = { :type => 'MIT' }
   s.author           = { 'Demola' => 'oluwasegun.kolawole@moniepoint.com' }
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*.swift'
+  s.source_files     = 'smart_liveliness_detection/Sources/smart_liveliness_detection/**/*.swift'
   s.dependency       'Flutter'
   s.platform         = :ios, '14.0'
   s.swift_version    = '5.0'

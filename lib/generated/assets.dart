@@ -1,3 +1,6 @@
+/// Paths to the image assets bundled with this package.
+library;
+
 /// Asset paths for built-in GIF hint animations used during liveness challenges.
 class Assets {
   Assets._();

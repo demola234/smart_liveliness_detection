@@ -56,12 +56,13 @@ class FaceQualityService {
       recommendations.add('Open your eyes wider and face the camera');
     }
 
-    final score = (brightnessScore * 0.25 +
-            sharpnessScore * 0.25 +
-            poseScore * 0.25 +
-            sizeScore * 0.15 +
-            eyeScore * 0.10)
-        .clamp(0.0, 100.0);
+    final score =
+        (brightnessScore * 0.25 +
+                sharpnessScore * 0.25 +
+                poseScore * 0.25 +
+                sizeScore * 0.15 +
+                eyeScore * 0.10)
+            .clamp(0.0, 100.0);
 
     return FaceQualityResult(
       score: score,
@@ -93,7 +94,8 @@ class FaceQualityService {
           if (isBGRA) {
             final idx = y * bpr + x * 4;
             if (idx + 2 < bytes.length) {
-              sum += 0.299 * bytes[idx + 2] +
+              sum +=
+                  0.299 * bytes[idx + 2] +
                   0.587 * bytes[idx + 1] +
                   0.114 * bytes[idx];
               count++;
@@ -138,7 +140,8 @@ class FaceQualityService {
           if (isBGRA) {
             final idx = y * bpr + x * 4;
             if (idx + 2 >= bytes.length) continue;
-            lum = 0.299 * bytes[idx + 2] +
+            lum =
+                0.299 * bytes[idx + 2] +
                 0.587 * bytes[idx + 1] +
                 0.114 * bytes[idx];
           } else {
@@ -173,8 +176,7 @@ class FaceQualityService {
   }
 
   double _scoreFaceSize(Face face, CameraImage image) {
-    final faceMax =
-        math.max(face.boundingBox.width, face.boundingBox.height);
+    final faceMax = math.max(face.boundingBox.width, face.boundingBox.height);
     final imgMin = math.min(image.width, image.height).toDouble();
     final ratio = faceMax / imgMin;
 

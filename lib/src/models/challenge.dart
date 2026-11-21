@@ -24,11 +24,7 @@ class Challenge {
     ChallengeType.nod: 'Nod your head up and down',
   };
 
-  Challenge(
-    this.type, {
-    this.isCompleted = false,
-    this.customInstruction,
-  });
+  Challenge(this.type, {this.isCompleted = false, this.customInstruction});
 
   /// Get the instruction text for this challenge
   String get instruction => customInstruction ?? _defaultInstructions[type]!;

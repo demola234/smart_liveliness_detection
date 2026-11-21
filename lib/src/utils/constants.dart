@@ -32,7 +32,7 @@ class LivenessConstants {
   // Adjusted to avoid false positives (User holding phone steadily)
   static const double defaultSignificantHeadMovementStdDev = 8.0;
   static const double defaultMinDeviceMovementThreshold = 0.1;
-  
+
   // Gyroscope settings
   static const bool defaultEnableGyroscopeCheck = false;
   static const double defaultMinGyroscopeMovementThreshold = 0.05;

@@ -25,11 +25,13 @@ A highly customizable Flutter package for face liveness detection with multiple 
 
 ## Installation
 
+Requires Flutter 3.47.0+ and Dart 3.13.0+.
+
 Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_liveliness_detection: ^0.3.9
+  smart_liveliness_detection: ^0.4.0
 ```
 
 Then run:
@@ -41,6 +43,14 @@ flutter pub get
 Make sure to add camera permissions to your app:
 
 ### iOS
+
+Requires iOS 15.0 or later and Swift Package Manager, which Flutter enables by default. The face detection dependency (`google_mlkit_face_detection` 1.x) is distributed only as a Swift package, so apps that have disabled Swift Package Manager must re-enable it:
+
+```
+flutter config --enable-swift-package-manager
+```
+
+Set the minimum deployment target to 15.0 in Xcode (Runner target → General → Minimum Deployments).
 
 Add the camera permission to your `Info.plist`:
 

@@ -92,13 +92,12 @@ class VoiceGuidanceConfig {
 
   /// Minimal preset: only challenge instructions and completion are spoken;
   /// continuous positioning feedback is disabled.
-  factory VoiceGuidanceConfig.minimal() => const VoiceGuidanceConfig(
-        speakPositioningFeedback: false,
-      );
+  factory VoiceGuidanceConfig.minimal() =>
+      const VoiceGuidanceConfig(speakPositioningFeedback: false);
 
   /// Preset tuned for accessibility: slower speech, all feedback enabled.
   factory VoiceGuidanceConfig.accessibility() => const VoiceGuidanceConfig(
-        speechRate: 0.4,
-        repeatInterval: Duration(seconds: 2),
-      );
+    speechRate: 0.4,
+    repeatInterval: Duration(seconds: 2),
+  );
 }

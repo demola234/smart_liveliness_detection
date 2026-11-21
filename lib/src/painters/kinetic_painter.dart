@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart';
+
+import 'package:material_ui/material_ui.dart';
+
 import '../theme/futuristic_theme.dart';
 
 class KineticPainter extends CustomPainter {
@@ -151,10 +153,10 @@ class KineticPainter extends CustomPainter {
       final double phaseA = idleTime * 2.8;
       final double phaseB = idleTime * 4.5 + math.pi * 0.6;
       final double breathe = 0.7 + 0.3 * math.sin(idleTime * 1.8);
-      const double ampA = 9.0;      // primary wave amplitude (px)
-      const double ampB = 3.5;      // secondary wave amplitude
-      const double wavesA = 2.5;    // primary cycles across width
-      const double wavesB = 5.0;    // secondary cycles
+      const double ampA = 9.0; // primary wave amplitude (px)
+      const double ampB = 3.5; // secondary wave amplitude
+      const double wavesA = 2.5; // primary cycles across width
+      const double wavesB = 5.0; // secondary cycles
       const double ribbonHalf = 5.0; // max half-thickness of the ribbon
       const double step = 2.0;
 
@@ -169,16 +171,17 @@ class KineticPainter extends CustomPainter {
       // Wave centre-line y at position x
       double waveY(double x) {
         final double t = x / w;
-        return h / 2
-            + math.sin(t * math.pi * 2 * wavesA + phaseA) * ampA * breathe
-            + math.sin(t * math.pi * 2 * wavesB + phaseB) * ampB;
+        return h / 2 +
+            math.sin(t * math.pi * 2 * wavesA + phaseA) * ampA * breathe +
+            math.sin(t * math.pi * 2 * wavesB + phaseB) * ampB;
       }
 
       // Build closed ribbon: top edge L→R, bottom edge R→L
       final ribbon = Path();
       for (double x = 0; x <= w; x += step) {
         final double g = intensity(x);
-        final double cy = waveY(x) * g + h / 2 * (1.0 - g); // flatten when faint
+        final double cy =
+            waveY(x) * g + h / 2 * (1.0 - g); // flatten when faint
         final double half = ribbonHalf * g;
         if (x == 0) {
           ribbon.moveTo(x, cy - half);

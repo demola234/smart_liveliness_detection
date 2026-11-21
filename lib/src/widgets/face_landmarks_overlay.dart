@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:smart_liveliness_detection/src/config/theme_config.dart';
 
@@ -55,9 +55,9 @@ class FaceLandmarksOverlay extends StatelessWidget {
     Color? contourColor,
     Color? boundingBoxColor,
     this.strokeWidth = 3.0,
-  })  : landmarkColor = landmarkColor ?? Colors.yellow,
-        contourColor = contourColor ?? Colors.green,
-        boundingBoxColor = boundingBoxColor ?? Colors.red;
+  }) : landmarkColor = landmarkColor ?? Colors.yellow,
+       contourColor = contourColor ?? Colors.green,
+       boundingBoxColor = boundingBoxColor ?? Colors.red;
 
   @override
   Widget build(BuildContext context) {
@@ -145,10 +145,7 @@ class _FaceLandmarksPainter extends CustomPainter {
         final landmark = face.landmarks[type];
         if (landmark != null) {
           canvas.drawCircle(
-            Offset(
-              landmark.position.x * scaleX,
-              landmark.position.y * scaleY,
-            ),
+            Offset(landmark.position.x * scaleX, landmark.position.y * scaleY),
             strokeWidth * 1.5,
             landmarkPaint,
           );
@@ -180,16 +177,10 @@ class _FaceLandmarksPainter extends CustomPainter {
         if (contour != null && contour.points.isNotEmpty) {
           final path = Path();
           final firstPoint = contour.points.first;
-          path.moveTo(
-            firstPoint.x * scaleX,
-            firstPoint.y * scaleY,
-          );
+          path.moveTo(firstPoint.x * scaleX, firstPoint.y * scaleY);
 
           for (final point in contour.points.skip(1)) {
-            path.lineTo(
-              point.x * scaleX,
-              point.y * scaleY,
-            );
+            path.lineTo(point.x * scaleX, point.y * scaleY);
           }
 
           // Close the path for certain contours
@@ -249,10 +240,7 @@ class _FaceLandmarksPainter extends CustomPainter {
         headRotationText += 'Z: ${face.headEulerAngleZ!.toStringAsFixed(1)}°';
       }
 
-      textPainter.text = TextSpan(
-        text: headRotationText,
-        style: textStyle,
-      );
+      textPainter.text = TextSpan(text: headRotationText, style: textStyle);
       textPainter.layout();
       textPainter.paint(
         canvas,

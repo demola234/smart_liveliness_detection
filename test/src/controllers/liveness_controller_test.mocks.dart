@@ -40,55 +40,30 @@ import 'package:smart_liveliness_detection/src/services/voice_guidance_service.d
 
 class _FakeCameraController_0 extends _i1.SmartFake
     implements _i2.CameraController {
-  _FakeCameraController_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeCameraController_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeOffset_1 extends _i1.SmartFake implements _i3.Offset {
-  _FakeOffset_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeOffset_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeVoiceGuidanceConfig_2 extends _i1.SmartFake
     implements _i4.VoiceGuidanceConfig {
-  _FakeVoiceGuidanceConfig_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeVoiceGuidanceConfig_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeDateTime_3 extends _i1.SmartFake implements DateTime {
-  _FakeDateTime_3(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeDateTime_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeLivenessSession_4 extends _i1.SmartFake
     implements _i4.LivenessSession {
-  _FakeLivenessSession_4(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeLivenessSession_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [CameraService].
@@ -100,99 +75,71 @@ class MockCameraService extends _i1.Mock implements _i5.CameraService {
   }
 
   @override
-  bool get isInitialized => (super.noSuchMethod(
-        Invocation.getter(#isInitialized),
-        returnValue: false,
-      ) as bool);
+  bool get isInitialized =>
+      (super.noSuchMethod(Invocation.getter(#isInitialized), returnValue: false)
+          as bool);
 
   @override
   bool get isLightingGood => (super.noSuchMethod(
-        Invocation.getter(#isLightingGood),
-        returnValue: false,
-      ) as bool);
+    Invocation.getter(#isLightingGood),
+    returnValue: false,
+  ) as bool);
 
   @override
-  double get lightingValue => (super.noSuchMethod(
-        Invocation.getter(#lightingValue),
-        returnValue: 0.0,
-      ) as double);
+  double get lightingValue =>
+      (super.noSuchMethod(Invocation.getter(#lightingValue), returnValue: 0.0)
+          as double);
 
   @override
   _i6.Future<_i2.CameraController> initialize(
-          List<_i2.CameraDescription>? cameras) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #initialize,
-          [cameras],
-        ),
-        returnValue:
-            _i6.Future<_i2.CameraController>.value(_FakeCameraController_0(
-          this,
-          Invocation.method(
-            #initialize,
-            [cameras],
-          ),
-        )),
-      ) as _i6.Future<_i2.CameraController>);
+    List<_i2.CameraDescription>? cameras,
+  ) => (super.noSuchMethod(
+    Invocation.method(#initialize, [cameras]),
+    returnValue: _i6.Future<_i2.CameraController>.value(
+      _FakeCameraController_0(this, Invocation.method(#initialize, [cameras])),
+    ),
+  ) as _i6.Future<_i2.CameraController>);
 
   @override
   _i6.Future<void> startImageStream(
-          dynamic Function(_i2.CameraImage)? onImage) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #startImageStream,
-          [onImage],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+    dynamic Function(_i2.CameraImage)? onImage,
+  ) => (super.noSuchMethod(
+    Invocation.method(#startImageStream, [onImage]),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 
   @override
   _i6.Future<void> stopImageStream() => (super.noSuchMethod(
-        Invocation.method(
-          #stopImageStream,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+    Invocation.method(#stopImageStream, []),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 
   @override
   void calculateLightingCondition(_i2.CameraImage? image) => super.noSuchMethod(
-        Invocation.method(
-          #calculateLightingCondition,
-          [image],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#calculateLightingCondition, [image]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   bool detectScreenGlare(_i2.CameraImage? image) => (super.noSuchMethod(
-        Invocation.method(
-          #detectScreenGlare,
-          [image],
-        ),
-        returnValue: false,
-      ) as bool);
+    Invocation.method(#detectScreenGlare, [image]),
+    returnValue: false,
+  ) as bool);
 
   @override
   void updateConfig(_i7.LivenessConfig? config) => super.noSuchMethod(
-        Invocation.method(
-          #updateConfig,
-          [config],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#updateConfig, [config]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   _i6.Future<void> dispose() => (super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+    Invocation.method(#dispose, []),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 }
 
 /// A class which mocks [FaceDetectionService].
@@ -206,63 +153,39 @@ class MockFaceDetectionService extends _i1.Mock
 
   @override
   List<_i3.Offset> get headAngleReadings => (super.noSuchMethod(
-        Invocation.getter(#headAngleReadings),
-        returnValue: <_i3.Offset>[],
-      ) as List<_i3.Offset>);
+    Invocation.getter(#headAngleReadings),
+    returnValue: <_i3.Offset>[],
+  ) as List<_i3.Offset>);
 
   @override
   bool get isFaceCentered => (super.noSuchMethod(
-        Invocation.getter(#isFaceCentered),
-        returnValue: false,
-      ) as bool);
+    Invocation.getter(#isFaceCentered),
+    returnValue: false,
+  ) as bool);
 
   @override
   void updateConfig(_i7.LivenessConfig? config) => super.noSuchMethod(
-        Invocation.method(
-          #updateConfig,
-          [config],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#updateConfig, [config]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void forceFaceCentered(bool? centered) => super.noSuchMethod(
-        Invocation.method(
-          #forceFaceCentered,
-          [centered],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#forceFaceCentered, [centered]),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  bool checkFaceCenteringOLD(
-    _i9.Face? face,
-    _i3.Size? screenSize,
-  ) =>
+  bool checkFaceCenteringOLD(_i9.Face? face, _i3.Size? screenSize) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #checkFaceCenteringOLD,
-          [
-            face,
-            screenSize,
-          ],
-        ),
+        Invocation.method(#checkFaceCenteringOLD, [face, screenSize]),
         returnValue: false,
       ) as bool);
 
   @override
-  bool checkFaceCentering(
-    _i9.Face? face,
-    _i3.Size? screenSize,
-  ) =>
+  bool checkFaceCentering(_i9.Face? face, _i3.Size? screenSize) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #checkFaceCentering,
-          [
-            face,
-            screenSize,
-          ],
-        ),
+        Invocation.method(#checkFaceCentering, [face, screenSize]),
         returnValue: false,
       ) as bool);
 
@@ -270,17 +193,10 @@ class MockFaceDetectionService extends _i1.Mock
   _i6.Future<List<_i9.Face>?> processImage(
     _i2.CameraImage? image,
     _i2.CameraDescription? camera,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #processImage,
-          [
-            image,
-            camera,
-          ],
-        ),
-        returnValue: _i6.Future<List<_i9.Face>?>.value(),
-      ) as _i6.Future<List<_i9.Face>?>);
+  ) => (super.noSuchMethod(
+    Invocation.method(#processImage, [image, camera]),
+    returnValue: _i6.Future<List<_i9.Face>?>.value(),
+  ) as _i6.Future<List<_i9.Face>?>);
 
   @override
   bool isFaceWellPositioned(
@@ -288,44 +204,30 @@ class MockFaceDetectionService extends _i1.Mock
     required _i3.Rect? ovalRect,
     double? zoomFactor = 1.0,
     _i4.ChallengeType? challengeType,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #isFaceWellPositioned,
-          [face],
-          {
-            #ovalRect: ovalRect,
-            #zoomFactor: zoomFactor,
-            #challengeType: challengeType,
-          },
-        ),
-        returnValue: false,
-      ) as bool);
+  }) => (super.noSuchMethod(
+    Invocation.method(
+      #isFaceWellPositioned,
+      [face],
+      {
+        #ovalRect: ovalRect,
+        #zoomFactor: zoomFactor,
+        #challengeType: challengeType,
+      },
+    ),
+    returnValue: false,
+  ) as bool);
 
   @override
   _i3.Offset transformFacePosition(
     _i3.Offset? facePosition,
     _i3.Size? imageSize,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #transformFacePosition,
-          [
-            facePosition,
-            imageSize,
-          ],
-        ),
-        returnValue: _FakeOffset_1(
-          this,
-          Invocation.method(
-            #transformFacePosition,
-            [
-              facePosition,
-              imageSize,
-            ],
-          ),
-        ),
-      ) as _i3.Offset);
+  ) => (super.noSuchMethod(
+    Invocation.method(#transformFacePosition, [facePosition, imageSize]),
+    returnValue: _FakeOffset_1(
+      this,
+      Invocation.method(#transformFacePosition, [facePosition, imageSize]),
+    ),
+  ) as _i3.Offset);
 
   @override
   bool detectChallengeCompletion(
@@ -333,91 +235,59 @@ class MockFaceDetectionService extends _i1.Mock
     _i4.ChallengeType? challengeType, {
     _i3.Rect? ovalRect,
     double? zoomFactor,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #detectChallengeCompletion,
-          [
-            face,
-            challengeType,
-          ],
-          {
-            #ovalRect: ovalRect,
-            #zoomFactor: zoomFactor,
-          },
-        ),
-        returnValue: false,
-      ) as bool);
+  }) => (super.noSuchMethod(
+    Invocation.method(
+      #detectChallengeCompletion,
+      [face, challengeType],
+      {#ovalRect: ovalRect, #zoomFactor: zoomFactor},
+    ),
+    returnValue: false,
+  ) as bool);
 
   @override
   bool isContourComplete(_i9.Face? face) => (super.noSuchMethod(
-        Invocation.method(
-          #isContourComplete,
-          [face],
-        ),
-        returnValue: false,
-      ) as bool);
+    Invocation.method(#isContourComplete, [face]),
+    returnValue: false,
+  ) as bool);
 
   @override
   List<double> getDeterministicEmbedding(_i9.Face? face) => (super.noSuchMethod(
-        Invocation.method(
-          #getDeterministicEmbedding,
-          [face],
-        ),
-        returnValue: <double>[],
-      ) as List<double>);
+    Invocation.method(#getDeterministicEmbedding, [face]),
+    returnValue: <double>[],
+  ) as List<double>);
 
   @override
   bool isSamePerson(
     List<double>? embedding1,
     List<double>? embedding2, {
     double? threshold = 1.0,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #isSamePerson,
-          [
-            embedding1,
-            embedding2,
-          ],
-          {#threshold: threshold},
-        ),
-        returnValue: false,
-      ) as bool);
+  }) => (super.noSuchMethod(
+    Invocation.method(
+      #isSamePerson,
+      [embedding1, embedding2],
+      {#threshold: threshold},
+    ),
+    returnValue: false,
+  ) as bool);
 
   @override
-  double compareEmbeddings(
-    List<double>? e1,
-    List<double>? e2,
-  ) =>
+  double compareEmbeddings(List<double>? e1, List<double>? e2) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #compareEmbeddings,
-          [
-            e1,
-            e2,
-          ],
-        ),
+        Invocation.method(#compareEmbeddings, [e1, e2]),
         returnValue: 0.0,
       ) as double);
 
   @override
   void resetTracking() => super.noSuchMethod(
-        Invocation.method(
-          #resetTracking,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#resetTracking, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [MotionService].
@@ -437,55 +307,40 @@ class MockMotionService extends _i1.Mock implements _i10.MotionService {
 
   @override
   List<_i11.GyroscopeEvent> get gyroscopeReadings => (super.noSuchMethod(
-        Invocation.getter(#gyroscopeReadings),
-        returnValue: <_i11.GyroscopeEvent>[],
-      ) as List<_i11.GyroscopeEvent>);
+    Invocation.getter(#gyroscopeReadings),
+    returnValue: <_i11.GyroscopeEvent>[],
+  ) as List<_i11.GyroscopeEvent>);
 
   @override
   void startAccelerometerTracking() => super.noSuchMethod(
-        Invocation.method(
-          #startAccelerometerTracking,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#startAccelerometerTracking, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void updateConfig(_i7.LivenessConfig? config) => super.noSuchMethod(
-        Invocation.method(
-          #updateConfig,
-          [config],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#updateConfig, [config]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   bool verifyMotionCorrelation(List<_i3.Offset>? headAngleReadings) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #verifyMotionCorrelation,
-          [headAngleReadings],
-        ),
+        Invocation.method(#verifyMotionCorrelation, [headAngleReadings]),
         returnValue: false,
       ) as bool);
 
   @override
   void resetTracking() => super.noSuchMethod(
-        Invocation.method(
-          #resetTracking,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#resetTracking, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [VoiceGuidanceService].
@@ -499,52 +354,37 @@ class MockVoiceGuidanceService extends _i1.Mock
 
   @override
   _i4.VoiceGuidanceConfig get config => (super.noSuchMethod(
-        Invocation.getter(#config),
-        returnValue: _FakeVoiceGuidanceConfig_2(
-          this,
-          Invocation.getter(#config),
-        ),
-      ) as _i4.VoiceGuidanceConfig);
+    Invocation.getter(#config),
+    returnValue: _FakeVoiceGuidanceConfig_2(this, Invocation.getter(#config)),
+  ) as _i4.VoiceGuidanceConfig);
 
   @override
   _i6.Future<void> initialize() => (super.noSuchMethod(
-        Invocation.method(
-          #initialize,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+    Invocation.method(#initialize, []),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 
   @override
   _i6.Future<void> speak(String? text) => (super.noSuchMethod(
-        Invocation.method(
-          #speak,
-          [text],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+    Invocation.method(#speak, [text]),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 
   @override
   _i6.Future<void> stop() => (super.noSuchMethod(
-        Invocation.method(
-          #stop,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+    Invocation.method(#stop, []),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 
   @override
   _i6.Future<void> dispose() => (super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+    Invocation.method(#dispose, []),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 }
 
 /// A class which mocks [LivenessSession].
@@ -557,96 +397,71 @@ class MockLivenessSession extends _i1.Mock implements _i4.LivenessSession {
 
   @override
   String get sessionId => (super.noSuchMethod(
-        Invocation.getter(#sessionId),
-        returnValue: _i13.dummyValue<String>(
-          this,
-          Invocation.getter(#sessionId),
-        ),
-      ) as String);
+    Invocation.getter(#sessionId),
+    returnValue: _i13.dummyValue<String>(this, Invocation.getter(#sessionId)),
+  ) as String);
 
   @override
   DateTime get startTime => (super.noSuchMethod(
-        Invocation.getter(#startTime),
-        returnValue: _FakeDateTime_3(
-          this,
-          Invocation.getter(#startTime),
-        ),
-      ) as DateTime);
+    Invocation.getter(#startTime),
+    returnValue: _FakeDateTime_3(this, Invocation.getter(#startTime)),
+  ) as DateTime);
 
   @override
   List<_i4.Challenge> get challenges => (super.noSuchMethod(
-        Invocation.getter(#challenges),
-        returnValue: <_i4.Challenge>[],
-      ) as List<_i4.Challenge>);
+    Invocation.getter(#challenges),
+    returnValue: <_i4.Challenge>[],
+  ) as List<_i4.Challenge>);
 
   @override
   int get currentChallengeIndex => (super.noSuchMethod(
-        Invocation.getter(#currentChallengeIndex),
-        returnValue: 0,
-      ) as int);
+    Invocation.getter(#currentChallengeIndex),
+    returnValue: 0,
+  ) as int);
 
   @override
   _i4.LivenessState get state => (super.noSuchMethod(
-        Invocation.getter(#state),
-        returnValue: _i4.LivenessState.initial,
-      ) as _i4.LivenessState);
+    Invocation.getter(#state),
+    returnValue: _i4.LivenessState.initial,
+  ) as _i4.LivenessState);
 
   @override
-  bool get isComplete => (super.noSuchMethod(
-        Invocation.getter(#isComplete),
-        returnValue: false,
-      ) as bool);
+  bool get isComplete =>
+      (super.noSuchMethod(Invocation.getter(#isComplete), returnValue: false)
+          as bool);
 
   @override
   set currentChallengeIndex(int? _currentChallengeIndex) => super.noSuchMethod(
-        Invocation.setter(
-          #currentChallengeIndex,
-          _currentChallengeIndex,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#currentChallengeIndex, _currentChallengeIndex),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set state(_i4.LivenessState? _state) => super.noSuchMethod(
-        Invocation.setter(
-          #state,
-          _state,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#state, _state),
+    returnValueForMissingStub: null,
+  );
 
   @override
   double getProgressPercentage() => (super.noSuchMethod(
-        Invocation.method(
-          #getProgressPercentage,
-          [],
-        ),
-        returnValue: 0.0,
-      ) as double);
+    Invocation.method(#getProgressPercentage, []),
+    returnValue: 0.0,
+  ) as double);
 
   @override
   _i4.LivenessSession reset(_i7.LivenessConfig? config) => (super.noSuchMethod(
-        Invocation.method(
-          #reset,
-          [config],
-        ),
-        returnValue: _FakeLivenessSession_4(
-          this,
-          Invocation.method(
-            #reset,
-            [config],
-          ),
-        ),
-      ) as _i4.LivenessSession);
+    Invocation.method(#reset, [config]),
+    returnValue: _FakeLivenessSession_4(
+      this,
+      Invocation.method(#reset, [config]),
+    ),
+  ) as _i4.LivenessSession);
 
   @override
   bool isExpired(Duration? maxDuration) => (super.noSuchMethod(
-        Invocation.method(
-          #isExpired,
-          [maxDuration],
-        ),
-        returnValue: false,
-      ) as bool);
+    Invocation.method(#isExpired, [maxDuration]),
+    returnValue: false,
+  ) as bool);
 
   @override
   _i4.LivenessSession copyWith({
@@ -656,34 +471,25 @@ class MockLivenessSession extends _i1.Mock implements _i4.LivenessSession {
     int? currentChallengeIndex,
     _i4.LivenessState? state,
     Map<String, dynamic>? metadata,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #copyWith,
-          [],
-          {
-            #sessionId: sessionId,
-            #startTime: startTime,
-            #challenges: challenges,
-            #currentChallengeIndex: currentChallengeIndex,
-            #state: state,
-            #metadata: metadata,
-          },
-        ),
-        returnValue: _FakeLivenessSession_4(
-          this,
-          Invocation.method(
-            #copyWith,
-            [],
-            {
-              #sessionId: sessionId,
-              #startTime: startTime,
-              #challenges: challenges,
-              #currentChallengeIndex: currentChallengeIndex,
-              #state: state,
-              #metadata: metadata,
-            },
-          ),
-        ),
-      ) as _i4.LivenessSession);
+  }) => (super.noSuchMethod(
+    Invocation.method(#copyWith, [], {
+      #sessionId: sessionId,
+      #startTime: startTime,
+      #challenges: challenges,
+      #currentChallengeIndex: currentChallengeIndex,
+      #state: state,
+      #metadata: metadata,
+    }),
+    returnValue: _FakeLivenessSession_4(
+      this,
+      Invocation.method(#copyWith, [], {
+        #sessionId: sessionId,
+        #startTime: startTime,
+        #challenges: challenges,
+        #currentChallengeIndex: currentChallengeIndex,
+        #state: state,
+        #metadata: metadata,
+      }),
+    ),
+  ) as _i4.LivenessSession);
 }

@@ -1,13 +1,8 @@
 // In a new file, e.g., lib/src/controllers/zoom_challenge_controller.dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // Enum to represent the challenge states
-enum ZoomChallengeState {
-  initial,     
-  inProgress,
-  completed, 
-  failed,
-}
+enum ZoomChallengeState { initial, inProgress, completed, failed }
 
 class ZoomChallengeController extends ChangeNotifier {
   final AnimationController _animationController;
@@ -18,14 +13,16 @@ class ZoomChallengeController extends ChangeNotifier {
 
   double get zoomFactor => _animationController.value;
 
-  ZoomChallengeController({required TickerProvider vsync,
+  ZoomChallengeController({
+    required TickerProvider vsync,
     required double initialValue,
   }) : _animationController = AnimationController(
-    vsync: vsync,
-    duration: const Duration(milliseconds: 500), 
-    value: initialValue,
-  ), _initialValue = initialValue {
-    _animationController.addListener(notifyListeners); 
+         vsync: vsync,
+         duration: const Duration(milliseconds: 500),
+         value: initialValue,
+       ),
+       _initialValue = initialValue {
+    _animationController.addListener(notifyListeners);
   }
 
   void startChallenge() {
@@ -47,10 +44,10 @@ class ZoomChallengeController extends ChangeNotifier {
     }
   }
 
-
   // If time runs out and the challenge was not completed
   void checkTimeout() {
-    if (_animationController.isCompleted && _state != ZoomChallengeState.completed) {
+    if (_animationController.isCompleted &&
+        _state != ZoomChallengeState.completed) {
       _state = ZoomChallengeState.failed;
       notifyListeners();
     }

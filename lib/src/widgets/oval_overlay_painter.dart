@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smart_liveliness_detection/src/config/app_config.dart';
 import 'package:smart_liveliness_detection/src/config/theme_config.dart';
 
@@ -68,8 +68,8 @@ class OvalOverlayPainter extends CustomPainter {
     // Apply animation if enabled and available
     final double strokeWidth =
         theme.useOvalPulseAnimation && animationValue != null
-            ? config.strokeWidth * (1.0 + animationValue! * 0.5)
-            : config.strokeWidth;
+        ? config.strokeWidth * (1.0 + animationValue! * 0.5)
+        : config.strokeWidth;
 
     final ovalRect = Rect.fromCenter(
       center: size.center(Offset.zero),
@@ -106,24 +106,34 @@ class OvalOverlayPainter extends CustomPainter {
     Offset progressCenter;
     switch (progressPosition) {
       case 0: // Top
-        progressCenter = Offset(center.dx,
-            center.dy - ovalHeight / 2 - progressCircleSize / 2 - 10);
+        progressCenter = Offset(
+          center.dx,
+          center.dy - ovalHeight / 2 - progressCircleSize / 2 - 10,
+        );
         break;
       case 1: // Right
         progressCenter = Offset(
-            center.dx + ovalWidth / 2 + progressCircleSize / 2 + 10, center.dy);
+          center.dx + ovalWidth / 2 + progressCircleSize / 2 + 10,
+          center.dy,
+        );
         break;
       case 2: // Bottom
-        progressCenter = Offset(center.dx,
-            center.dy + ovalHeight / 2 + progressCircleSize / 2 + 10);
+        progressCenter = Offset(
+          center.dx,
+          center.dy + ovalHeight / 2 + progressCircleSize / 2 + 10,
+        );
         break;
       case 3: // Left
         progressCenter = Offset(
-            center.dx - ovalWidth / 2 - progressCircleSize / 2 - 10, center.dy);
+          center.dx - ovalWidth / 2 - progressCircleSize / 2 - 10,
+          center.dy,
+        );
         break;
       default:
         progressCenter = Offset(
-            center.dx + ovalWidth / 2 + progressCircleSize / 2 + 10, center.dy);
+          center.dx + ovalWidth / 2 + progressCircleSize / 2 + 10,
+          center.dy,
+        );
     }
 
     // Draw progress track (background)
@@ -145,7 +155,9 @@ class OvalOverlayPainter extends CustomPainter {
 
       // Draw an arc for the progress
       final rect = Rect.fromCircle(
-          center: progressCenter, radius: progressCircleSize / 2);
+        center: progressCenter,
+        radius: progressCircleSize / 2,
+      );
       canvas.drawArc(
         rect,
         -math.pi / 2,
@@ -253,12 +265,10 @@ class _AnimatedOvalOverlayState extends State<AnimatedOvalOverlay>
         vsync: this,
       )..repeat(reverse: true);
 
-      _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: Curves.easeInOut,
-        ),
-      );
+      _animation = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     }
   }
 

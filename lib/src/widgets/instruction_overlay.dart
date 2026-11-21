@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smart_liveliness_detection/src/config/theme_config.dart';
 
 /// Widget for displaying liveness detection instructions
@@ -67,10 +67,7 @@ class InstructionOverlay extends StatelessWidget {
     );
 
     if (animate) {
-      return _AnimatedInstruction(
-        shape: shape,
-        child: container,
-      );
+      return _AnimatedInstruction(shape: shape, child: container);
     } else {
       return container;
     }
@@ -82,10 +79,7 @@ class _AnimatedInstruction extends StatefulWidget {
   final Widget child;
   final ShapeBorder? shape;
 
-  const _AnimatedInstruction({
-    required this.child,
-    this.shape,
-  });
+  const _AnimatedInstruction({required this.child, this.shape});
 
   @override
   State<_AnimatedInstruction> createState() => _AnimatedInstructionState();
@@ -114,10 +108,7 @@ class _AnimatedInstructionState extends State<_AnimatedInstruction>
         tween: Tween<double>(begin: 1.05, end: 1.0),
         weight: 60.0,
       ),
-    ]).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(

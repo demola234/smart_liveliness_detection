@@ -10,10 +10,7 @@ class CaptureService {
   final Function(XFile image)? onImageCaptured;
 
   /// Constructor
-  CaptureService({
-    required this.cameraController,
-    this.onImageCaptured,
-  });
+  CaptureService({required this.cameraController, this.onImageCaptured});
 
   /// Capture a single image
   Future<XFile?> captureImage() async {

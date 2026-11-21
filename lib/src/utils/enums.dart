@@ -1,11 +1,21 @@
-enum ChallengeType { blink, turnLeft, turnRight, smile, nod, tiltUp, tiltDown, normal, zoom }
+enum ChallengeType {
+  blink,
+  turnLeft,
+  turnRight,
+  smile,
+  nod,
+  tiltUp,
+  tiltDown,
+  normal,
+  zoom,
+}
 
 enum LivenessState {
   initial,
   centeringFace,
   screenFlashTest,
   performingChallenges,
-  completed
+  completed,
 }
 
 enum ChallengeHintPosition {

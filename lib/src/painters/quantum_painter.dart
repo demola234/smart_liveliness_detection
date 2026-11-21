@@ -1,5 +1,7 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+
+import 'package:material_ui/material_ui.dart';
+
 import '../theme/futuristic_theme.dart';
 
 class QuantumPainter extends CustomPainter {

@@ -16,24 +16,43 @@ void main() {
       expect(defaultConfig.moveDown, equals('Move down'));
       expect(defaultConfig.perfectHoldStill, equals('Perfect! Hold still'));
       expect(defaultConfig.noFaceDetected, equals('No face detected'));
-      expect(defaultConfig.errorCheckingFacePosition,
-          equals('Error checking face position'));
+      expect(
+        defaultConfig.errorCheckingFacePosition,
+        equals('Error checking face position'),
+      );
       expect(defaultConfig.initializing, equals('Initializing...'));
       expect(
-          defaultConfig.initializingCamera, equals('Initializing camera...'));
-      expect(defaultConfig.errorInitializingCamera,
-          equals('Error initializing camera. Please restart the app.'));
-      expect(defaultConfig.initialInstruction,
-          equals('Position your face in the oval'));
-      expect(defaultConfig.poorLighting, equals('Please move to a better lit area'));
-      expect(defaultConfig.processingVerification,
-          equals('Processing verification...'));
-      expect(defaultConfig.verificationComplete,
-          equals('Liveness verification complete!'));
-      expect(defaultConfig.spoofingDetected,
-          equals('Potential spoofing detected.'));
+        defaultConfig.initializingCamera,
+        equals('Initializing camera...'),
+      );
       expect(
-          defaultConfig.errorProcessing, equals('Processing error occurred'));
+        defaultConfig.errorInitializingCamera,
+        equals('Error initializing camera. Please restart the app.'),
+      );
+      expect(
+        defaultConfig.initialInstruction,
+        equals('Position your face in the oval'),
+      );
+      expect(
+        defaultConfig.poorLighting,
+        equals('Please move to a better lit area'),
+      );
+      expect(
+        defaultConfig.processingVerification,
+        equals('Processing verification...'),
+      );
+      expect(
+        defaultConfig.verificationComplete,
+        equals('Liveness verification complete!'),
+      );
+      expect(
+        defaultConfig.spoofingDetected,
+        equals('Potential spoofing detected.'),
+      );
+      expect(
+        defaultConfig.errorProcessing,
+        equals('Processing error occurred'),
+      );
     });
   });
 }

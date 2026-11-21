@@ -9,10 +9,10 @@ import 'package:smart_liveliness_detection/src/models/depth_detection_result.dar
 /// On Android or unsupported devices all methods no-op gracefully and
 /// [checkAvailability] returns `false`.
 class DepthDetectionService {
-  static const _method =
-      MethodChannel('smart_liveliness_detection/depth');
-  static const _events =
-      EventChannel('smart_liveliness_detection/depth/events');
+  static const _method = MethodChannel('smart_liveliness_detection/depth');
+  static const _events = EventChannel(
+    'smart_liveliness_detection/depth/events',
+  );
 
   StreamSubscription<dynamic>? _subscription;
   final _controller = StreamController<DepthDetectionResult>.broadcast();
@@ -31,7 +31,8 @@ class DepthDetectionService {
     }
     try {
       final result = await _method.invokeMapMethod<String, dynamic>(
-          'checkAvailability');
+        'checkAvailability',
+      );
       _isAvailable = (result?['available'] as bool?) ?? false;
       return _isAvailable;
     } catch (_) {
@@ -46,21 +47,20 @@ class DepthDetectionService {
     try {
       await _method.invokeMethod<void>('startSession');
       _isRunning = true;
-      _subscription = _events.receiveBroadcastStream().listen(
-        (dynamic event) {
-          if (event is! Map) return;
-          final map = Map<String, dynamic>.from(event);
-          _controller.add(DepthDetectionResult(
+      _subscription = _events.receiveBroadcastStream().listen((dynamic event) {
+        if (event is! Map) return;
+        final map = Map<String, dynamic>.from(event);
+        _controller.add(
+          DepthDetectionResult(
             passed: !(map['isFlat'] as bool? ?? true),
             depthStdDev: (map['depthStdDev'] as num?)?.toDouble() ?? 0,
             depthVariance: (map['depthVariance'] as num?)?.toDouble() ?? 0,
             confidence: (map['confidence'] as num?)?.toDouble() ?? 0,
             vertexCount: (map['vertexCount'] as int?) ?? 0,
             isTrueDepthAvailable: true,
-          ));
-        },
-        onError: (_) {},
-      );
+          ),
+        );
+      }, onError: (_) {});
     } catch (_) {
       _isRunning = false;
     }

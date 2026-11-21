@@ -38,12 +38,15 @@ class BiometricMatcher {
     double threshold = 0.80,
     Uint8List? obfuscationKey,
   }) =>
-      compare(template1, template2, obfuscationKey: obfuscationKey) >= threshold;
+      compare(template1, template2, obfuscationKey: obfuscationKey) >=
+      threshold;
 
   // ---------------------------------------------------------------------------
 
   static Float32List? _decode(
-      BiometricTemplate template, Uint8List? obfuscationKey) {
+    BiometricTemplate template,
+    Uint8List? obfuscationKey,
+  ) {
     // If the raw vector is still attached (no obfuscation), use it directly.
     if (template.rawVector != null) return template.rawVector;
 

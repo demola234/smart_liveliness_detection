@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smart_liveliness_detection/src/utils/enums.dart';
 
 class ChallengeHintConfig {
@@ -71,10 +71,10 @@ class ChallengeHintConfig {
   }
 
   static Map<ChallengeType, String> get defaultAssetPaths => {
-        ChallengeType.blink: 'assets/gif/blink.gif',
-        ChallengeType.smile: 'assets/gif/smile.gif',
-        ChallengeType.nod: 'assets/gif/nod.gif',
-        ChallengeType.turnLeft: 'assets/gif/rotate_left.gif',
-        ChallengeType.turnRight: 'assets/gif/rotate_right.gif',
-      };
+    ChallengeType.blink: 'assets/gif/blink.gif',
+    ChallengeType.smile: 'assets/gif/smile.gif',
+    ChallengeType.nod: 'assets/gif/nod.gif',
+    ChallengeType.turnLeft: 'assets/gif/rotate_left.gif',
+    ChallengeType.turnRight: 'assets/gif/rotate_right.gif',
+  };
 }

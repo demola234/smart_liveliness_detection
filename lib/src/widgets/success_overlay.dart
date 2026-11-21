@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smart_liveliness_detection/src/config/theme_config.dart';
 
 /// Widget displayed when liveness verification is complete
@@ -85,21 +85,22 @@ class _SuccessOverlayState extends State<SuccessOverlay>
       ),
     );
 
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.2),
-        weight: 60.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0),
-        weight: 40.0,
-      ),
-    ]).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
+    _scaleAnimation =
+        TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 0.0, end: 1.2),
+            weight: 60.0,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 1.2, end: 1.0),
+            weight: 40.0,
+          ),
+        ]).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+          ),
+        );
 
     _controller.forward();
   }
@@ -129,8 +130,9 @@ class _SuccessOverlayState extends State<SuccessOverlay>
         ? widget.successMessage ?? 'Verification Complete!'
         : widget.failureMessage ?? 'Verification Failed';
 
-    final IconData icon =
-        widget.isSuccessful ? Icons.check_circle : Icons.error;
+    final IconData icon = widget.isSuccessful
+        ? Icons.check_circle
+        : Icons.error;
     final Color iconColor = widget.isSuccessful
         ? widget.theme.successColor
         : widget.theme.errorColor;
@@ -156,16 +158,9 @@ class _SuccessOverlayState extends State<SuccessOverlay>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      icon,
-                      color: iconColor,
-                      size: 80,
-                    ),
+                    Icon(icon, color: iconColor, size: 80),
                     const SizedBox(height: 16),
-                    Text(
-                      message,
-                      style: widget.theme.successTitleStyle,
-                    ),
+                    Text(message, style: widget.theme.successTitleStyle),
                     if (widget.showSessionId) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -180,26 +175,32 @@ class _SuccessOverlayState extends State<SuccessOverlay>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: widget.theme.primaryColor,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                         ),
                         onPressed: () {
                           if (widget.onCaptureImage != null) {
                             widget.onCaptureImage!(widget.sessionId);
                           }
                         },
-                        child:
-                            Text(widget.captureButtonText ?? 'Capture Image'),
+                        child: Text(
+                          widget.captureButtonText ?? 'Capture Image',
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],
                     ElevatedButton(
-                      style: widget.theme.resetButtonStyle ??
+                      style:
+                          widget.theme.resetButtonStyle ??
                           ElevatedButton.styleFrom(
                             backgroundColor: widget.isSuccessful
                                 ? widget.theme.successColor
                                 : widget.theme.primaryColor,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
                           ),
                       onPressed: widget.onReset,
                       child: Text(buttonText),
@@ -257,10 +258,7 @@ class _ChallengeCompletedAnimationState
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
@@ -357,11 +355,7 @@ class _ChallengeCompletedAnimationState
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      icon,
-                      color: Colors.white,
-                      size: widget.size * 0.5,
-                    ),
+                    Icon(icon, color: Colors.white, size: widget.size * 0.5),
                     const SizedBox(height: 8),
                     Text(
                       message,

@@ -1,3 +1,12 @@
+/// Face liveness detection for Flutter.
+///
+/// Verifies that a real person is in front of the camera, not a photo, video
+/// or mask, using ML Kit face detection, randomized challenges (blink, smile,
+/// head turns, nod), optional ARKit 3-D depth analysis, screen-flash
+/// anti-spoofing and face quality scoring.
+///
+/// Start with [LivenessDetectionScreen], or drive detection yourself with
+/// [LivenessController].
 library;
 
 import 'package:camera/camera.dart';
@@ -59,11 +68,28 @@ export 'src/widgets/futuristic_oval_overlay.dart';
 export 'src/widgets/liveness_style_picker.dart';
 
 // Callback types
-typedef LivenessCompletedCallback = void Function(String sessionId, bool isSuccessful, Map<String, dynamic>? metadata);
+typedef LivenessCompletedCallback = void Function(
+  String sessionId,
+  bool isSuccessful,
+  Map<String, dynamic>? metadata,
+);
 typedef ChallengeCompletedCallback = void Function(ChallengeType challengeType);
-typedef FinalImageCapturedCallback = void Function(String sessionId, XFile imageFile, Map<String, dynamic> metadata);
+typedef FinalImageCapturedCallback = void Function(
+  String sessionId,
+  XFile imageFile,
+  Map<String, dynamic> metadata,
+);
 
-typedef FaceDetectedCallback = void Function(ChallengeType challengeType, bool firstChallengePassed, CameraImage image, List<Face> faces, CameraDescription camera);
-typedef FaceNotDetectedCallback = void Function(ChallengeType challengeType, LivenessController controller);
+typedef FaceDetectedCallback = void Function(
+  ChallengeType challengeType,
+  bool firstChallengePassed,
+  CameraImage image,
+  List<Face> faces,
+  CameraDescription camera,
+);
+typedef FaceNotDetectedCallback = void Function(
+  ChallengeType challengeType,
+  LivenessController controller,
+);
 typedef FaceQualityCallback = void Function(FaceQualityResult result);
 typedef BiometricTemplateCallback = void Function(BiometricTemplate template);

@@ -1,15 +1,28 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+
+import 'package:material_ui/material_ui.dart';
+
 import '../theme/futuristic_theme.dart';
 
 /// Background glow that moves and pulses with active item
 class BackgroundGlowPainter extends CustomPainter {
+  /// Horizontal centre of the glow, in logical pixels from the left edge.
   final double activeX;
+
+  /// Number of items across the width; sets the glow radius. Nothing is
+  /// painted when this is 0.
   final int totalItems;
+
+  /// Theme supplying the glow colours.
   final FuturisticTheme theme;
+
+  /// Pulse animation value from 0.0 to 1.0 that drives glow size and opacity.
   final double pulse;
+
+  /// Rotation of the glow's rotating layer around its centre, in radians.
   final double rotation;
 
+  /// Creates a painter for the glow behind the active item.
   BackgroundGlowPainter({
     required this.activeX,
     required this.totalItems,

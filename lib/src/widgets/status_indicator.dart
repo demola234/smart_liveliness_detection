@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smart_liveliness_detection/src/config/theme_config.dart';
 
 /// Widget for displaying status indicators (face detected, lighting, etc.)
@@ -131,24 +131,15 @@ class StatusIndicator extends StatelessWidget {
             transitionBuilder: (Widget child, Animation<double> animation) {
               return ScaleTransition(
                 scale: animation,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
+                child: FadeTransition(opacity: animation, child: child),
               );
             },
-            child: Container(
-              key: ValueKey<bool>(isActive),
-              child: indicator,
-            ),
+            child: Container(key: ValueKey<bool>(isActive), child: indicator),
           )
         : indicator;
 
     if (tooltip != null) {
-      return Tooltip(
-        message: tooltip!,
-        child: result,
-      );
+      return Tooltip(message: tooltip!, child: result);
     } else {
       return result;
     }
@@ -189,16 +180,13 @@ class StatusIndicatorRow extends StatelessWidget {
       mainAxisAlignment: alignment,
       children: indicators.isEmpty
           ? []
-          : List.generate(
-              indicators.length * 2 - 1,
-              (index) {
-                if (index.isEven) {
-                  return indicators[index ~/ 2];
-                } else {
-                  return SizedBox(width: spacing);
-                }
-              },
-            ),
+          : List.generate(indicators.length * 2 - 1, (index) {
+              if (index.isEven) {
+                return indicators[index ~/ 2];
+              } else {
+                return SizedBox(width: spacing);
+              }
+            }),
     );
 
     if (backgroundColor != null) {
@@ -211,10 +199,7 @@ class StatusIndicatorRow extends StatelessWidget {
         child: row,
       );
     } else {
-      return Padding(
-        padding: padding,
-        child: row,
-      );
+      return Padding(padding: padding, child: row);
     }
   }
 }
